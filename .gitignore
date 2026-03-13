@@ -12,6 +12,7 @@
 # Archivos auto-generados de ESP-IDF (¡NUNCA SUBIR EL sdkconfig!)
 # Solo deben subir el sdkconfig.defaults que creamos antes.
 sdkconfig
+sdkconfig.*
 build/
 
 # Archivos temporales de Sistemas Operativos
