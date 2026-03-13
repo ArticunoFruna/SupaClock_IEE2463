@@ -1,0 +1,23 @@
+# .pio
+# .vscode/.browse.c_cpp.db*
+# .vscode/c_cpp_properties.json
+# .vscode/launch.json
+# .vscode/ipch
+# Entorno de PlatformIO
+.pio/
+.vscode/
+*.bin
+*.elf
+
+# Archivos auto-generados de ESP-IDF (¡NUNCA SUBIR EL sdkconfig!)
+# Solo deben subir el sdkconfig.defaults que creamos antes.
+sdkconfig
+build/
+
+# Archivos temporales de Sistemas Operativos
+.DS_Store
+Thumbs.db
+
+# Si luego agregan la carpeta de KiCad, ignoren los backups de hardware
+*-backups/
+*.bck
