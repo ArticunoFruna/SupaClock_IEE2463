@@ -21,7 +21,7 @@
 			(color 0 0 0 0.0000)
 		)
 		(uuid "855ab3c0-4cfc-4a22-a94f-48096d3d3935")
-		(property "Sheetname" "Sensors_sheet"
+		(property "Sheetname" "Top_Sensors_sheet"
 			(at 22.86 17.0684 0)
 			(effects
 				(font
@@ -43,6 +43,48 @@
 			(project "PCB_Prototipo"
 				(path "/e94a28e3-abd7-45ed-8e41-e334e139ce43"
 					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 68.58 17.78)
+		(size 22.86 26.67)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "d2a50a5a-ca54-44d3-897c-b8a4e3672ade")
+		(property "Sheetname" "Bottom_Sensors"
+			(at 68.58 17.0684 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Bottom_sensors.kicad_sch"
+			(at 68.58 45.0346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "PCB_Prototipo"
+				(path "/e94a28e3-abd7-45ed-8e41-e334e139ce43"
+					(page "3")
 				)
 			)
 		)

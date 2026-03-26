@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "SupaclockaLIB")(type "KiCad")(uri "${KIPRJMOD}/SupaclockaLIB.kicad_sym")(options "")(descr ""))
+)
