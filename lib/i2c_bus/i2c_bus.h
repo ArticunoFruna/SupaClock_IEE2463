@@ -18,4 +18,24 @@
  */
 esp_err_t i2c_master_init(void);
 
+/**
+ * @brief Write bytes to I2C device
+ * @param dev_addr the I2C address of the device
+ * @param reg_addr the internal register address to write to
+ * @param data pointer to the data array to write
+ * @param len length of the data to write
+ * @return esp_err_t ESP_OK on success
+ */
+esp_err_t i2c_write_bytes(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+
+/**
+ * @brief Read bytes from I2C device
+ * @param dev_addr the I2C address of the device
+ * @param reg_addr the internal register address to read from
+ * @param data pointer to array to hold read data
+ * @param len number of bytes to read
+ * @return esp_err_t ESP_OK on success
+ */
+esp_err_t i2c_read_bytes(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+
 #endif // I2C_BUS_H

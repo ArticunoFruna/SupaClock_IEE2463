@@ -89,8 +89,18 @@ esp_err_t st7789_init(void) {
 }
 
 void st7789_send_buffer(const uint8_t *buffer, size_t size) {
-    // Requires CASET / RASET window definition before sending.
-    // Example only
+    // Basic implementation for a 240x240 screen without offsets
+    // Setup Column Address Set (CASET)
+    lcd_cmd(spi, ST7789_CASET);
+    uint8_t caset_data[4] = {0x00, 0x00, 0x00, 239};
+    lcd_data(spi, caset_data, 4);
+
+    // Setup Row Address Set (RASET)
+    lcd_cmd(spi, ST7789_RASET);
+    uint8_t raset_data[4] = {0x00, 0x00, 0x00, 239};
+    lcd_data(spi, raset_data, 4);
+
+    // Write RAM
     lcd_cmd(spi, ST7789_RAMWR);
     lcd_data(spi, buffer, size);
 }

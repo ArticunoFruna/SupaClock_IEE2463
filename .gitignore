@@ -22,3 +22,20 @@ Thumbs.db
 # Si luego agregan la carpeta de KiCad, ignoren los backups de hardware
 *-backups/
 *.bck
+
+# Firebase
+firebase/firebase-debug.log
+firebase/firebase-debug.*.log
+firebase/functions/venv/
+firebase/.firebase/
+*firebase/
+
+# Flutter
+app/.dart_tool/
+app/.packages
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/android/.gradle/
+app/android/local.properties
+*app/

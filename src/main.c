@@ -1,77 +1,53 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
 #include "esp_log.h"
-#include "esp_system.h"
+#include "i2c_bus.h"
+#include "max30205.h"
 
-static const char *TAG = "SupaClock";
+static const char *TAG = "SupaClock_Main";
 
-// Declaración de manejadores (Handles)
-SemaphoreHandle_t i2c_bus_mutex = NULL;
-QueueHandle_t telemetry_queue = NULL;
+void temp_sensor_task(void *pvParameters) {
+    ESP_LOGI(TAG, "Initializing MAX30205 Temperature Sensor...");
+    
+    // Allow sensor to power up fully
+    vTaskDelay(pdMS_TO_TICKS(100));
 
-void task_acquisition_handler(void *pvParameters) {
+    if (max30205_init() == ESP_OK) {
+        ESP_LOGI(TAG, "MAX30205 Initialized Successfully!");
+    } else {
+        ESP_LOGE(TAG, "Failed to initialize MAX30205. Check wiring.");
+    }
+
+    float temp_c = 0.0;
+
     while (1) {
-        // Muestreo de sensores I2C y ADC por DMA (ECG)
-        // Ejemplo: Bloqueando el Mutex para usar el bus I2C
-        if (xSemaphoreTake(i2c_bus_mutex, portMAX_DELAY) == pdTRUE) {
-            // Leer MAX30102, BMI160, etc...
-            xSemaphoreGive(i2c_bus_mutex);
+        if (max30205_read_temperature(&temp_c) == ESP_OK) {
+            ESP_LOGI(TAG, "Body Temperature: %.2f °C", temp_c);
+        } else {
+            ESP_LOGW(TAG, "Failed to read temperature");
         }
-        vTaskDelay(pdMS_TO_TICKS(10)); // ~100 Hz
-    }
-}
-
-void task_processing_handler(void *pvParameters) {
-    while (1) {
-        // Procesamiento Edge AI (TinyML) y algoritmo podómetro
-        vTaskDelay(pdMS_TO_TICKS(50)); // ~20 Hz
-    }
-}
-
-void task_gui_handler(void *pvParameters) {
-    while (1) {
-        // Renderizado LCD (Dashboard, Bio, ECG, Menú) y lectura de botones
-        vTaskDelay(pdMS_TO_TICKS(50)); // ~20 FPS 
-    }
-}
-
-void task_ble_handler(void *pvParameters) {
-    while (1) {
-        // Enviar a la app móvil por Bluetooth Low Energy 
-        vTaskDelay(pdMS_TO_TICKS(1000)); // ~1 Hz telemetría normal
+        
+        // Muestreo a 1 Hz (Modo Rendimiento Normal)
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
 void app_main(void) {
-    ESP_LOGI(TAG, "=============== SupaClock FW v0.1 ===============");
+    ESP_LOGI(TAG, "--- SupaClock Booting... ---");
+    ESP_LOGI(TAG, "Free Heap at Boot: %lu bytes", esp_get_free_heap_size());
 
-    // Inicialización de IPC (Mutexes y Colas)
-    i2c_bus_mutex = xSemaphoreCreateMutex();
-    if (i2c_bus_mutex == NULL) {
-        ESP_LOGE(TAG, "Error al crear el Mutex del bus I2C");
+    // 1. Inicializar el bus I2C Maestro (GPIO 8 y 9 por defecto en la lib)
+    if (i2c_master_init() != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize I2C Master Bus!");
+        return;
     }
+    ESP_LOGI(TAG, "I2C Bus Ready.");
 
-    telemetry_queue = xQueueCreate(10, sizeof(uint32_t)); // Placeholder payload
-    if (telemetry_queue == NULL) {
-        ESP_LOGE(TAG, "Error al crear la cola de telemetría");
-    }
-
-    ESP_LOGI(TAG, "Creando tareas de RTOS...");
-
-    // 1. Tarea de Adquisición (Prioridad Alta)
-    xTaskCreatePinnedToCore(task_acquisition_handler, "task_acquisition", 4096, NULL, 5, NULL, 0);
-
-    // 2. Tarea de Procesamiento Edge (Prioridad Media)
-    xTaskCreatePinnedToCore(task_processing_handler, "task_processing", 8192, NULL, 3, NULL, 0);
-
-    // 3. Tarea de Interfaz Gráfica (Prioridad Media-Baja)
-    xTaskCreatePinnedToCore(task_gui_handler, "task_gui", 4096, NULL, 2, NULL, 0);
-
-    // 4. Tarea de Comunicación BLE (Prioridad Baja)
-    xTaskCreatePinnedToCore(task_ble_handler, "task_ble", 4096, NULL, 1, NULL, 0);
-
-    ESP_LOGI(TAG, "Sistema base cargado exitosamente.");
+    // 2. Crear la tarea para la telemetría del MAX30205
+    // Asignamos 4 KB (es un stack size seguro para floats y logs de EPS-IDF) y prioridad media (5)
+    xTaskCreate(temp_sensor_task, "TempSensorTask", 4096, NULL, 5, NULL);
+    
+    // main task can finish here or do other things; FreeRTOS keeps running the spawned task
+    ESP_LOGI(TAG, "Scheduler running...");
 }
