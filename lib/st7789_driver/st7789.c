@@ -1,5 +1,6 @@
 #include "st7789.h"
 #include "driver/gpio.h"
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
