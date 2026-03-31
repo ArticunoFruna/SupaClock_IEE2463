@@ -13,6 +13,8 @@
 #define MAX30205_REG_THYST          0x02
 #define MAX30205_REG_TOS            0x03
 
+// Constants
+#define MAX30205_TEMP_RESOLUTION    0.00390625f
 /**
  * @brief Initialize MAX30205 sensor
  * @return esp_err_t ESP_OK on success
