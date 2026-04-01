@@ -35,9 +35,9 @@ int32_t mySeek(JPEGFILE *pFile, int32_t iPosition) {
 
 // Callback asincrono para mandar "bloques" (MCUs) 16x16 de la foto decodificada
 int JPEGDraw(JPEGDRAW *pDraw) {
-    // La libreria nos va mandando cuadritos. Los envíamos directo al ST7789 a 80MHz sin guardar en RAM la imagen entera
+    // La libreria nos va mandando cuadritos. Los envíamos directo al ST7789 sin guardar en RAM la imagen entera para ahorrar memoria
     st7789_draw_bitmap(pDraw->x, pDraw->y, pDraw->iWidth, pDraw->iHeight, pDraw->pPixels);
-    return 1; // 1 = seguir decodificando
+    return 1; // Para seguir decodificando
 }
 
 static void init_spiffs() {
