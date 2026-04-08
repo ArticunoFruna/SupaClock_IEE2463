@@ -1,0 +1,107 @@
+\documentclass[tikz,border=1cm]{standalone}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[
+    letterpaper,
+    top=1.5cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm
+]{geometry}
+
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc, babel}
+\usepackage{ifpdf}
+\usepackage{blindtext}
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{titlesec}
+\usepackage[export]{adjustbox}
+\usepackage{imakeidx}
+\usepackage{parskip}
+\usepackage[numbers]{natbib}
+
+\usepackage{ragged2e}
+\usepackage{setspace}
+\usepackage{array}
+\usepackage{longtable}
+
+% Definición de un nuevo tipo de columna para evitar "Underfull \hbox" en tablas
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\hypersetup{colorlinks=false,bookmarksopen=true,linkbordercolor={1 1 1}}
+
+\newcommand{\rfigura}[1]{Fig.\ref{#1}}
+\newcommand{\rtabla}[1]{Tabla \ref{#1}}
+
+% Datos del informe
+\newcommand{\Curso}{IEE2913 --- Diseño Eléctrico (Capstone)}
+\newcommand{\TituloInforme}{Informe de Avance 1 (5\%)}
+\newcommand{\NumeroGrupo}{10}
+\newcommand{\NombreProyecto}{SupaClock: Wearable Biométrico Modular}
+\newcommand{\Integrantes}{Tomás Avendaño, Benjamín Sepúlveda, Pablo Uribe}
+\newcommand{\FechaEntrega}{7 de abril de 2026}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+  captionpos=b,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  language=C,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red!70!black}
+}
+
+
+\begin{document}
+\begin{tikzpicture}[
+            node distance=1.5cm and 2.0cm,
+            task/.style={rectangle, rounded corners, draw=black, thick, fill=blue!15, text width=3.0cm, align=center, minimum height=1.5cm, font=\small\bfseries},
+            queue/.style={rectangle, draw=black!70, dashed, fill=yellow!15, text width=3.5cm, align=center, minimum height=1cm, font=\footnotesize},
+            hw/.style={rectangle, draw=black, thick, fill=gray!20, text width=2.5cm, align=center, minimum height=1.0cm, font=\footnotesize},
+            arrow/.style={thick, ->, >=stealth},
+            data/.style={thick, ->, >=stealth, blue!70, dashed}
+            ]
+            
+            % Tasks
+            \node[task] (tsensor) {TaskSensor\\(Prioridad Alta)};
+            \node[task, right=3.5cm of tsensor] (tdisplay) {TaskDisplay\\(Prioridad Media)};
+            \node[task, below=2cm of tsensor, fill=purple!10, dashed] (tble) {TaskBLE\\(Inactiva/Futuro)};
+            
+            % Queues
+            \node[queue] (qdata) at ($(tsensor)!0.5!(tdisplay)$) {xQueue\\(Datos de Sensores)};
+            
+            % HW
+            \node[hw, above=1.5cm of tsensor] (i2c_hw) {Bus I2C\\(ej. MAX30205)};
+            \node[hw, above=1.5cm of tdisplay] (spi_hw) {Bus SPI\\(ST7789)};
+            
+            % Connections
+            \draw[arrow] (i2c_hw) -- node[left, font=\scriptsize] {Polling 50Hz} (tsensor);
+            \draw[data] (tsensor) -- node[above, font=\scriptsize] {Temp} (qdata);
+            \draw[data] (qdata) -- node[above, font=\scriptsize] {Lectura} (tdisplay);
+            \draw[arrow] (tdisplay) -- node[right, font=\scriptsize] {LVGL Flush} (spi_hw);
+            
+            \draw[data, bend right] (tsensor.south) to node[right, font=\scriptsize] {Datos (Futuro)} (tble.north);
+            
+        \end{tikzpicture}
+\end{document}

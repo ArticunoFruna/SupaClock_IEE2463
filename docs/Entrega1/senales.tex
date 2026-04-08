@@ -1,0 +1,151 @@
+\documentclass[tikz,margin=3mm]{standalone}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[
+    letterpaper,
+    top=1.5cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm
+]{geometry}
+
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc, babel}
+\usepackage{ifpdf}
+\usepackage{blindtext}
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{titlesec}
+\usepackage[export]{adjustbox}
+\usepackage{imakeidx}
+\usepackage{parskip}
+\usepackage[numbers]{natbib}
+
+\usepackage{ragged2e}
+\usepackage{setspace}
+\usepackage{array}
+\usepackage{longtable}
+
+% Definición de un nuevo tipo de columna para evitar "Underfull \hbox" en tablas
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\hypersetup{colorlinks=false,bookmarksopen=true,linkbordercolor={1 1 1}}
+
+\newcommand{\rfigura}[1]{Fig.\ref{#1}}
+\newcommand{\rtabla}[1]{Tabla \ref{#1}}
+
+% Datos del informe
+\newcommand{\Curso}{IEE2913 --- Diseño Eléctrico (Capstone)}
+\newcommand{\TituloInforme}{Informe de Avance 1 (5\%)}
+\newcommand{\NumeroGrupo}{10}
+\newcommand{\NombreProyecto}{SupaClock: Wearable Biométrico Modular}
+\newcommand{\Integrantes}{Tomás Avendaño, Benjamín Sepúlveda, Pablo Uribe}
+\newcommand{\FechaEntrega}{7 de abril de 2026}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+  captionpos=b,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  language=C,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red!70!black}
+}
+
+
+\begin{document}
+\begin{tikzpicture}[
+                node distance=0.8cm and 1.2cm,
+                mcu/.style={rectangle, rounded corners, draw=black, very thick, fill=blue!12, text width=3.5cm, align=center, minimum height=2cm, font=\small\bfseries},
+                sensor/.style={rectangle, rounded corners, draw=black, thick, fill=green!12, text width=2.5cm, align=center, minimum height=1cm, font=\footnotesize},
+                iface/.style={rectangle, rounded corners, draw=black, thick, fill=cyan!12, text width=2.5cm, align=center, minimum height=1cm, font=\footnotesize},
+                input/.style={rectangle, rounded corners, draw=black, thick, fill=orange!12, text width=2.2cm, align=center, minimum height=0.9cm, font=\footnotesize},
+                bus/.style={rectangle, draw=black, fill=yellow!15, text width=1.8cm, align=center, minimum height=0.7cm, font=\scriptsize\bfseries},
+                arrow/.style={thick, ->, >=stealth},
+                busline/.style={thick, blue!70},
+                legend/.style={rectangle, draw=black!50, fill=white, inner sep=5pt, font=\scriptsize}
+            ]%
+            % MCU central
+            \node[mcu] (mcu) {ESP32-C3/S3\\FreeRTOS\\(160/240 MHz)};
+            %
+            % === BUS I2C (izquierda) ===
+            \node[bus, fill=blue!15, left=3.5cm of mcu, yshift=0.5cm] (i2c_bus) {Bus I2C\\400 kHz};
+            \node[sensor, left=1.0cm of i2c_bus, yshift=1.8cm] (ppg) {MAX30102\\PPG (SpO2/HR)\\{\scriptsize\texttt{0x57}}};
+            \node[sensor, left=1.0cm of i2c_bus, yshift=0.6cm] (temp) {MAX30205\\Temperatura\\{\scriptsize\texttt{0x48}}};
+            \node[sensor, left=1.0cm of i2c_bus, yshift=-0.6cm] (imu) {BMI160\\IMU 6-ejes\\{\scriptsize\texttt{0x68}}};
+            \node[sensor, left=1.0cm of i2c_bus, yshift=-1.8cm] (fuel) {MAX17048\\Fuel Gauge\\{\scriptsize\texttt{0x36}}};
+            %
+            % Conexiones I2C
+            \draw[busline] (ppg.east) -- (i2c_bus.west |- ppg.east);
+            \draw[busline] (temp.east) -- (i2c_bus.west |- temp.east);
+            \draw[busline] (imu.east) -- (i2c_bus.west |- imu.east);
+            \draw[busline] (fuel.east) -- (i2c_bus.west |- fuel.east);
+            \draw[busline, thick] (i2c_bus.west |- ppg.east) -- (i2c_bus.west |- fuel.east); % TRONCAL I2C
+            \draw[arrow, blue!70, line width=1.5pt] (i2c_bus.east) -- node[above, font=\scriptsize] {SDA/SCL} (mcu.west |- i2c_bus.east);
+            %
+            % === BUS SPI (arriba) ===
+            \node[bus, fill=cyan!15, above=2.5cm of mcu] (spi_bus) {Bus SPI\\80 MHz};
+            \node[iface, left=1.5cm of spi_bus] (lcd) {ST7789\\LCD 240$\times$280\\RGB565};
+            \draw[arrow, cyan!70, line width=1.5pt] (mcu.north) -- node[right, font=\scriptsize] {MOSI/SCK/CS/DC/RST} (spi_bus.south);
+            \draw[arrow, cyan!70] (spi_bus.west) -- (lcd.east);
+            %
+            % === ADC (derecha-arriba) ===
+            \node[sensor, fill=orange!12, right=4cm of mcu, yshift=1cm] (ecg) {AD8232\\ECG Analógico};
+            \draw[arrow, orange!80!black, line width=1.5pt] (ecg.west) -- node[above=0.1cm, font=\scriptsize] {ADC (GPIO 0)} (mcu.east |- ecg.west);
+            %
+            % === GPIO (derecha-abajo) ===
+            \node[input, right=4cm of mcu, yshift=-0.5cm] (btn1) {Botón Seleccionar\\GPIO 10};
+            \node[input, below=0.3cm of btn1] (btn2) {Botón Arriba\\GPIO 20};
+            \node[input, below=0.3cm of btn2] (btn3) {Botón Abajo\\GPIO 21};
+            \node[input, below=0.3cm of btn3] (int_imu) {INT1 BMI160\\GPIO 1};
+            %
+            \draw[arrow, orange!60] (btn1.west) -- ++(-1.1,0) |- ([yshift=0.0cm]mcu.east);
+            \draw[arrow, orange!60] (btn2.west) -- ++(-1.3,0) |- ([yshift=-0.2cm]mcu.east);
+            \draw[arrow, orange!60] (btn3.west) -- ++(-1.5,0) |- ([yshift=-0.4cm]mcu.east);
+            \draw[arrow, orange!60, dashed] (int_imu.west) -- ++(-1.7,0) |- ([yshift=-0.6cm]mcu.east);
+            %
+            % Etiquetas de dominio
+            \begin{scope}[on background layer]
+                \node[rectangle, draw=blue!40, dashed, rounded corners, inner sep=0.25cm, fill=blue!3,
+                      fit=(ppg) (temp) (imu) (fuel) (i2c_bus),
+                      label={[font=\scriptsize\bfseries]above:Dominio I2C}] {};
+                \node[rectangle, draw=cyan!40, dashed, rounded corners, inner sep=0.25cm, fill=cyan!3,
+                      fit=(spi_bus) (lcd),
+                      label={[font=\scriptsize\bfseries]above:Dominio SPI}] {};
+                \node[rectangle, draw=orange!40, dashed, rounded corners, inner sep=0.25cm, fill=orange!3,
+                      fit=(btn1) (btn2) (btn3) (int_imu) (ecg),
+                      label={[font=\scriptsize\bfseries]above:GPIO / ADC}] {};
+            \end{scope}
+            %
+            % Leyenda
+            \node[legend, below=0.5cm of int_imu, xshift=-4.5cm] (leg) {
+                \begin{tabular}{cl}
+                    \tikz\draw[blue!70, thick, ->] (0,0.1) -- (0.4,0.1);            & Bus I2C (bidireccional, 400 kHz) \\
+                    \tikz\draw[cyan!70, thick, ->] (0,0.1) -- (0.4,0.1);            & Bus SPI (unidireccional, 80 MHz) \\
+                    \tikz\draw[orange!80!black, thick, ->] (0,0.1) -- (0.4,0.1);    & Señal analógica (ADC)            \\
+                    \tikz\draw[orange!60, thick, ->] (0,0.1) -- (0.4,0.1);          & Entrada digital (GPIO)           \\
+                    \tikz\draw[orange!60, thick, dashed, ->] (0,0.1) -- (0.4,0.1);  & Interrupción hardware (ISR)      \\
+                \end{tabular}
+            };
+        \end{tikzpicture}
+\end{document}

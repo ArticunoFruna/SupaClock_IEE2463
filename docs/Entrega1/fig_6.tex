@@ -1,0 +1,109 @@
+\documentclass[tikz,border=1cm]{standalone}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[
+    letterpaper,
+    top=1.5cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm
+]{geometry}
+
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc, babel}
+\usepackage{ifpdf}
+\usepackage{blindtext}
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{titlesec}
+\usepackage[export]{adjustbox}
+\usepackage{imakeidx}
+\usepackage{parskip}
+\usepackage[numbers]{natbib}
+
+\usepackage{ragged2e}
+\usepackage{setspace}
+\usepackage{array}
+\usepackage{longtable}
+
+% Definición de un nuevo tipo de columna para evitar "Underfull \hbox" en tablas
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\hypersetup{colorlinks=false,bookmarksopen=true,linkbordercolor={1 1 1}}
+
+\newcommand{\rfigura}[1]{Fig.\ref{#1}}
+\newcommand{\rtabla}[1]{Tabla \ref{#1}}
+
+% Datos del informe
+\newcommand{\Curso}{IEE2913 --- Diseño Eléctrico (Capstone)}
+\newcommand{\TituloInforme}{Informe de Avance 1 (5\%)}
+\newcommand{\NumeroGrupo}{10}
+\newcommand{\NombreProyecto}{SupaClock: Wearable Biométrico Modular}
+\newcommand{\Integrantes}{Tomás Avendaño, Benjamín Sepúlveda, Pablo Uribe}
+\newcommand{\FechaEntrega}{7 de abril de 2026}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+  captionpos=b,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  language=C,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red!70!black}
+}
+
+
+\begin{document}
+\begin{tikzpicture}[
+            node distance=0.8cm and 1.2cm,
+            block/.style={rectangle, draw=black, thick, fill=white, text width=2.5cm, align=center, minimum height=1.2cm, font=\footnotesize},
+            arrow/.style={thick, ->, >=stealth},
+            stage/.style={font=\scriptsize\bfseries, blue!80!black}
+            ]
+            
+            % Blocks
+            \node[block, fill=green!15] (sensor) {Sensores\\(AD8232 / MAX30102)};
+            \node[block, fill=blue!15, right=0.8cm of sensor] (adc) {MCU (ESP32-C3)\\+ Buffer Circular};
+            \node[block, fill=cyan!15, right=0.8cm of adc] (ble) {Gateway BLE\\MTU 247 Bytes};
+            \node[block, fill=orange!20, right=0.8cm of ble] (app) {App Móvil\\(Flutter)};
+            \node[block, fill=red!10, right=0.8cm of app] (cloud) {Cloud Firestore\\+ Functions};
+            
+            % Labels
+            \node[stage, above=0.3cm of sensor] {1. Adquisición};
+            \node[stage, above=0.3cm of adc] {2. Digitalización};
+            \node[stage, above=0.3cm of ble] {3. Transmisión};
+            \node[stage, above=0.3cm of app] {4. Recepción};
+            \node[stage, above=0.3cm of cloud] {5. Procesamiento Nube};
+            
+            % Arrows
+            \draw[arrow] (sensor) -- node[above, font=\scriptsize] {ADC / I2C} (adc);
+            \draw[arrow] (adc) -- node[above, font=\scriptsize] {Notificaciones} (ble);
+            \draw[arrow] (ble) -- node[above, font=\scriptsize] {GATT} (app);
+            \draw[arrow] (app) -- node[above, font=\scriptsize] {REST / Wi-Fi} (cloud);
+            
+            % Decorator (Pan-Tompkins)
+            \node[below=0.6cm of cloud, font=\scriptsize, align=center, draw=black!40, dashed, fill=red!5, inner sep=0.2cm] (algo) {\textbf{Algoritmo Pan-Tompkins}\\Filtro Pasa-Banda\\Detección Picos R};
+            \draw[->, >=stealth, dashed, thick] (cloud) -- (algo);
+            
+        \end{tikzpicture}
+\end{document}
