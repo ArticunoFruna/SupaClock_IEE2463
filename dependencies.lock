@@ -17,4 +17,4 @@ direct_dependencies:
 - espressif/esp_jpeg
 manifest_hash: 879afac521ceef72dc2aca66f6330750fb7c838a42514e5940d4f356e77d588d
 target: esp32c3
-version: 3.0.0
+version: 2.0.0

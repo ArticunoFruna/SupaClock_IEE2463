@@ -2,7 +2,7 @@
 #define AD8232_H
 
 #include <stdint.h>
-#include "esp_err.h"
+#include "esp_err.h" 
 
 #define AD8232_ADC_CHANNEL 0 // ADC1_CH0 is GPIO0 on ESP32-C3
 

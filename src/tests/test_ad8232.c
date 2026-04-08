@@ -5,7 +5,7 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-static const char *TAG = "Test_AD8232";
+static const char *TAG = "Test_AD8232"; 
 
 void ecg_task(void *pvParameters) {
     ESP_LOGI(TAG, "Init Circuito Front-end ECG AD8232...");

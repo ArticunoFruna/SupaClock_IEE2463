@@ -8,20 +8,22 @@
 static const char *TAG_MAX = "MAX30205";
 
 esp_err_t max30205_init(void) {
-    // El sensor requiere al menos 50ms para completar su Power-On Reset [cite: 57]
+    // El sensor requiere al menos 50ms para completar su Power-On Reset
     vTaskDelay(pdMS_TO_TICKS(100)); 
     
     uint8_t data[2];
     esp_err_t err = ESP_OK;
 
-    // Aunque este módulo ignora el comando, es buena práctica enviar 
-    // la secuencia completa de escritura (Registro + Dato) [cite: 371]
     data[0] = MAX30205_REG_CONFIGURATION;
+    
+    // Configuramos el registro para utilizar la lectura extendida
+    // Sin embargo, está siendo omitido por el sensor  
     data[1] = 0x00; // Intento de forzar formato normal
     
-    err = i2c_master_write_to_device(I2C_MASTER_NUM, MAX30205_I2C_ADDR, data, 2, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    err = i2c_master_write_to_device(I2C_MASTER_NUM, MAX30205_I2C_ADDR, data, 2, 
+        I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
     
-    if (err == ESP_OK) {
+    if (err == ESP_OK) {  
         ESP_LOGI(TAG_MAX, "MAX30205 inicializado correctamente en el bus I2C.");
     } else {
         ESP_LOGE(TAG_MAX, "Error al inicializar el MAX30205: %s", esp_err_to_name(err));
@@ -34,16 +36,18 @@ esp_err_t max30205_read_temperature(float *temp_c) {
     uint8_t reg = MAX30205_REG_TEMPERATURE;
     uint8_t data[2];
     
-    // Leer 2 bytes del registro de temperatura [cite: 437]
-    esp_err_t err = i2c_master_write_read_device(I2C_MASTER_NUM, MAX30205_I2C_ADDR, &reg, 1, data, 2, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    // Leer 2 bytes del registro de temperatura 
+    esp_err_t err = i2c_master_write_read_device(I2C_MASTER_NUM, MAX30205_I2C_ADDR, 
+        &reg, 1, data, 2, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
     
     if (err == ESP_OK) {
-        // Combinar los bytes para formar el entero de 16 bits en complemento a dos [cite: 437-438]
+        // Dado que la señal está siendo recibida en modo extendido, formamos la lectura de temperatura
+        // Combinar los bytes para formar el entero de 16 bits en complemento a dos 
         int16_t raw_temp = (data[0] << 8) | data[1];
         
         // --- PARCHE DE HARDWARE PARA FORMATO EXTENDIDO ---
         // Como el sensor ignora el bit D5 y arroja formato extendido, 
-        // multiplicamos por el LSB (0.00390625°C) y sumamos 64°C[cite: 521].
+        // multiplicamos por el LSB (0.00390625°C) y sumamos 64°C 
         *temp_c = (raw_temp * MAX30205_TEMP_RESOLUTION) + 64.0f; 
         
         // Descomenta la siguiente línea si necesitas debuggear los valores crudos

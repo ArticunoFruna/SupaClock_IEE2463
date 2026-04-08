@@ -8,6 +8,7 @@
 static const char *TAG = "ST7789_Driver";
 static spi_device_handle_t spi;
 
+//Función para enviar comandos a la pantalla 
 static void lcd_cmd(spi_device_handle_t spi, const uint8_t cmd) {
     esp_err_t ret;
     spi_transaction_t t;
@@ -17,34 +18,39 @@ static void lcd_cmd(spi_device_handle_t spi, const uint8_t cmd) {
     t.user = (void*)0; // D/C = 0 for command
     gpio_set_level(ST7789_DC_PIN, 0);
     ret = spi_device_polling_transmit(spi, &t);
-    // ESP_LOGD(TAG, "CMD: 0x%02X", cmd); // Descomentar para debug ultra-verboso
+    // ESP_LOGD(TAG, "CMD: 0x%02X", cmd); // Descomentar para debug 
     assert(ret==ESP_OK);
 }
 
+//Función para enviar data a la pantalla 
 static void lcd_data(spi_device_handle_t spi, const uint8_t *data, int len) {
     esp_err_t ret;
     spi_transaction_t t;
-    if (len == 0) return;
-    memset(&t, 0, sizeof(t));
+    if (len == 0) return; //Si no enviamos nada
+        memset(&t, 0, sizeof(t)); //Implica que queremos registrar algo en la memoria
+
     t.length = len * 8;
     t.tx_buffer = data;
     t.user = (void*)1; // D/C = 1 for data
     gpio_set_level(ST7789_DC_PIN, 1);
+    //Enviamos los datos y esperamos que el dispositivo responda  
     ret = spi_device_polling_transmit(spi, &t);
     assert(ret==ESP_OK);
 }
 
 static void set_addr_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
     // Compensacion interna para pantallas 1.69" de 240x280 (RAM interna de 320)
-    uint16_t y_offset = 20;
+    uint16_t y_offset = 20; //Sumamos un offset dado que la RAM es de 320x320
     y0 += y_offset;
     y1 += y_offset;
 
     lcd_cmd(spi, ST7789_CASET);
+    // Limites del eje x 
     uint8_t caset_data[4] = { x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF };
     lcd_data(spi, caset_data, 4);
-
     lcd_cmd(spi, ST7789_RASET);
+
+    //Limites del eje y
     uint8_t raset_data[4] = { y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF };
     lcd_data(spi, raset_data, 4);
 
@@ -83,6 +89,7 @@ esp_err_t st7789_init(void) {
         .queue_size = 7
     };
 
+    //Inicializamos el SPI indicando el puerto que controla el bus, su config y la dirección de la DMA
     ret = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error inicializando bus SPI: %s", esp_err_to_name(ret));
@@ -94,7 +101,7 @@ esp_err_t st7789_init(void) {
         ESP_LOGE(TAG, "Error añadiendo disp. SPI: %s", esp_err_to_name(ret));
     }
     ESP_ERROR_CHECK(ret);
-
+/*------------------------------------------- INCIALIZACIÓN DE LA PANTALLA -------------------------------------------*/
     // Hardware Reset
     ESP_LOGI(TAG, "Ejecutando Hardware Reset");
     gpio_set_level(ST7789_RST_PIN, 0);
@@ -137,6 +144,7 @@ esp_err_t st7789_init(void) {
     return ESP_OK;
 }
 
+// Envío de buffer a la pantalla
 void st7789_send_buffer(const uint8_t *buffer, size_t size) {
     set_addr_window(0, 0, 239, 279);
     
@@ -145,7 +153,7 @@ void st7789_send_buffer(const uint8_t *buffer, size_t size) {
     size_t chunk_size = 240 * 40 * 2;
     size_t offset = 0;
     
-    while (offset < size) {
+    while (offset < size) { //Limitamos la memoria
         size_t current_chunk = (size - offset > chunk_size) ? chunk_size : (size - offset);
         lcd_data(spi, buffer + offset, current_chunk);
         offset += current_chunk;

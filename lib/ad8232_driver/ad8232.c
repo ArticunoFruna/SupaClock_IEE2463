@@ -5,7 +5,7 @@ static adc_oneshot_unit_handle_t adc1_handle;
 
 esp_err_t ad8232_init(void) {
     adc_oneshot_unit_init_cfg_t init_config1 = {
-        .unit_id = ADC_UNIT_1,
+        .unit_id = ADC_UNIT_1, 
     };
     esp_err_t err = adc_oneshot_new_unit(&init_config1, &adc1_handle);
     if (err != ESP_OK) return err;
