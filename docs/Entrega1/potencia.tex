@@ -1,0 +1,132 @@
+\documentclass[tikz,margin=3mm]{standalone}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[
+    letterpaper,
+    top=1.5cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm
+]{geometry}
+
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc, babel}
+\usepackage{ifpdf}
+\usepackage{blindtext}
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{titlesec}
+\usepackage[export]{adjustbox}
+\usepackage{imakeidx}
+\usepackage{parskip}
+\usepackage[numbers]{natbib}
+
+\usepackage{ragged2e}
+\usepackage{setspace}
+\usepackage{array}
+\usepackage{longtable}
+
+% Definición de un nuevo tipo de columna para evitar "Underfull \hbox" en tablas
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\hypersetup{colorlinks=false,bookmarksopen=true,linkbordercolor={1 1 1}}
+
+\newcommand{\rfigura}[1]{Fig.\ref{#1}}
+\newcommand{\rtabla}[1]{Tabla \ref{#1}}
+
+% Datos del informe
+\newcommand{\Curso}{IEE2913 --- Diseño Eléctrico (Capstone)}
+\newcommand{\TituloInforme}{Informe de Avance 1 (5\%)}
+\newcommand{\NumeroGrupo}{10}
+\newcommand{\NombreProyecto}{SupaClock: Wearable Biométrico Modular}
+\newcommand{\Integrantes}{Tomás Avendaño, Benjamín Sepúlveda, Pablo Uribe}
+\newcommand{\FechaEntrega}{7 de abril de 2026}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+  captionpos=b,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  language=C,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red!70!black}
+}
+
+
+\begin{document}
+\begin{tikzpicture}[
+                node distance=1.0cm and 1.5cm,
+                block/.style={rectangle, rounded corners, draw=black, thick, fill=yellow!15, text width=2.8cm, align=center, minimum height=1.2cm, font=\footnotesize},
+                consumer/.style={rectangle, rounded corners, draw=black, thick, fill=blue!10, text width=2.2cm, align=center, minimum height=0.9cm, font=\footnotesize},
+                arrow/.style={thick, ->, >=stealth, red!70},
+                dataarrow/.style={thick, ->, >=stealth, blue!60},
+                legend/.style={rectangle, draw=black!50, fill=white, inner sep=5pt, font=\scriptsize}
+            ]%
+            % Fuente
+            \node[block, fill=gray!15] (usbc) {USB-C\\5V Entrada};
+            \node[block, right=1.5cm of usbc] (bms) {BMS TP4056\\+ DW01A};
+            \node[block, right=2.5cm of bms] (lipo) {Batería LiPo\\3.7V, 250 mAh};
+            \node[block, below=1.2cm of bms] (ldo) {LDO ME6211\\3.3V Salida};
+            \node[block, fill=green!12, below=1.2cm of lipo] (fuel) {Fuel Gauge\\MAX17048};
+            %
+            % Consumidores (dominio 3.3V)
+            \node[consumer, below=1.5cm of ldo, xshift=-3.5cm] (c_mcu) {ESP32-C3/S3\\(MCU)};
+            \node[consumer, right=0.5cm of c_mcu] (c_lcd) {ST7789\\(Pantalla)};
+            \node[consumer, right=0.5cm of c_lcd] (c_ppg) {MAX30102\\(PPG)};
+            \node[consumer, right=0.5cm of c_ppg] (c_temp) {MAX30205\\(Temp)};
+            \node[consumer, right=0.5cm of c_temp] (c_imu) {BMI160\\(IMU)};
+            \node[consumer, right=0.5cm of c_imu] (c_ecg) {AD8232\\(ECG)};
+            %
+            % Grupo dominio 3.3V
+            \begin{scope}[on background layer]
+                \node[rectangle, draw=black!40, dashed, rounded corners, inner sep=0.3cm, fill=blue!3,
+                      fit=(c_mcu) (c_lcd) (c_ppg) (c_temp) (c_imu) (c_ecg),
+                      label={[font=\scriptsize\bfseries, fill=white, inner sep=2pt]below:Dominio Lógico 3.3V}] (domain) {};
+            \end{scope}
+            %
+            % Conexiones de potencia
+            \draw[arrow] (usbc) -- node[above, font=\scriptsize] {5V} (bms);
+            \draw[arrow, <->] (bms) -- node[above, font=\scriptsize] {Carga / Descarga} (lipo);
+            \draw[arrow] (bms.south) -- node[right, font=\scriptsize] {OUT (3.0--4.2V)} (ldo.north);
+            \draw[arrow, line width=1.5pt] (ldo.south) -- node[left, font=\scriptsize\bfseries] {3.3V} ++(0,-0.3) coordinate (spine);
+            %
+            % Fuel Gauge monitoreo
+            \draw[dataarrow] (lipo.south) -- node[right, font=\scriptsize] {V\_CELL} (fuel.north);
+            \path (c_ecg.east) ++(0.8cm, 0) coordinate (far_right);
+            \path (c_mcu.south) ++(0, -1.0cm) coordinate (under_mcu);
+            \draw[dataarrow, dashed] (fuel.east) -| (far_right) |- (under_mcu) node[pos=0.75, below, font=\scriptsize] {I2C (SoC\%)} -| (c_mcu.south);
+            %
+            % LDO a consumidores
+            \foreach \node in {c_mcu, c_lcd, c_ppg, c_temp, c_imu, c_ecg} {
+                \draw[arrow, red!40, thin] (spine) -| (\node.north);
+            }
+            %
+            % Leyenda
+            \node[legend, below=1.2cm of domain] (leg) {
+                \begin{tabular}{cl}
+                    \tikz\draw[red!70, thick, ->] (0,0.1) -- (0.4,0.1);   & Flujo de potencia \\
+                    \tikz\draw[blue!60, thick, ->] (0,0.1) -- (0.4,0.1);  & Señal de datos    \\
+                \end{tabular}
+            };
+        \end{tikzpicture}
+\end{document}
