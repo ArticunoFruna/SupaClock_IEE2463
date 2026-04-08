@@ -24,6 +24,8 @@
 \citation{har_tinyml}
 \citation{encuesta_af}
 \citation{obesidad_chile}
+\citation{Kushlev2016,Pielot2014}
+\citation{Shin2019}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Contexto y Objetivos}{5}{section.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {2}Posibles soluciones ante la problemática}{5}{section.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Peto deportivo inteligente}{5}{subsection.2.1}\protected@file@percent }
@@ -33,7 +35,6 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Dispositivo \textit  {wearable} tipo \textit  {smartband}}{6}{subsection.2.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textit  {Smartband} comercial de referencia}}{6}{figure.caption.2}\protected@file@percent }
 \newlabel{fig:smartband}{{2}{6}{\textit {Smartband} comercial de referencia}{figure.caption.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Propuesta de diseño}{6}{section.3}\protected@file@percent }
 \citation{esp32c3_ds}
 \citation{esp32s3_ds}
 \citation{freertos_ref}
@@ -42,18 +43,18 @@
 \citation{ad8232_ds}
 \citation{bmi160_ds}
 \citation{st7789_ds}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Análisis de requerimientos}{7}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Dispositivo compacto y cómodo}{7}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Propuesta de diseño}{7}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Análisis de requerimientos}{8}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Dispositivo compacto y cómodo}{8}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Energización y autonomía}{8}{subsection.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Mediciones requeridas}{8}{subsection.4.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Procesamiento algorítmico y Machine Learning}{8}{subsection.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Contador de pasos algorítmico}{8}{subsubsection.4.4.1}\protected@file@percent }
 \citation{esp32c3_ds}
 \citation{bmi160_ds}
-\citation{har_tinyml}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Procesamiento algorítmico y Machine Learning}{9}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Contador de pasos algorítmico}{9}{subsubsection.4.4.1}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comparación de algoritmos de conteo de pasos para dispositivos wearable.\relax }}{9}{table.caption.3}\protected@file@percent }
 \newlabel{tab:step_algos}{{1}{9}{Comparación de algoritmos de conteo de pasos para dispositivos wearable.\relax }{table.caption.3}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Clasificación de actividades (4 estados)}{9}{subsubsection.4.4.2}\protected@file@percent }
+\citation{har_tinyml}
 \citation{har_tinyml}
 \citation{har_tinyml}
 \citation{har_tinyml}
@@ -61,15 +62,16 @@
 \citation{bmi160_ds}
 \citation{tflite_micro}
 \citation{esp32c3_ds}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Clasificación de actividades (4 estados)}{10}{subsubsection.4.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Comparación de arquitecturas de ML para clasificación de actividad en microcontroladores \citep  {har_tinyml}.\relax }}{10}{table.caption.4}\protected@file@percent }
+\newlabel{tab:ml_models}{{2}{10}{Comparación de arquitecturas de ML para clasificación de actividad en microcontroladores \citep {har_tinyml}.\relax }{table.caption.4}{}}
 \citation{ad8232_ds}
 \citation{bmi160_ds}
 \citation{firebase_docs}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Comparación de arquitecturas de ML para clasificación de actividad en microcontroladores \citep  {har_tinyml}.\relax }}{10}{table.caption.4}\protected@file@percent }
-\newlabel{tab:ml_models}{{2}{10}{Comparación de arquitecturas de ML para clasificación de actividad en microcontroladores \citep {har_tinyml}.\relax }{table.caption.4}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.3}Justificación de la arquitectura Edge AI}{10}{subsubsection.4.4.3}\protected@file@percent }
 \citation{ble_core_spec}
 \citation{esp32c3_ds}
 \citation{pan_tompkins}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.3}Justificación de la arquitectura Edge AI}{11}{subsubsection.4.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Especificación de manejo de datos}{11}{subsection.4.5}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Especificación de volumen, formato y destino de los datos del sistema.\relax }}{11}{table.caption.5}\protected@file@percent }
 \newlabel{tab:datos}{{3}{11}{Especificación de volumen, formato y destino de los datos del sistema.\relax }{table.caption.5}{}}
@@ -234,43 +236,46 @@
 \bibcite{har_tinyml}{{1}{2024}{{Njoku et~al.}}{{Njoku, Estrada, Ma, Zhong, Chowdhury, et~al.}}}
 \bibcite{encuesta_af}{{2}{2025}{{CIPER Chile}}{{}}}
 \bibcite{obesidad_chile}{{3}{2025}{{UC Christus}}{{}}}
-\bibcite{esp32c3_ds}{{4}{2024{}}{{Espressif Systems}}{{}}}
-\bibcite{esp32s3_ds}{{5}{2024{}}{{Espressif Systems}}{{}}}
-\bibcite{freertos_ref}{{6}{2024}{{Amazon Web Services}}{{}}}
-\bibcite{max30102_ds}{{7}{2018}{{Analog Devices (Maxim Integrated)}}{{}}}
-\bibcite{max30205_ds}{{8}{2016}{{Analog Devices (Maxim Integrated)}}{{}}}
-\bibcite{ad8232_ds}{{9}{2012}{{Analog Devices}}{{}}}
-\bibcite{bmi160_ds}{{10}{2020}{{Bosch Sensortec}}{{}}}
-\bibcite{st7789_ds}{{11}{2014}{{Sitronix Technology}}{{}}}
-\bibcite{edge_impulse}{{12}{2024}{{Edge Impulse Inc.}}{{}}}
-\bibcite{tflite_micro}{{13}{2024{}}{{Google}}{{}}}
-\bibcite{firebase_docs}{{14}{2024{}}{{Google}}{{}}}
-\bibcite{ble_core_spec}{{15}{2021}{{Bluetooth SIG}}{{}}}
+\bibcite{Kushlev2016}{{4}{2016}{{Kushlev et~al.}}{{Kushlev, Proulx, and Dunn}}}
+\bibcite{Pielot2014}{{5}{2014}{{Pielot et~al.}}{{Pielot, Church, and de~Oliveira}}}
+\bibcite{Shin2019}{{6}{2019}{{Shin et~al.}}{{Shin, Jarrahi, Fei, and Karami}}}
+\bibcite{esp32c3_ds}{{7}{2024{}}{{Espressif Systems}}{{}}}
+\bibcite{esp32s3_ds}{{8}{2024{}}{{Espressif Systems}}{{}}}
+\bibcite{freertos_ref}{{9}{2024}{{Amazon Web Services}}{{}}}
+\bibcite{max30102_ds}{{10}{2018}{{Analog Devices (Maxim Integrated)}}{{}}}
+\bibcite{max30205_ds}{{11}{2016}{{Analog Devices (Maxim Integrated)}}{{}}}
+\bibcite{ad8232_ds}{{12}{2012}{{Analog Devices}}{{}}}
+\bibcite{bmi160_ds}{{13}{2020}{{Bosch Sensortec}}{{}}}
+\bibcite{st7789_ds}{{14}{2014}{{Sitronix Technology}}{{}}}
 \@writefile{toc}{\contentsline {section}{\numberline {14}Referencias}{43}{section.14}\protected@file@percent }
-\bibcite{pan_tompkins}{{16}{1985}{{Pan and Tompkins}}{{}}}
-\bibcite{nrf52840_ds}{{17}{2021}{{Nordic Semiconductor}}{{}}}
-\bibcite{stm32wb55_ds}{{18}{2022}{{STMicroelectronics}}{{}}}
-\bibcite{mpu6050_ds}{{19}{2013}{{InvenSense (TDK)}}{{}}}
-\bibcite{lsm6ds3_ds}{{20}{2017}{{STMicroelectronics}}{{}}}
-\bibcite{max30100_ds}{{21}{2014{}}{{Analog Devices (Maxim Integrated)}}{{}}}
-\bibcite{max86141_ds}{{22}{2019{}}{{Analog Devices (Maxim Integrated)}}{{}}}
-\bibcite{mlx90614_ds}{{23}{2019}{{Melexis}}{{}}}
-\bibcite{ds18b20_ds}{{24}{2019{}}{{Analog Devices (Maxim Integrated)}}{{}}}
-\bibcite{tp4056_ds}{{25}{2008}{{NanJing Top Power ASIC Corp.}}{{}}}
-\bibcite{bq24075_ds}{{26}{2019}{{Texas Instruments}}{{}}}
-\bibcite{mcp73831_ds}{{27}{2014}{{Microchip Technology}}{{}}}
-\bibcite{max17048_ds}{{28}{2013}{{Analog Devices (Maxim Integrated)}}{{}}}
-\bibcite{me6211_ds}{{29}{2019}{{Micro One Electronic Inc.}}{{}}}
-\bibcite{max17043_ds}{{30}{2014{}}{{Analog Devices (Maxim Integrated)}}{{}}}
-\bibcite{bq27441_ds}{{31}{2018}{{Texas Instruments}}{{}}}
-\bibcite{ams1117_ds}{{32}{2006}{{Advanced Monolithic Systems}}{{}}}
-\bibcite{tps7a02_ds}{{33}{2022}{{Texas Instruments}}{{}}}
-\bibcite{ssd1306_ds}{{34}{2008}{{Solomon Systech}}{{}}}
-\bibcite{sharpmem_ds}{{35}{2014}{{Sharp Microelectronics}}{{}}}
-\bibcite{lvgl_ref}{{36}{2024}{{LVGL LLC}}{{}}}
-\bibcite{jpegdec_ref}{{37}{2023}{{Bank}}{{}}}
-\bibcite{espspiffs_ref}{{38}{2024{}}{{Espressif Systems}}{{}}}
-\bibcite{nimble_ref}{{39}{2024}{{Apache Software Foundation}}{{}}}
+\bibcite{edge_impulse}{{15}{2024}{{Edge Impulse Inc.}}{{}}}
+\bibcite{tflite_micro}{{16}{2024{}}{{Google}}{{}}}
+\bibcite{firebase_docs}{{17}{2024{}}{{Google}}{{}}}
+\bibcite{ble_core_spec}{{18}{2021}{{Bluetooth SIG}}{{}}}
+\bibcite{pan_tompkins}{{19}{1985}{{Pan and Tompkins}}{{}}}
+\bibcite{nrf52840_ds}{{20}{2021}{{Nordic Semiconductor}}{{}}}
+\bibcite{stm32wb55_ds}{{21}{2022}{{STMicroelectronics}}{{}}}
+\bibcite{mpu6050_ds}{{22}{2013}{{InvenSense (TDK)}}{{}}}
+\bibcite{lsm6ds3_ds}{{23}{2017}{{STMicroelectronics}}{{}}}
+\bibcite{max30100_ds}{{24}{2014{}}{{Analog Devices (Maxim Integrated)}}{{}}}
+\bibcite{max86141_ds}{{25}{2019{}}{{Analog Devices (Maxim Integrated)}}{{}}}
+\bibcite{mlx90614_ds}{{26}{2019}{{Melexis}}{{}}}
+\bibcite{ds18b20_ds}{{27}{2019{}}{{Analog Devices (Maxim Integrated)}}{{}}}
+\bibcite{tp4056_ds}{{28}{2008}{{NanJing Top Power ASIC Corp.}}{{}}}
+\bibcite{bq24075_ds}{{29}{2019}{{Texas Instruments}}{{}}}
+\bibcite{mcp73831_ds}{{30}{2014}{{Microchip Technology}}{{}}}
+\bibcite{max17048_ds}{{31}{2013}{{Analog Devices (Maxim Integrated)}}{{}}}
+\bibcite{me6211_ds}{{32}{2019}{{Micro One Electronic Inc.}}{{}}}
+\bibcite{max17043_ds}{{33}{2014{}}{{Analog Devices (Maxim Integrated)}}{{}}}
+\bibcite{bq27441_ds}{{34}{2018}{{Texas Instruments}}{{}}}
+\bibcite{ams1117_ds}{{35}{2006}{{Advanced Monolithic Systems}}{{}}}
+\bibcite{tps7a02_ds}{{36}{2022}{{Texas Instruments}}{{}}}
+\bibcite{ssd1306_ds}{{37}{2008}{{Solomon Systech}}{{}}}
+\bibcite{sharpmem_ds}{{38}{2014}{{Sharp Microelectronics}}{{}}}
+\bibcite{lvgl_ref}{{39}{2024}{{LVGL LLC}}{{}}}
+\bibcite{jpegdec_ref}{{40}{2023}{{Bank}}{{}}}
+\bibcite{espspiffs_ref}{{41}{2024{}}{{Espressif Systems}}{{}}}
+\bibcite{nimble_ref}{{42}{2024}{{Apache Software Foundation}}{{}}}
 \@writefile{toc}{\contentsline {section}{\numberline {15}Anexos}{45}{section.15}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {15.1}Anexo A: Código del driver ST7789 (extracto principal)}{45}{subsection.15.1}\protected@file@percent }
 \newlabel{lst:st7789_init}{{1}{45}{Función de inicialización del driver ST7789}{lstlisting.1}{}}
@@ -281,7 +286,7 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {15.3}Anexo C: Driver MAX30102 (lectura FIFO)}{46}{subsection.15.3}\protected@file@percent }
 \newlabel{lst:max30102}{{3}{46}{Lectura de muestras desde la FIFO del MAX30102}{lstlisting.3}{}}
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Lectura de muestras desde la FIFO del MAX30102.}}{46}{lstlisting.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {15.4}Anexo D: Extracto de Cloud Functions (Pan-Tompkins)}{46}{subsection.15.4}\protected@file@percent }
-\newlabel{lst:ecg_cloud}{{4}{46}{Trigger de procesamiento de ECG en Cloud Functions}{lstlisting.4}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Trigger de procesamiento de ECG en Cloud Functions.}}{46}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.4}Anexo D: Extracto de Cloud Functions (Pan-Tompkins)}{47}{subsection.15.4}\protected@file@percent }
+\newlabel{lst:ecg_cloud}{{4}{47}{Trigger de procesamiento de ECG en Cloud Functions}{lstlisting.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Trigger de procesamiento de ECG en Cloud Functions.}}{47}{lstlisting.4}\protected@file@percent }
 \gdef \@abspage@last{47}

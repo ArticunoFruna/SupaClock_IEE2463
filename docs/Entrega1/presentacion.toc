@@ -1,5 +1,5 @@
 \babel@toc {spanish}{}\relax 
 \beamer@sectionintoc {1}{Contexto y Requisitos}{3}{0}{1}
-\beamer@sectionintoc {2}{Arquitectura de Hardware}{6}{0}{2}
-\beamer@sectionintoc {3}{Arquitectura de Software y Nube}{10}{0}{3}
-\beamer@sectionintoc {4}{Transición a Hitos del 5\%}{13}{0}{4}
+\beamer@sectionintoc {2}{Arquitectura de Hardware}{7}{0}{2}
+\beamer@sectionintoc {3}{Arquitectura de Software y Nube}{11}{0}{3}
+\beamer@sectionintoc {4}{Transición a Hitos del 10\%}{15}{0}{4}

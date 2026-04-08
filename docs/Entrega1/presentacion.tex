@@ -1,8 +1,13 @@
 \documentclass[aspectratio=169, 10pt]{beamer}
 
-% Tema minimalista y limpio
-\usetheme{metropolis}
-\setbeamercolor{background canvas}{bg=white}
+% Focus Theme - Estética puramente minimalista
+\usetheme{focus}
+
+% Paleta de Colores Personalizada (SupaClock )
+\definecolor{main}{RGB}{57, 110, 184} %  #396eb8ff
+\definecolor{background}{RGB}{255, 255, 255} % Fondo estéril blanco
+
+\setbeamercolor{alerted text}{fg=red!80!black}
 
 \usepackage[spanish]{babel}
 \usepackage[utf8]{inputenc}
@@ -15,10 +20,11 @@
 
 % Info de portada
 \title{Wearable ``SupaClock''}
-\subtitle{Reporte de Avance 5\% | Diseño y Arquitectura Técnica}
+\subtitle{Reporte de Avance 10\% | Diseño y Arquitectura Técnica}
 \date{\today}
 \author{Grupo 10}
 \institute{Ingeniería Eléctrica}
+\titlegraphic{\hfill\includegraphics[height=1.8cm]{logo.pdf}}
 
 \begin{document}
 
@@ -33,8 +39,9 @@
 \begin{frame}{Problemática y Objetivos}
     \textbf{Por qué nace SupaClock:}
     \begin{itemize}
-        \item Identificamos una \textbf{falta de acceso equitativo} a plataformas de monitoreo médico continuo de bajo costo.
+        \item Identificamos una falta de plataformas de monitoreo médico cómodas y accesibles.
         \item Las métricas constantes son críticas para alertar sedentarismo y anomalías cardíacas.
+        \item Los dispositivos comerciales son muy caros y cuentan con muchas funcionalidades que no son necesarias para el monitoreo médico.
     \end{itemize}
     \vspace{0.3cm}
     \textbf{Funcionalidades y Requerimientos del Sistema Propuesto:}
@@ -44,6 +51,19 @@
         \item \textbf{Dinámica:} Medir aceleración estática y dinámica y contabilizar pasos.
         \item \textbf{Inteligencia:} Ejecutar modelos predictivos de Machine Learning en el micro.
     \end{itemize}
+\end{frame}
+
+\begin{frame}{Filosofía de Diseño: Dispositivo Cero Distracciones}
+    \textbf{Por qué no un Smartwatch Comercial:}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Déficit de Atención y Fatiga Mental:} Estudios recientes en neurociencia confirman que la avalancha de notificaciones (hiperconectividad) en smartwatches comerciales eleva significativamente la carga cognitiva, induciendo síntomas similares al déficit de atención \cite{Kushlev2016}, \cite{Pielot2014}.
+        \item \textbf{Abordaje Realista contra el Sedentarismo:} El rastreo biométrico continuo (inercial y cardíaco) sin las barreras de distracción del ecosistema móvil tiene mayor efectividad clínica para revertir patrones de obesidad y sedentarismo \cite{Shin2019}.
+    \end{itemize}
+    \vspace{0.4cm}
+    \begin{block}{Postura del Proyecto}
+        SupaClock rehúye del mercado de consumo masivo para centrarse exclusivamente en ser una \textbf{interfaz de salud médica no invasiva}. Todo su diseño (FreeRTOS + Hardware) prioriza métricas por sobre mensajes de texto.
+    \end{block}
 \end{frame}
 
 \begin{frame}{Evaluación de Implementación: Peto Médico vs. Reloj}
@@ -79,13 +99,13 @@
         El sistema distribuye la carga entre el microcontrolador del reloj (ESP-C3), el Smartphone como mediador Bluetooth, y Backend Firebase para cómputos de algoritmos complejos y almacenamiento.
     \end{block}
     \begin{center}
-        \includegraphics[width=\textwidth, height=0.7\textheight, keepaspectratio]{diag_alto_nivel.png}
+        \includegraphics[width=0.98\linewidth, height=0.65\textheight, keepaspectratio]{fig_0.pdf}
     \end{center}
 \end{frame}
 
 \begin{frame}{Subsistema de Energía}
     \begin{columns}[c]
-        \begin{column}{0.40\textwidth}
+        \begin{column}{0.35\textwidth}
             \textbf{Resolviendo el desafío energético:}
             \begin{itemize}
                 \item \textbf{Gestión Constante:} Módulo BMS TP4056 con protección DW01A que corta umbrales críticos de sobredescarga y sobrecarga.
@@ -93,24 +113,24 @@
                 \item \textbf{Monitor:} Chip I2C MAX17048 estima el nivel de batería (\%).
             \end{itemize}
         \end{column}
-        \begin{column}{0.60\textwidth}
-            \includegraphics[width=\textwidth, height=1\textheight, keepaspectratio]{diag_potencia.png}
+        \begin{column}{0.65\textwidth}
+            \includegraphics[width=\linewidth, height=0.85\textheight, keepaspectratio]{fig_1.pdf}
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}{Adquisición y Ruteo de Señales Computacionales}
     \begin{columns}[c]
-        \begin{column}{0.4\textwidth}
+        \begin{column}{0.35\textwidth}
             \textbf{Buses de datos separados:}
             \begin{itemize}
-                \item La temperatura, inercia y PPG viajan compartiendo el \textbf{Bus I2C} (SDA/SCL) agrupado, economizando pines limitados.
-                \item La Pantalla \textbf{ST7789 HD} necesita video intenso, adjudicándole \textbf{SPI + Fast DMA} dedicado.
-                \item El ECG inyecta voltaje crudo directo cruzando hacia el multiplexor \textbf{ADC Interno}.
+                \item La temperatura, aceleración y pulso y SpO2 viajan compartiendo el \textbf{Bus I2C} (SDA/SCL).
+                \item La Pantalla \textbf{ST7789 HD} necesita throughput de datos alto, se configura \textbf{SPI + DMA} dedicado.
+                \item El ECG inyecta voltaje directo al \textbf{ADC Interno}, el cual se leerá con DMA.
             \end{itemize}
         \end{column}
-        \begin{column}{0.6\textwidth}
-            \includegraphics[width=\textwidth, height=0.8\textheight, keepaspectratio]{diag_senales.png}
+        \begin{column}{0.65\textwidth}
+            \includegraphics[width=\linewidth, height=0.85\textheight, keepaspectratio]{fig_2.pdf}
         \end{column}
     \end{columns}
 \end{frame}
@@ -119,53 +139,101 @@
 
 \begin{frame}{Ingeniería de Firmware RTOS (Tiempo Real)}
     \begin{columns}[c]
-        \begin{column}{0.4\textwidth}
+        \begin{column}{0.35\textwidth}
             \textbf{Arquitectura de 4 Tareas Concurrentes:}
             \begin{itemize}
-                \item Necesitamos que la pantalla (\textbf{GUI}) se actualice sin congelar al médico tomando pulsos. 
-                \item \textbf{FreeRTOS} gestiona esto enviando colas prioritarias. La tarea \textit{Sensor} tiene altísima prioridad, leyendo y empujando matrices de datos hacia TinyML, y estados simples a la tarea de Dibujado (LVGL).
+                \item Necesitamos que la pantalla (\textbf{GUI}) se actualice sin congelar las mediciones ni la inferencia. 
+                \item \textbf{FreeRTOS} gestiona esto enviando colas prioritarias. Cada tarea se ejecuta con su propio nivel de prioridad y tiempo de ejecución.
+                \item \textbf{Mutex} Gestiona el acceso a recursos compartidos, como el bus I2C.
             \end{itemize}
         \end{column}
-        \begin{column}{0.6\textwidth}
-            \includegraphics[width=\textwidth, height=0.8\textheight, keepaspectratio]{diag_freertos.png}
+        \begin{column}{0.65\textwidth}
+            \includegraphics[width=\linewidth, height=0.85\textheight, keepaspectratio]{fig_3.pdf}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Machine Learning (TinyML)}
+    \begin{columns}[c]
+        \begin{column}{0.5\textwidth}
+            \textbf{Inteligencia Médica Local:}
+            \begin{itemize}
+                \item Implementaremos una \textbf{Red Neuronal Convolucional 1D (CNN 1D)} directo en el reloj, construida y entrenada mediante la plataforma \textbf{Edge Impulse}.
+                \item El modelo analizará ventanas de datos inerciales crudos de alta frecuencia del acelerómetro (BMI160) para reconocer caídas o estados basales en tiempo real.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{block}{Escalabilidad de Procesamiento}
+                La inferencia inicia en el actual \textbf{ESP32-C3}. Si el modelo generado por Edge Impulse exige mayor capacidad de procesamiento, la arquitectura es ``Plug \& Play'' hacia el modelo \textbf{ESP32-S3} (Dual-Core).
+            \end{block}
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}{Ecosistema Telemétrico (App y Nube Integrada)}
-    \begin{block}{Perspectiva End-to-End}
-        Nuestra App no solo dibuja; orquesta la subida (Firestore) usando la asimetría Cloud Functions con librerías pesadas en Python. Esto descarga computacionalmente al Reloj de operaciones como inferencia o análisis avanzado histórico.
+    \begin{block}{End-to-End}
+        Nuestra App no solo dibuja; realiza la subida (Firestore) usando Cloud Functions con librerías pesadas en Python. Esto descarga computacionalmente al Reloj de operaciones como el análisis de ECG y otras métricas de largo plazo.
     \end{block}
     \begin{center}
-        \includegraphics[width=\textwidth, height=0.6\textheight, keepaspectratio]{diag_ecosistema.png}
+        \includegraphics[width=0.95\linewidth, height=0.9\textheight, keepaspectratio]{fig_4.pdf}
     \end{center}
 \end{frame}
 
-\section{Transición a Hitos del 5\%}
+\section{Transición a Hitos del 10\%}
 
-\begin{frame}{Avances Planificados: Logros Actuales (5\%)}
-    \textbf{Validación Tecnológica y Logística al día de hoy:}
+\begin{frame}{Hito 10\%: Entorno y Core Firmware}
+    \textbf{Establecimiento de las bases de Software:}
+    \vspace{0.2cm}
     \begin{itemize}
-        \item \textbf{Desarrollo de Software Inicial:} Firmware base construido. Comprobamos control maestro sobre el procesador y drivers en pantalla LCD a color mediante código puro C/C++ en ESP-IDF.
-        \item \textbf{Diseño de Sistemas Rígidos:} Elaboración y aprobación teórica de ruteos estables de corrientes de LDO y de bases I2C entre todo el parque sensórico.
-        \item \textbf{Cloud \& Bases:} Repositorio colaborativo de Control de Versiones vivo. Servidor Firestore Base de Datos NoSQL ya creado y montado.
-        \item \textbf{Hardware Físico:} Componentes base y de display importados, listos para armado en Protoboard Cero.
+        \item \textbf{Ecosistema PlatformIO:} Configurado para desarrollo profesional, con distintos environments para desarrollo.
+        \item \textbf{Motor GUI:} Integración de \textbf{LVGL} y \textbf{JPEGDEC}. El búfer de pantalla ya renderiza sobre la memoria del reloj.
+        \item \textbf{Sistema Operativo en Tiempo Real:} El scheduler de tareas \textbf{FreeRTOS} está configurado y probado para permitir el multitasking \textit{Non-blocking}.
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Hoja de Ruta (Próximos Pasos)}
-    Nuestras prioridades absolutas para los siguientes sprints de desarrollo son:
+\begin{frame}{Hito 10\%: Integración de Hardware Físico}
+    \textbf{Validación de Componentes:}
+    \vspace{0.2cm}
+    \begin{itemize}
+        \item \textbf{Adquisición de Insumos:} 100\% de los integrados base (MAX30102, MAX30205, BMI160, TP4056, ESP32-C3) han sido importados y recibidos en laboratorio.
+        \item \textbf{Pruebas de Componentes:} 
+        \begin{itemize}
+            \item Bus \textbf{I2C} comprobado con lectura termómetro \textit{MAX30205}.
+            \item Transmisión \textbf{SPI} validada enviando frames completos hacia la pantalla.
+        \end{itemize}
+        \item \textbf{Cloud:} Estructura del repositorio en Github y base de datos inicial alojada en Firebase (Firestore).
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Próximos Pasos (Validación de 25\%)}
+    \begin{block}{Finalizar Validación de Componentes}
+        El objetivo principal de la siguiente etapa es finalizar la validación de componentes, así como comenzar con la de algoritmo de detección de pasos.
+    \end{block}
     \vspace{0.3cm}
+    \textbf{Objetivos a Corto Plazo:}
     \begin{enumerate}
-        \item \textbf{Ensamblaje Power-Up:} Integrar el bloque de energía (LDO+BMS) y encender por el frente de carga Tipo-C.
-        \item \textbf{Prueba In-Vivo de Biosensores:} Conectar los módulos I2C con la MCU real y leer registros hex de inicialización directamente impresos en el Monitor Serial.
-        \item \textbf{Comunicación Base:} Eablecer la arquitectura puente BLE GATT Server en el reloj para empaquetar datos ficticios hacia el teléfono en primer caso de uso experimental.
-        \item \textbf{Diseño de Circuito Impreso:} Migrar todo el espagueti de cables de prueba al diseño de esquemáticos limpios PCB localizados.
+        \item \textbf{Ensamblaje Power-Up:} Integrar el bloque de energía (LDO+BMS).
+        \item \textbf{Integración de Sensores:} Conectar y configurar el resto de sensores (Acelerómetro, ECG, HR + SpO2, batería).
+        \item \textbf{Pruebas de Adquisición de Datos:} Se busca guardar datos de los sensores.
+        \item \textbf{Algoritmos:} Validar el funcionamiento del contador de pasos.
     \end{enumerate}
 \end{frame}
 
-\begin{frame}[standout]
+\begin{frame}[focus]
   \Huge Demostración Técnica Preliminar
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Referencias Bibliográficas}
+    \begin{thebibliography}{9}
+        \bibitem{Kushlev2016}
+        K. Kushlev, J. Proulx, and E. W. Dunn, ``Silence your phones: Smartphone notifications increase inattention and hyperactivity symptoms,'' \textit{Proceedings of the 2016 CHI Conference on Human Factors in Computing Systems}, 2016, pp. 1011--1020.
+        
+        \bibitem{Pielot2014}
+        M. Pielot, K. Church, and R. de Oliveira, ``An in-situ study of mobile phone notifications,'' \textit{16th International Conference on Human-Computer Interaction with Mobile Devices \& Services}, 2014, pp. 233--242.
+        
+        \bibitem{Shin2019}
+        G. Shin, MC. Jarrahi, Y. Fei, and A. Karami, ``Wearable activity trackers, accuracy, adoption, acceptance and health impact,'' \textit{Biomedical engineering letters}, vol. 9, no. 1, pp. 45-52, 2019. (Previene la inactividad continua y combate silenciosamente el sedentarismo y la obesidad).
+    \end{thebibliography}
 \end{frame}
 
 \end{document}

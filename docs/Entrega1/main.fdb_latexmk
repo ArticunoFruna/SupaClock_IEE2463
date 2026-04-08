@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1775606366.172 "main.aux" "main.bbl" "main" 1775607699.26653 0
-  "./ref.bib" 1775519529.25036 11526 2d4e1c816c6d7ef69120cdf4b7a43fc0 ""
+["bibtex main"] 1775625213.04016 "main.aux" "main.bbl" "main" 1775625217.02281 0
+  "./ref.bib" 1775625204.34848 12445 6e28ac1262d60203a812288689141970 ""
   "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/unsrtnat.bst" 1233624470 24550 a41a6405f4de768c43e871d9fbce2bc8 ""
-  "main.aux" 1775607699.0597 26558 9885fc2fc8ba754147193bb1d5b306ae "pdflatex"
+  "main.aux" 1775625216.75953 26859 bc0c62a1f8d70b626072121ee3b90b1d "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1775607695.3335 "/home/articunot/Documents/PlatformIO/Projects/SupaClock/docs/Entrega1/main.tex" "main.pdf" "main" 1775607699.26669 0
-  "/home/articunot/Documents/PlatformIO/Projects/SupaClock/docs/Entrega1/main.tex" 1775607695.07368 139438 328b7afd5e770c902da58ccd8029e9b4 ""
+["pdflatex"] 1775625213.10924 "/home/articunot/Documents/PlatformIO/Projects/SupaClock/docs/Entrega1/main.tex" "main.pdf" "main" 1775625217.02298 0
+  "/home/articunot/Documents/PlatformIO/Projects/SupaClock/docs/Entrega1/main.tex" 1775625183.60938 140568 b2cd9d7195ea4d5d6f624e9f29424757 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/tcbx1095.tfm" 1136768653 1536 0adca69c597a47fe7664bf81057bb53b ""
@@ -257,13 +257,13 @@
   "img/peto.png" 1775435670.3999 625344 6d783cc26ff7672da925bcbeb00f8882 ""
   "img/smartband.png" 1775435670.3999 305450 b946a8efccb84d5d3120a67147803a23 ""
   "logo.pdf" 1775435670.40007 84133 1ef088c91a7e1ec9843018741a6a0f34 ""
-  "main.aux" 1775607699.0597 26558 9885fc2fc8ba754147193bb1d5b306ae "pdflatex"
-  "main.bbl" 1775606366.2343 10578 e5bfd7f6d6989adf2899523c15c0015a "bibtex main"
-  "main.lof" 1775607699.0627 2123 24c6a528bdb5f2da55630853a7857078 "pdflatex"
-  "main.lot" 1775607699.0627 2615 0e120020d8711cc8bb801ca8bc318cc6 "pdflatex"
-  "main.out" 1775607699.0627 16622 a0e917bbd605e1b80ccc1813395c55d2 "pdflatex"
-  "main.tex" 1775607695.07368 139438 328b7afd5e770c902da58ccd8029e9b4 ""
-  "main.toc" 1775607699.0627 7449 9a7a045d33f307b72ef48f4865e6d164 "pdflatex"
+  "main.aux" 1775625216.75953 26859 bc0c62a1f8d70b626072121ee3b90b1d "pdflatex"
+  "main.bbl" 1775625213.10514 11513 214aef7417f7d3a70af7c4dd8dcfe752 "bibtex main"
+  "main.lof" 1775625216.76329 2123 24c6a528bdb5f2da55630853a7857078 "pdflatex"
+  "main.lot" 1775625216.76329 2615 0e120020d8711cc8bb801ca8bc318cc6 "pdflatex"
+  "main.out" 1775625216.76253 16622 a0e917bbd605e1b80ccc1813395c55d2 "pdflatex"
+  "main.tex" 1775625183.60938 140568 b2cd9d7195ea4d5d6f624e9f29424757 ""
+  "main.toc" 1775625216.76329 7450 a9ac567694564dabfea473d291c2e04a "pdflatex"
   (generated)
   "main.aux"
   "main.lof"

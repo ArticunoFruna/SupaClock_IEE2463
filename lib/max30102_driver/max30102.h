@@ -52,4 +52,11 @@ esp_err_t max30102_init(void);
  */
 esp_err_t max30102_read_fifo(uint32_t *red, uint32_t *ir);
 
+/**
+ * @brief Read Die Temperature
+ * @param temp Pointer to store Temperature in Celsius
+ * @return esp_err_t ESP_OK on success
+ */
+esp_err_t max30102_read_temperature(float *temp);
+
 #endif // MAX30102_H

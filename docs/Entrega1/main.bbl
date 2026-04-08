@@ -1,4 +1,4 @@
-\begin{thebibliography}{39}
+\begin{thebibliography}{42}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -20,6 +20,21 @@ Jude~Nwadiuto Njoku, Manuel Estrada, Sebastian Ma, Zixian Zhong, Rafi Ibn~Sultan
 {UC Christus}.
 \newblock 5 razones por las que chile es el país con más obesidad de latinoamérica, 2025.
 \newblock Disponible en: \url{https://www.ucchristus.cl/blog-salud-uc/articulos/2025/5-razones-por-las-que-chile-es-el-pais-con-mas-obesidad-de-latinoamerica}.
+
+\bibitem[Kushlev et~al.(2016)Kushlev, Proulx, and Dunn]{Kushlev2016}
+K.~Kushlev, J.~Proulx, and E.~W. Dunn.
+\newblock Silence your phones: Smartphone notifications increase inattention and hyperactivity symptoms.
+\newblock In \emph{Proceedings of the 2016 CHI Conference on Human Factors in Computing Systems}, pages 1011--1020, 2016.
+
+\bibitem[Pielot et~al.(2014)Pielot, Church, and de~Oliveira]{Pielot2014}
+M.~Pielot, K.~Church, and R.~de~Oliveira.
+\newblock An in-situ study of mobile phone notifications.
+\newblock In \emph{16th International Conference on Human-Computer Interaction with Mobile Devices \& Services}, pages 233--242, 2014.
+
+\bibitem[Shin et~al.(2019)Shin, Jarrahi, Fei, and Karami]{Shin2019}
+G.~Shin, MC. Jarrahi, Y.~Fei, and A.~Karami.
+\newblock Wearable activity trackers, accuracy, adoption, acceptance and health impact.
+\newblock \emph{Biomedical engineering letters}, 9\penalty0 (1):\penalty0 45--52, 2019.
 
 \bibitem[{Espressif Systems}(2024{\natexlab{a}})]{esp32c3_ds}
 {Espressif Systems}.
