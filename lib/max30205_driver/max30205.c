@@ -1,6 +1,5 @@
 #include "max30205.h"
 #include "i2c_bus.h"
-#include "driver/i2c.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -11,17 +10,9 @@ esp_err_t max30205_init(void) {
     // El sensor requiere al menos 50ms para completar su Power-On Reset
     vTaskDelay(pdMS_TO_TICKS(100)); 
     
-    uint8_t data[2];
-    esp_err_t err = ESP_OK;
-
-    data[0] = MAX30205_REG_CONFIGURATION;
-    
-    // Configuramos el registro para utilizar la lectura extendida
-    // Sin embargo, está siendo omitido por el sensor  
-    data[1] = 0x00; // Intento de forzar formato normal
-    
-    err = i2c_master_write_to_device(I2C_MASTER_NUM, MAX30205_I2C_ADDR, data, 2, 
-        I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    // Configurar registro: modo continuo, formato normal
+    uint8_t config = 0x00;
+    esp_err_t err = i2c_write_bytes(MAX30205_I2C_ADDR, MAX30205_REG_CONFIGURATION, &config, 1);
     
     if (err == ESP_OK) {  
         ESP_LOGI(TAG_MAX, "MAX30205 inicializado correctamente en el bus I2C.");
@@ -33,12 +24,10 @@ esp_err_t max30205_init(void) {
 }
 
 esp_err_t max30205_read_temperature(float *temp_c) {
-    uint8_t reg = MAX30205_REG_TEMPERATURE;
     uint8_t data[2];
     
     // Leer 2 bytes del registro de temperatura 
-    esp_err_t err = i2c_master_write_read_device(I2C_MASTER_NUM, MAX30205_I2C_ADDR, 
-        &reg, 1, data, 2, I2C_MASTER_TIMEOUT_MS / portTICK_PERIOD_MS);
+    esp_err_t err = i2c_read_bytes(MAX30205_I2C_ADDR, MAX30205_REG_TEMPERATURE, data, 2);
     
     if (err == ESP_OK) {
         // Dado que la señal está siendo recibida en modo extendido, formamos la lectura de temperatura

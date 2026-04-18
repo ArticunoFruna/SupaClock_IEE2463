@@ -1,0 +1,7 @@
+CompileFlags:
+  Remove:
+    - -fno-shrink-wrap
+    - -fno-tree-switch-conversion
+    - -mlongcalls
+    - -fstrict-volatile-bitfields
+    - -mfix-esp32-psram-cache-issue

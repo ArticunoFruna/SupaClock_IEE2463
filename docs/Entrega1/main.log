@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2026.3.21)  8 APR 2026 01:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2026.3.21)  8 APR 2026 11:21
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -924,7 +924,7 @@ Package caption Info: End \AtBeginDocument code.
 
 Couldn't patch \ttl@straight@ii
 Couldn't patch \ttl@straight@ii
-<logo.pdf, id=304, 24.09pt x 31.11626pt>
+<logo.pdf, id=292, 24.09pt x 31.11626pt>
 File: logo.pdf Graphic file (type pdf)
 <use logo.pdf>
 Package pdftex.def Info: logo.pdf  used on input line 78.
@@ -965,19 +965,19 @@ LaTeX Info: Redefining \% on input line 1.
 \openout7 = `main.lot'.
 
  [4]
-<img/peto.png, id=479, 963.6pt x 963.6pt>
+<img/peto.png, id=464, 963.6pt x 963.6pt>
 File: img/peto.png Graphic file (type png)
 <use img/peto.png>
 Package pdftex.def Info: img/peto.png  used on input line 149.
 (pdftex.def)             Requested size: 150.14671pt x 150.13573pt.
  [5 <./img/peto.png>]
-<img/smartband.png, id=496, 1204.5pt x 1204.5pt>
+<img/smartband.png, id=481, 1204.5pt x 1204.5pt>
 File: img/smartband.png Graphic file (type png)
 <use img/smartband.png>
 Package pdftex.def Info: img/smartband.png  used on input line 166.
 (pdftex.def)             Requested size: 150.14671pt x 150.1394pt.
  [6 <./img/smartband.png>] [7] [8] [9] [10] [11]
-<img/pantallas.png, id=580, 2826.56pt x 1541.76pt>
+<img/pantallas.png, id=565, 2826.56pt x 1541.76pt>
 File: img/pantallas.png Graphic file (type png)
 <use img/pantallas.png>
 Package pdftex.def Info: img/pantallas.png  used on input line 319.
@@ -1008,13 +1008,13 @@ Underfull \hbox (badness 2237) in paragraph at lines 538--538
  []
 
 [22] [23] [24] [25] [26] [27{/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}] [28] [29]
-<img/Bosquejo.png, id=767, 1003.75pt x 1372.12625pt>
+<img/Bosquejo.png, id=752, 1003.75pt x 1372.12625pt>
 File: img/Bosquejo.png Graphic file (type png)
 <use img/Bosquejo.png>
 Package pdftex.def Info: img/Bosquejo.png  used on input line 1086.
 (pdftex.def)             Requested size: 250.24199pt x 342.06763pt.
  [30 <./img/Bosquejo.png>] [31] [32] [33]
-<img/Carta Gantt.jpeg, id=789, 1251.67625pt x 435.6275pt>
+<img/Carta Gantt.jpeg, id=774, 1251.67625pt x 435.6275pt>
 File: img/Carta Gantt.jpeg Graphic file (type jpg)
 <use img/Carta Gantt.jpeg>
 Package pdftex.def Info: img/Carta Gantt.jpeg  used on input line 1237.
@@ -1029,24 +1029,24 @@ Overfull \hbox (22.87996pt too wide) in paragraph at lines 1467--1468
 []\OT1/cmr/m/n/10.95 Un de-ta-lle t^^Secni-co re-le-van-te es la com-pen-sa-ci^^Son de \OT1/cmr/m/it/10.95 off-set \OT1/cmr/m/n/10.95 ver-ti-cal de 20 p^^S^^Pxe-les en la fun-ci^^Son \OT1/cmtt/m/n/10.95 set[]addr[]window()\OT1/cmr/m/n/10.95 ,
  []
 
-[40] [41]
-LaTeX Font Info:    Trying to load font information for OMS+cmtt on input line 1519.
+[40]
+LaTeX Font Info:    Trying to load font information for OMS+cmtt on input line 1504.
  (/usr/share/texlive/texmf-dist/tex/latex/R/omscmtt.fd
 File: omscmtt.fd 
 )
 LaTeX Font Info:    Font shape `OMS/cmtt/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 1519.
- [42] (./main.bbl
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 1504.
+ [41] (./main.bbl
 Underfull \hbox (badness 4569) in paragraph at lines 20--23
 []\OT1/cmr/m/n/10.95 UC Chris-tus.  5 ra-zo-nes por las que chi-le es el pa^^S^^Ps con m^^Sas obe-si-dad de la-ti-
  []
 
-
+[42]
 Underfull \hbox (badness 1502) in paragraph at lines 70--73
 []\OT1/cmr/m/n/10.95 Bosch Sen-sor-tec.  BMI160: Small, Low Po-wer Iner-tial Mea-su-re-ment Unit, 2020.  Dis-po-
  []
 
-[43]
+
 Underfull \hbox (badness 2762) in paragraph at lines 126--129
 []\OT1/cmr/m/n/10.95 Analog De-vi-ces (Ma-xim In-te-gra-ted).  MAX30100: Pul-se Oxi-me-ter and Heart-Rate Sen-
  []
@@ -1071,12 +1071,12 @@ Underfull \hbox (badness 3930) in paragraph at lines 136--139
 []\OT1/cmr/m/n/10.95 Melexis.  MLX90614 Fa-mily: Sin-gle and Dual Zo-ne In-fra Red Ther-mo-me-ter in TO-
  []
 
-
+[43]
 Underfull \hbox (badness 1708) in paragraph at lines 161--164
 \OT1/cmr/m/n/10.95 Fuel Gau-ge with Mo-del-Gau-ge, 2013.  Dis-po-ni-ble en: []$\OT1/cmtt/m/n/10.95 https : / / www . analog . com / media / en /
  []
 
-[44]
+
 Underfull \hbox (badness 10000) in paragraph at lines 166--169
 \OT1/cmtt/m/n/10.95 datasheet . lcsc . com / lcsc / 1811131510 _ MICRONE-[]Nanjing-[]Micro-[]One-[]Elec-[]ME6211C33M5G-[]N _
  []
@@ -1101,34 +1101,34 @@ Underfull \hbox (badness 10000) in paragraph at lines 211--214
 []$\OT1/cmtt/m/n/10.95 https : / / docs . espressif . com / projects / esp-[]idf / en / stable / esp32c3 / api-[]reference /
  []
 
-)
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 1560.
+) [44]
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 1539.
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 1561.
- [45] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 1540.
+ (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
-) [46] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
+) [45] (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
-) [47] (./main.aux
+) [46] (./main.aux
 LaTeX Info: Redefining \. on input line 23.
 LaTeX Info: Redefining \% on input line 23.
 )
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: A0E917BBD605E1B80CCC1813395C55D2;16622.
+(rerunfilecheck)             Checksum: 23E51A367E698CD5AA37DF7A9D43D6CA;15984.
  ) 
 Here is how much of TeX's memory you used:
- 34990 strings out of 476041
- 685027 string characters out of 5793174
- 1993388 words of memory out of 6000000
- 54575 multiletter control sequences out of 15000+600000
+ 34983 strings out of 476041
+ 684904 string characters out of 5793174
+ 1975388 words of memory out of 6000000
+ 54572 multiletter control sequences out of 15000+600000
  529890 words of font info for 100 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
- 84i,15n,94p,1651b,2559s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,15n,94p,1651b,1491s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfbx1095.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
-Output written on main.pdf (47 pages, 4031443 bytes).
+Output written on main.pdf (46 pages, 4027621 bytes).
 PDF statistics:
- 1208 PDF objects out of 1440 (max. 8388607)
- 1080 compressed objects within 11 object streams
- 302 named destinations out of 1000 (max. 500000)
- 671 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1185 PDF objects out of 1200 (max. 8388607)
+ 1058 compressed objects within 11 object streams
+ 298 named destinations out of 1000 (max. 500000)
+ 647 words of extra memory for PDF output out of 10000 (max. 10000000)
 

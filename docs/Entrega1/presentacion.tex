@@ -13,6 +13,8 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc, babel}
 
 % Reducimos un poco la fuente de itemize para ajustar más información
 \setbeamerfont{itemize/enumerate body}{size=\small}
@@ -49,7 +51,7 @@
         \item \textbf{Biometría Continua:} Medir Saturación de Oxígeno ($SpO_2$), Frec. Cardíaca y Temp.
         \item \textbf{Cardiología:} Implementar un módulo de Electrocardiograma (ECG).
         \item \textbf{Dinámica:} Medir aceleración estática y dinámica y contabilizar pasos.
-        \item \textbf{Inteligencia:} Ejecutar modelos predictivos de Machine Learning en el micro.
+        \item \textbf{Inteligencia:} Ejecutar modelos predictivos de Machine Learning en el microcontrolador.
     \end{itemize}
 \end{frame}
 
@@ -95,11 +97,8 @@
 \section{Arquitectura de Hardware}
 
 \begin{frame}{Arquitectura de Sistemas (Alto Nivel)}
-    \begin{block}{}
-        El sistema distribuye la carga entre el microcontrolador del reloj (ESP-C3), el Smartphone como mediador Bluetooth, y Backend Firebase para cómputos de algoritmos complejos y almacenamiento.
-    \end{block}
     \begin{center}
-        \includegraphics[width=0.98\linewidth, height=0.65\textheight, keepaspectratio]{fig_0.pdf}
+        \resizebox{\linewidth}{!}{\input{fig_0_tikz.tex}}
     \end{center}
 \end{frame}
 
@@ -114,7 +113,7 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.65\textwidth}
-            \includegraphics[width=\linewidth, height=0.85\textheight, keepaspectratio]{fig_1.pdf}
+            \resizebox{\linewidth}{!}{\input{fig_1_tikz.tex}}
         \end{column}
     \end{columns}
 \end{frame}
@@ -130,7 +129,7 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.65\textwidth}
-            \includegraphics[width=\linewidth, height=0.85\textheight, keepaspectratio]{fig_2.pdf}
+            \resizebox{\linewidth}{!}{\input{fig_2_tikz.tex}}
         \end{column}
     \end{columns}
 \end{frame}
@@ -148,7 +147,7 @@
             \end{itemize}
         \end{column}
         \begin{column}{0.65\textwidth}
-            \includegraphics[width=\linewidth, height=0.85\textheight, keepaspectratio]{fig_3.pdf}
+            \resizebox{\linewidth}{!}{\input{fig_3_tikz.tex}}
         \end{column}
     \end{columns}
 \end{frame}
@@ -175,7 +174,7 @@
         Nuestra App no solo dibuja; realiza la subida (Firestore) usando Cloud Functions con librerías pesadas en Python. Esto descarga computacionalmente al Reloj de operaciones como el análisis de ECG y otras métricas de largo plazo.
     \end{block}
     \begin{center}
-        \includegraphics[width=0.95\linewidth, height=0.9\textheight, keepaspectratio]{fig_4.pdf}
+        \resizebox{0.95\linewidth}{!}{\input{fig_4_tikz.tex}}
     \end{center}
 \end{frame}
 
@@ -203,6 +202,12 @@
         \end{itemize}
         \item \textbf{Cloud:} Estructura del repositorio en Github y base de datos inicial alojada en Firebase (Firestore).
     \end{itemize}
+\end{frame}
+
+\begin{frame}{Planificación y Progreso (Carta Gantt)}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth, height=0.85\textheight, keepaspectratio]{CartaGantt_actualizada.jpeg}
+    \end{center}
 \end{frame}
 
 \begin{frame}{Próximos Pasos (Validación de 25\%)}

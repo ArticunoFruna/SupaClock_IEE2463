@@ -1,0 +1,3482 @@
+PONTIFICIA UNIVERSIDAD CATÓLICA DE CHILE
+ESCUELA DE INGENIERÍA
+Departamento de Ingenierı́a Eléctrica
+IEE2913 — Diseño Eléctrico (Capstone)
+
+Grupo 10
+
+Informe de Avance 1 (5 %)
+Proyecto: SupaClock: Wearable Biométrico Modular
+Integrantes: Tomás Avendaño, Benjamı́n Sepúlveda, Pablo Uribe
+Fecha: 7 de abril de 2026
+
+Índice
+1. Contexto y Objetivos
+
+5
+
+2. Posibles soluciones ante la problemática
+2.1. Peto deportivo inteligente . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.2. Dispositivo wearable tipo smartband . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+5
+5
+6
+
+3. Propuesta de diseño
+
+7
+
+4. Análisis de requerimientos
+4.1. Dispositivo compacto y cómodo . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.2. Energización y autonomı́a . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.3. Mediciones requeridas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.4. Procesamiento algorı́tmico y Machine Learning . . . . . . . . . . . . . . . . . . . . . . . .
+4.4.1. Contador de pasos algorı́tmico . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.4.2. Clasificación de actividades (4 estados) . . . . . . . . . . . . . . . . . . . . . . . . .
+4.4.3. Justificación de la arquitectura Edge AI . . . . . . . . . . . . . . . . . . . . . . . .
+4.5. Especificación de manejo de datos . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.6. Algoritmos de Procesamiento de Señales (ECG) . . . . . . . . . . . . . . . . . . . . . . . .
+4.7. Interfaz gráfica y navegación . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+8
+8
+8
+8
+9
+9
+10
+11
+11
+11
+12
+
+5. Elección de componentes y justificación
+
+13
+
+6. Diagrama de bloques
+6.1. Diagrama de bloques de alto nivel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2. Diagrama de potencia . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.3. Diagrama de señales y buses de comunicación . . . . . . . . . . . . . . . . . . . . . . . . .
+6.3.1. Mapeo de pines y plan de migración (C3 a S3) . . . . . . . . . . . . . . . . . . . .
+6.4. Arquitectura de Firmware (FreeRTOS) . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.4.1. Frecuencias de Muestreo y Optimización de Memoria . . . . . . . . . . . . . . . . .
+6.5. Arquitectura de Ecosistema (App y Servidor) . . . . . . . . . . . . . . . . . . . . . . . . .
+6.5.1. Algoritmos de Procesamiento de Señales (ECG en Servidor) . . . . . . . . . . . . .
+
+23
+23
+25
+25
+26
+27
+28
+28
+29
+
+IEE2913
+
+1
+
+Diseño Eléctrico
+
+7. Bosquejo de la solución
+
+30
+
+8. Metodologı́a de trabajo
+8.1. Áreas y roles . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+8.1.1. Área 1: Hardware . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+8.1.2. Área 2: Software y Procesamiento . . . . . . . . . . . . . . . . . . . . . . . . . . .
+8.1.3. Área 3: Interfaz y Sistema . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+8.2. Trabajo colaborativo . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+8.3. Asignación de tareas . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+30
+31
+31
+31
+31
+32
+32
+
+9. Objetivos a cumplir
+9.1. Hitos . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+9.1.1. Hito 5 %: Definición y planificación inicial . . . . . . . . . . . . . . . . . . . . . . .
+9.1.2. Hito 25 %: Validación de subsistemas iniciales . . . . . . . . . . . . . . . . . . . . .
+9.1.3. Hito 60 %: Integración funcional del sistema . . . . . . . . . . . . . . . . . . . . . .
+9.1.4. Hito 90 %: Validación avanzada y optimización . . . . . . . . . . . . . . . . . . . .
+9.1.5. Hito 100 %: Entrega final . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+33
+33
+33
+33
+34
+34
+34
+
+10.Presupuesto estimado
+
+35
+
+Informe de Avance 1 (5 %)
+
+37
+
+11.Diagramas de bloques de bajo nivel actualizados
+11.1. Arquitectura de Firmware (FreeRTOS) . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+11.2. Pipeline de Datos Biomédicos . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+37
+37
+38
+
+12.Planificación actualizada
+12.1. Estado de avance respecto a la planificación . . . . . . . . . . . . . . . . . . . . . . . . . .
+12.2. Actualización de la Carta Gantt . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+12.3. Distribución del trabajo . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+38
+38
+39
+40
+
+13.Implementación y resultados
+13.1. Bloque de Interfaz Local: Driver de pantalla ST7789 . . . . . . . . . . . . . . . . . . . . .
+13.1.1. Descripción y funcionalidad . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.1.2. Integración con LVGL 8.4 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.1.3. Resultados . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.2. Bloque de Interfaz Local: Decodificación JPEG (JPEGDEC) . . . . . . . . . . . . . . . .
+13.2.1. Descripción y funcionalidad . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.2.2. Resultados . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.3. Bloque de Sensores: Prueba del MAX30205 . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.3.1. Descripción y funcionalidad . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.3.2. Resultados . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.4. Bloque de Backend: Firebase y Cloud Firestore . . . . . . . . . . . . . . . . . . . . . . . .
+13.4.1. Descripción y funcionalidad . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.4.2. Resultados . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.5. Evaluación general y próximos pasos . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+40
+40
+40
+40
+41
+41
+41
+41
+41
+41
+41
+41
+41
+42
+42
+
+14.Referencias
+
+42
+
+15.Anexos
+15.1. Anexo A: Código del driver ST7789 (extracto principal) . . . . . . . . . . . . . . . . . . .
+15.2. Anexo B: Callback de decodificación JPEG . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+45
+45
+45
+
+IEE2913
+
+2
+
+Diseño Eléctrico
+
+15.3. Anexo C: Driver MAX30102 (lectura FIFO) . . . . . . . . . . . . . . . . . . . . . . . . . .
+15.4. Anexo D: Extracto de Cloud Functions (Pan-Tompkins) . . . . . . . . . . . . . . . . . . .
+
+IEE2913
+
+Diseño Eléctrico
+
+46
+46
+
+3
+
+Índice de figuras
+1.
+2.
+3.
+4.
+5.
+6.
+7.
+8.
+9.
+10.
+11.
+12.
+
+Peto deportivo de referencia . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Smartband comercial de referencia . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Diseño preliminar de las interfaces gráficas del dispositivo. . . . . . . . . . . . . . . . . . .
+Diagrama de bloques de alto nivel del sistema SupaClock, incluyendo el dispositivo, la
+aplicación móvil y el backend en la nube. . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Diagrama de flujo de potencia y gestión de baterı́a del sistema SupaClock. . . . . . . . . .
+Diagrama de arquitectura de señales, buses lógicos y direcciones I2C. . . . . . . . . . . . .
+Diagrama de bloques del firmware y gestión de tareas en FreeRTOS. . . . . . . . . . . . .
+Arquitectura de ecosistema: flujo de datos desde el dispositivo Edge hacia la aplicación
+móvil y el backend en la nube. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Bosquejo preliminar del prototipo SupaClock con vistas cenital, frontal, lateral y posterior.
+Carta Gantt del proyecto SupaClock con la planificación temporal de actividades por hito.
+Arquitectura de tareas concurrentes (FreeRTOS) implementada en el ESP32-C3, destacando el flujo de lectura de sensores y visualización gráfica local. . . . . . . . . . . . . . . . .
+Pipeline de adquisición y procesamiento de datos biomédicos, modelando hacia el futuro el
+recorrido completo de la señal. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+5
+6
+12
+24
+25
+26
+28
+29
+30
+35
+37
+38
+
+Índice de cuadros
+1.
+2.
+3.
+4.
+5.
+6.
+7.
+8.
+9.
+10.
+11.
+12.
+13.
+14.
+15.
+16.
+
+IEE2913
+
+Comparación de algoritmos de conteo de pasos para dispositivos wearable. . . . . . . . . .
+Comparación de arquitecturas de ML para clasificación de actividad en microcontroladores
+[1]. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Especificación de volumen, formato y destino de los datos del sistema. . . . . . . . . . . .
+Comparación de Opciones de Microcontroladores (MCU) . . . . . . . . . . . . . . . . . . .
+Comparación de Sensores Inerciales (IMU) para Detección de Actividad . . . . . . . . . .
+Comparación de Sensores Ópticos (PPG) para HR y SpO2 . . . . . . . . . . . . . . . . . .
+Comparación de Sensores de Temperatura para Aplicaciones Médicas/Wearables . . . . .
+Comparación de Circuitos Integrados para Carga y Protección (BMS) . . . . . . . . . . .
+Desglose del consumo energético estimado por componente (valores de hojas de datos). . .
+Análisis de apilamiento mecánico (stack-up) para la arquitectura sandwich de doble PCB.
+Comparación de Monitores de Baterı́a (Fuel Gauges) . . . . . . . . . . . . . . . . . . . . .
+Comparación de Reguladores de Voltaje LDO (3.3V) para Fase 2 . . . . . . . . . . . . . .
+Comparación de Tecnologı́as de Pantalla para Interfaz de Usuario . . . . . . . . . . . . . .
+Mapeo definitivo de señales para placas SuperMini. . . . . . . . . . . . . . . . . . . . . . .
+Bill of Materials (BOM) con precios reales de adquisición (IVA incl.) para componentes
+crı́ticos. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Contraste entre avance esperado (5 %) y avance logrado. Las filas amarillas indican tareas
+adelantadas respecto a la planificación original. . . . . . . . . . . . . . . . . . . . . . . . .
+
+Diseño Eléctrico
+
+9
+10
+11
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+27
+36
+39
+
+4
+
+1.
+
+Contexto y Objetivos
+
+Según la Encuesta Nacional de Actividad Fı́sica [2], apenas un 49.7 % de los hombres y un 40.3 % de
+las mujeres mayores de 18 años en el paı́s mantienen un nivel de actividad fı́sica adecuado. Esta cifra
+resulta alarmante al considerar que el 42 % de la población adulta presenta sobrepeso [3], un factor de
+riesgo determinante para el desarrollo de patologı́as crónicas a largo plazo. Frente a este escenario, surge
+la necesidad de fomentar hábitos de vida más saludables. Con el fin de contribuir a esta problemática, el
+presente proyecto propone el diseño y desarrollo de un dispositivo wearable de bajo costo que permita a
+los usuarios monitorizar sus variables biométricas y registrar su evolución fı́sica de manera accesible.
+Sin embargo, a diferencia del mercado de consumo masivo, el diseño de este dispositivo no se plantea bajo
+el paradigma de un “reloj inteligente comercial” genérico. Investigaciones en estudios psicológicos y de interacción humano-computadora han demostrado que la hiperconectividad y la avalancha de notificaciones
+en teléfonos móviles interactivos y smartwatches incrementan severamente la carga cognitiva, induciendo
+sı́ntomas estrechamente relacionados con la hiperactividad y el déficit de atención clı́nico [4, 5]. Es por
+esto que la principal postura arquitectónica de este wearable se funda en el minimalismo y el principio
+de “Cero Distracciones”. El dispositivo actuará como una interfaz biométrica estrictamente diseñada
+para recolectar datos inerciales y cardı́acos en segundo plano, promoviendo objetivamente un impacto en
+la salud [6] sin bombardear al paciente con vibraciones de redes sociales. Ası́, el ecosistema de SupaClock
+relega el procesamiento y consumo energético exclusivamente al hardware dedicado a telemetrı́a médica.
+
+2.
+
+Posibles soluciones ante la problemática
+
+Para cumplir con los requerimientos solicitados por el cliente, planteamos dos posibles soluciones. Cada
+una de ellas con ventajas y desventajas en distintos ámbitos.
+
+2.1.
+
+Peto deportivo inteligente
+
+Con el fin de proponer una solución que sea poco visible y sea más fácil de utilizar al momento de
+realizar deporte, planteamos la posibilidad de diseñar un peto deportivo que integrara los distintos sensores
+y tuviera una pantalla en el pecho. La Fig.1 ilustra un peto deportivo comercial que se utilizó como
+referencia de este concepto: una prenda ceñida al torso que podrı́a alojar sensores distribuidos sobre el
+pecho, aprovechando la cercanı́a al corazón y la estabilidad del contacto con la piel.
+
+Figura 1: Peto deportivo de referencia. Imagen obtenida de Pro:Direct Sport. Disponible en: https:
+//images.prodirectsport.com/ProductImages/Main/V3_1_Main_0289806.jpg
+
+IEE2913
+
+Diseño Eléctrico
+
+5
+
+Las principales ventajas de este diseño eran principalmente la facilidad al momento de integrar los sensores,
+debido a que los circuitos no tendrı́an que ser tan pequeños. Además, algunas mediciones serı́an más
+sencillas de realizar, como las del sensor de ECG.
+Sin embargo, existı́an complicaciones técnicas que nos limitaron a seguir pensando esta opción. La primera
+de ellas es que quizás serı́a muy complejo adaptar un circuito a un material más flexible y cómodo para el
+usuario, considerando que si se utilizan cables la posibilidad de aumentar el ruido entre los sensores y el
+microcontrolador eran muy altas. También, investigando en algunos de los posibles sensores que podı́amos
+utilizar, algunos fueron diseñados para realizar mediciones en la zona de la muñeca. Por último, analizando
+desde un punto de vista higiénico, notamos que serı́a dificil permitir el lavado de la prenda sin generar
+daños a la circuiterı́a.
+
+2.2.
+
+Dispositivo wearable tipo smartband
+
+Una de los requisitos de diseño implicaba la necesidad de utilizar una pantalla que mostrara los datos
+sensados, por lo que consideramos que una decisión de diseño fundamental para nuestro producto es que el
+usuario tuviera fácil acceso y visualización de los datos que el dispositivo mide. Es por ello que analizamos
+la opción de diseñar un dispositivo que se utilizara en la muñeca y pueda ser fácilmente manipulado por
+el usuario. La Fig.2 presenta una smartband comercial que sirvió como referencia para esta alternativa,
+mostrando el factor de forma compacto, la pantalla integrada y la correa ajustable que caracterizan a este
+tipo de dispositivos.
+
+Figura 2: Smartband comercial de referencia (Prixton AT410). Disponible en: https://prixton.com/
+product/smartband-at410/
+El diseño del producto como smartband tiene como ventaja que, al existir una gran variedad de dispositivos
+de la misma ı́ndole en el mercado, existe mucha documentación relacionada al diseño de estos dispositivos,
+incluyendo sensores adaptados para realizar mediciones en la zona de la muñeca dado que el grosor de la
+piel en esta zona es menor y permite un mejor monitoreo de las señales corporales como la saturación de
+oxı́geno en sangre. Por otra parte, este dispositivo serı́a menos invasivo y más adaptable a distintos perfiles
+de usuarios, considerando que nuestro público objetivo puede variar significativamente su contextura fı́sica.
+Más allá de las ventajas mencionadas anteriormente, existen distintos desafı́os que deben ser tomados
+en cuenta para diesñar este tipo de dispositivos. La primera consideración es que el producto debe ser
+pequeño para no generar incomodidades al usuario, esto es una limitación a nivel de diseño y de ingenierı́a,
+pues se debe considerar que la baterı́a que tendrá el dispositivo será pequeña y no podemos considerar
+componentes que consuman mucha corriente para maximizar la duración de la baterı́a, considerando que
+debemos incluir un modelo de Machine Learning dentro o fuera del dispositivo, lo cual es una tarea exigente que puede demandar mucha memoria del microcontrolador si se realiza interna o mucho consumo
+IEE2913
+
+Diseño Eléctrico
+
+6
+
+energético si se envı́an muchos paquetes de forma inalámbrica a un servidor para su posterior análisis.
+Siguiendo la lı́nea de la comodidad, se vuelve fundamental la necesidad de miniaturizar el dispositivo,
+principalmente los componentes utilizados para el funcionamiento óptimo de los sensores, utilizando idealmente componentes SMD, lo cual puede ser difı́cil considerando que el laboratorio de trabajo no tiene
+instrumentos ni herramientas óptimos para realizar PCB que utilicen estos componentes.
+
+3.
+
+Propuesta de diseño
+
+En base al análisis de las opciones anteriores, se optó por el desarrollo de un wearable tipo smartwatch
+debido a la amplia disponibilidad de componentes adaptados para biometrı́a periférica y la facilidad de
+interacción directa con el usuario, ası́ como no tener que lidiar con los largos recorridos de las señales de
+estar situadas muy lejos entre sı́ fı́sicamente.
+El producto a desarrollar es SupaClock, un wearable enfocado en el monitoreo biométrico y de actividad
+fı́sica. El entregable principal del proyecto consistirá en un dispositivo compacto, cómodo y completamente funcional. La primera iteración contendrá todos los subsistemas y sensores sobre una PCB básica.
+Luego de verificar el funcionamiento general, se migrará a una PCB personalizada con los circuitos de los
+sensores, alimentación, microcontrolador y periféricos, ası́ como una carcasa hecha a medida. El sistema
+será orquestado inicialmente por el microcontrolador ESP32 C3 [7], dependiendo de su desempeño en etapas iniciales de prueba, se considera migrar hacia el ESP32 S3 [8], que tiene varias mejoras significativas,
+a costa de un mayor consumo energético. Para gestionar el lado de software, se dispondrá del sistema
+operativo FreeRTOS [9].
+Como objetivo extendido (bonus), una vez validada la arquitectura principal, se diseñará una versión
+”Pro”. Esta consistirá en una placa PCB miniaturizada de alta densidad, acercándose a un factor de
+forma de smartwatch comercial. De manera complementaria, el ecosistema se expandirá con una aplicación
+Android que recibirá los datos vı́a Bluetooth Low Energy (BLE) y los almacenará de forma persistente
+en una base de datos en la nube (como Firebase), permitiendo un análisis histórico y avanzado de las
+métricas del usuario.
+Para satisfacer los requerimientos técnicos del proyecto, la propuesta de diseño integra múltiples subsistemas. En primer lugar, la adquisición de señales biológicas se realiza mediante el sensor MAX30102
+[10] para fotopletismografı́a (SpO2/HR) y el MAX30205 [11] para la temperatura corporal, exigiéndose un diseño mecánico que garantice un contacto dérmico directo, constante y cómodo en la muñeca.
+Complementariamente, se implementa un sistema de electrocardiografı́a monocanal basado en el circuito
+AD8232 [12], el cual utiliza un arreglo de tres electrodos de contacto seco (pernos M3) distribuidos en el
+dispositivo; esto permite medir la Derivación I del corazón mediante una interacción sencilla, requiriendo
+únicamente que el usuario haga contacto con la mano opuesta sobre un perno situado en la carcasa.
+En cuanto al monitoreo de la actividad, se integra un acelerómetro y giroscopio (BMI160) [13] para la
+captura de telemetrı́a inercial en 6 ejes, datos que alimentarán un modelo de Machine Learning capaz
+de distinguir estados fı́sicos como caminar, correr, reposo, o detectar situaciones de emergencia/caı́da.
+Finalmente, la retroalimentación al usuario se resuelve mediante un despliegue gráfico local, incorporando
+una pantalla LCD a color [14] para renderizar una interfaz fluida, atractiva y prolija, capaz de mostrar
+métricas numéricas y formas de onda de manera completamente autónoma y sin depender del teléfono
+móvil.
+
+IEE2913
+
+Diseño Eléctrico
+
+7
+
+4.
+
+Análisis de requerimientos
+
+4.1.
+
+Dispositivo compacto y cómodo
+
+Al escoger un wearable, debemos diseñar un dispositivo que no imposibilite el uso de la muñeca, por lo
+que no puede superar los 80 mm de largo ni 50 mm de ancho. A su vez, la altura del dispositivo puede
+generar incomodidad, por lo que debemos realizar un diseño que no supere los 30 mm de altura. Por otra
+parte, el peso es un factor importante, por lo que nuestro dispositivo no puede pesar más de 150 g.
+Dada la naturaleza de algunos sensores, es necesario que algunos de estos deban tener contacto directo con
+la piel del usuario, por lo que es fundamental que estos se encuentren correctamente protegidos y aislados.
+Considerando los implementos del laboratorio, realizaremos una carcasa impresa en 3D que albergue todos
+los componentes en su interior, y que permita una interacción segura entre los sensores y el usuario.
+
+4.2.
+
+Energización y autonomı́a
+
+El dispositivo no puede estar energizado a una fuente de poder para su uso cotidiano, por lo que es
+fundamental el uso de baterı́as para alimentar al mismo. Para garantizar un uso óptimo y seguro de la
+misma, se debe incluir un BMS en el diseño. A su vez, es necesario incluir un circuito battery fuel gauge,
+el integrado MAX17043 se encarga de informar mediante I2C el nivel de baterı́a al usuario.
+Para ser un dispositivo a la altura de la competencia, es necesario que la baterı́a tenga una duración
+mı́nima de 12 horas, por lo que es necesario optimizar los consumos de energı́a del microcontrolador y los
+sensores del dispositivo.
+
+4.3.
+
+Mediciones requeridas
+
+Para cumplir ı́ntegramente con las especificaciones del proyecto, el hardware del dispositivo debe ser
+capaz de adquirir, acondicionar y digitalizar cinco variables biométricas y cinemáticas fundamentales,
+garantizando la entrega de señales limpias para su posterior procesamiento:
+Temperatura corporal superficial: Capturada de manera periódica mediante el sensor de grado
+clı́nico MAX30205, el cual requiere un diseño mecánico que asegure contacto térmico directo con la
+piel del usuario.
+Frecuencia cardı́aca y Saturación de oxı́geno (SpO2): Ambas métricas serán estimadas mediante fotopletismografı́a (PPG) de reflectancia, utilizando el módulo óptico MAX30102 ubicado en
+la base del dispositivo.
+Aceleración: La captura del movimiento lineal espacial (necesaria tanto para el podómetro como
+para el modelo de clasificación) se realizará mediante la Unidad de Medición Inercial (IMU) BMI160.
+Electrocardiograma (ECG): Se requiere la adquisición de la actividad eléctrica del corazón. Esta
+función estará destinada de manera exclusiva a mediciones puntuales en estado de reposo.
+Para ello, se utilizará el módulo de instrumentación analógica AD8232 acoplado a un arreglo de tres
+electrodos de contacto seco (pernos M3), requiriendo que el usuario cierre el circuito bioeléctrico
+mediante contacto bimanual. Estos datos serán procesados inicialmente en el microcontrolador, para
+luego enviarse vı́a bluetooth al teléfono, el cual subirá los datos al servidor que guardará el perfil
+del usuario, junto con hacer un análisis más profundo de las métricas diarias.
+
+IEE2913
+
+Diseño Eléctrico
+
+8
+
+4.4.
+
+Procesamiento algorı́tmico y Machine Learning
+
+El dispositivo no solo actúa como un recolector de datos, sino que debe procesarlos localmente, cumpliendo
+con los siguientes requerimientos algorı́tmicos:
+4.4.1.
+
+Contador de pasos algorı́tmico
+
+Dadas las restricciones del proyecto de no utilizar módulos comerciales pre-programados, se desarrollará un
+algoritmo propietario en C. La Tabla 1 presenta una comparación de las principales familias de algoritmos
+de conteo de pasos reportados en la literatura para dispositivos wearable.
+Algoritmo
+
+Precisión
+
+Costo comp.
+
+Ventajas
+
+Desventajas
+
+Detección de
+picos con umbral adaptativo
+(Seleccionado)
+
+92–96 %
+
+Muy bajo
+
+Simple, bajo consumo
+de RAM, robusto ante
+cambios de velocidad
+
+Sensible a vibraciones;
+requiere filtrado previo
+
+Cruce por cero
+(Zero-Crossing)
+
+85–90 %
+
+Muy bajo
+
+Implementación trivial,
+sin parámetros de umbral
+
+Alta tasa de falsos positivos con movimientos
+no periódicos
+
+Autocorrelación
+temporal
+
+93–97 %
+
+Alto
+
+Excelente con señales
+periódicas, estima frecuencia de paso
+
+Costoso en CPU y
+RAM (requiere buffers grandes); no apto
+para tiempo real en C3
+
+Clasificación
+por ML (CNN/LSTM)
+
+95–98 %
+
+Muy alto
+
+Mayor precisión, distingue tipos de paso
+
+Excesivo para un simple contador; ya se usa
+ML para clasificación
+de actividad
+
+Cuadro 1: Comparación de algoritmos de conteo de pasos para dispositivos wearable.
+Se seleccionó el algoritmo de detección de picos con umbral adaptativo por su excelente balance
+entre precisión (92–96 %) y costo computacional mı́nimo, siendo el más adecuado para la arquitectura
+RISC-V del ESP32-C3 [7] que carece de FPU por hardware. El pipeline de procesamiento opera sobre la
+señal del acelerómetro BMI160 [13] y consta de las siguientes etapas:
+q
+1. Cálculo de magnitud: Se computa |a| = a2x + a2y + a2z a partir de las lecturas del acelerómetro
+a 50 Hz, eliminando la dependencia de la orientación del dispositivo en la muñeca.
+2. Filtro pasabajos (Media Móvil): Se aplica un filtro de media móvil de ventana N = 10 muestras
+(200 ms a 50 Hz), con el propósito de atenuar vibraciones de alta frecuencia y ruido mecánico. La
+fs
+frecuencia de corte resultante es fc ≈ 2πN
+≈ 0,8 Hz, que retiene las componentes de paso humano
+tı́picas (1–3 Hz caminando, hasta 4 Hz corriendo).
+3. Detección de picos con umbral adaptativo: Se implementa un detector de cruce por umbral
+con histéresis. El umbral se recalcula cada 5 segundos como el 60 % de la amplitud pico-a-pico
+observada en la ventana anterior. Un paso se contabiliza cuando la señal filtrada cruza el umbral
+ascendente seguido de un cruce descendente, con un perı́odo refractario mı́nimo de 250 ms entre
+detecciones consecutivas para evitar doble conteo.
+
+IEE2913
+
+Diseño Eléctrico
+
+9
+
+4. Validación temporal: Se requiere un mı́nimo de 3 pasos consecutivos dentro de un intervalo de
+5 segundos para confirmar que el usuario está caminando (evitando falsos positivos por movimientos
+aislados).
+Este contador contará con la funcionalidad de ser reseteado a cero a voluntad del usuario navegando por
+los menús de la interfaz gráfica local del smartwatch.
+4.4.2.
+
+Clasificación de actividades (4 estados)
+
+Se requiere implementar un modelo de clasificación capaz de predecir cuatro estados fı́sicos y situaciones
+de riesgo: reposo, caminar, correr y detección de caı́da/emergencia. Este último estado es crı́tico para
+otorgar un valor añadido a la seguridad del usuario.
+La Tabla 2 presenta un análisis comparativo de arquitecturas de modelos de Machine Learning candidatos,
+basándose en benchmarks de HAR (Human Activity Recognition) en dispositivos edge [1].
+Modelo
+
+Peso (KB)
+
+Latencia (ms)
+
+Precisión est.
+
+Observaciones
+
+Decision Tree /
+Random Forest
+
+2–10
+
+<1
+
+85–90 %
+
+Bajo consumo de RAM.
+Interpretable. Limitado
+con patrones temporales
+complejos.
+
+SVM (RBF Kernel)
+
+5–20
+
+1–5
+
+88–92 %
+
+Buen rendimiento con features manuales. Requiere
+extracción de caracterı́sticas previa.
+
+CNN 1D (Seleccionado)
+
+15–50
+
+5–15
+
+92–96 %
+
+Opera directamente sobre
+ventanas de aceleración
+cruda. Compatible con
+TFLite Micro y Edge Impulse.
+
+LSTM / GRU
+
+50–200
+
+20–50
+
+93–97 %
+
+Excelente para series temporales, pero excesivo en
+memoria y latencia para
+ESP32-C3.
+
+Cuadro 2: Comparación de arquitecturas de ML para clasificación de actividad en microcontroladores [1].
+Se ha seleccionado una Red Neuronal Convolucional 1D (CNN 1D) como arquitectura base, compuesta por 2 capas convolucionales (8 y 16 filtros respectivamente, kernel de tamaño 3) seguidas de una
+capa de Global Average Pooling y una capa densa de 4 neuronas con activación softmax. Esta arquitectura ha demostrado un rendimiento superior en tareas de HAR sobre microcontroladores frente a modelos
+clásicos [1], y se entrenará utilizando Edge Impulse [15] con datos recolectados del propio BMI160 [13]
+montado en la muñeca, para luego exportar el modelo cuantizado a int8 mediante TensorFlow Lite
+for Microcontrollers [16]. Los objetivos de diseño del modelo son:
+Peso del modelo: ≤ 30 KB (flash) y ≤ 10 KB (arena de inferencia en SRAM).
+Latencia de inferencia: ≤ 20 ms en ESP32-C3 a 160 MHz [7].
+Precisión objetivo: ≥ 90 % en las 4 clases, con énfasis en minimizar falsos negativos para la
+detección de caı́das.
+IEE2913
+
+Diseño Eléctrico
+
+10
+
+4.4.3.
+
+Justificación de la arquitectura Edge AI
+
+Se ha decidido implementar el modelo de Inteligencia Artificial directamente en el microcontrolador (Edge
+Computing/TinyML) en lugar de procesarlo en la nube. Esta decisión se justifica por tres factores clave:
+minimiza la latencia (aspecto crı́tico para reportar una caı́da en tiempo real), reduce drásticamente el
+consumo energético al evitar la transmisión constante de telemetrı́a cruda por la antena Bluetooth, y
+garantiza la privacidad de los movimientos del usuario.
+
+4.5.
+
+Especificación de manejo de datos
+
+Se detallan las especificaciones de los datos que el sistema genera, almacena y transmite. La Tabla 3
+presenta el volumen, formato y destino de cada tipo de dato.
+Tipo de dato
+
+Tamaño
+
+Frecuencia
+
+Formato
+
+Destino
+
+Telemetrı́a continua (HR, SpO2,
+Temp, Pasos, Actividad)
+
+12 bytes
+
+1 Hz (BLE Notify)
+
+Struct empaquetado LittleEndian (uint8,
+int16, uint32)
+
+Buffer local → BLE
+→ Firestore
+
+ECG crudo
+(AD8232)
+
+2 bytes/muestra
+
+100 Hz (30 s)
+
+int16 (12-bit
+ADC en 16-bit
+container) [12]
+
+BLE streaming →
+Cloud Functions
+
+Ventana IMU
+(ML)
+
+600 bytes
+
+Cada 2 s
+
+6 × int16 × 50
+muestras [13]
+
+Procesado local
+(TinyML)
+
+Sesión (resumen)
+
+∼200 bytes
+
+Cada 5 min
+
+JSON (Firestore
+document)
+
+Cloud Firestore
+(persistencia) [17]
+
+ECG procesado
+
+∼500 bytes
+
+Bajo demanda
+
+JSON (BPM,
+HRV, R-peaks)
+
+Cloud Functions →
+Firestore
+
+Cuadro 3: Especificación de volumen, formato y destino de los datos del sistema.
+La velocidad de transmisión BLE se configura a un connection interval de 15 ms con un MTU de 247 bytes [18], lo que permite un throughput efectivo de aproximadamente 13 kB/s. Este ancho de banda es
+suficiente para transmitir la telemetrı́a continua (12 B/s) y los datos de ECG crudo (200 B/s a 100 Hz).
+El almacenamiento local en el microcontrolador utiliza un buffer circular de 4 KB en SRAM [7] para la
+telemetrı́a, sin requerir almacenamiento persistente en flash, ya que los datos se transmiten en tiempo
+real.
+
+4.6.
+
+Algoritmos de Procesamiento de Señales (ECG)
+
+Para la estimación precisa de la frecuencia cardı́aca a partir de la señal analógica del módulo AD8232,
+se implementará el algoritmo estándar de Pan-Tompkins [19]. Para no sobrecargar el microcontrolador
+y conservar baterı́a, este procesamiento se ejecutará de manera ası́ncrona en la nube una vez recibida la
+trama de datos:
+1. Filtrado Digital Pasabanda: Se aplicará un filtro digital para atenuar el ruido de alta frecuencia
+(interferencia de la red eléctrica) y eliminar la deriva de la lı́nea base causada por la respiración del
+usuario.
+
+IEE2913
+
+Diseño Eléctrico
+
+11
+
+2. Procesamiento Morfológico: La señal filtrada pasará por un filtro derivativo y una función de
+cuadratura para resaltar exclusivamente la pendiente aguda del complejo QRS del corazón.
+3. Detección de Picos R: Se utilizará una integración de ventana móvil con umbrales adaptativos
+(adaptive thresholding) para identificar con precisión el tiempo exacto de cada latido.
+4. Cálculo de Métricas: A partir de la distancia temporal entre picos consecutivos (intervalos R-R),
+el sistema calculará la Frecuencia Cardı́aca promedio (BPM) y devolverá el valor a la aplicación
+móvil para su visualización.
+
+4.7.
+
+Interfaz gráfica y navegación
+
+Para asegurar una interacción intuitiva y cumplir con los requerimientos de visualización local sin depender exclusivamente del teléfono móvil, el dispositivo integrará una pantalla LCD rectangular a color
+de 1.69 pulgadas. El sistema de navegación fı́sico constará de tres botones pulsadores (Arriba, Abajo y
+Seleccionar/Acción) ubicados en el costado derecho de la carcasa, garantizando una operación intuitiva y
+fácil, incluso durante la actividad fı́sica.
+La interfaz gráfica de usuario (GUI) se ha diseñado maximizando el contraste mediante un fondo negro
+e ı́conos de colores vibrantes para una rápida lectura. El sistema se estructurará lógicamente en cuatro
+vistas principales, las cuales se pueden apreciar en la Fig.3:
+
+Figura 3: Diseño preliminar de las interfaces gráficas del dispositivo.
+1. Pantalla Principal (Dashboard): Actuará como la carátula central (watchface). Concentra la
+información de uso continuo exigida por los requerimientos: la hora actual, el contador de pasos, el
+nivel porcentual de baterı́a, la frecuencia cardı́aca y la actividad fı́sica predicha por el modelo de IA
+en ese instante.
+2. Biometrı́a General: Un panel dedicado a mostrar las lecturas de los sensores periféricos, desplegando la frecuencia cardı́aca, el porcentaje de saturación de oxı́geno (SpO2) y la temperatura
+corporal superficial, además de indicar el estado operativo de los sensores.
+IEE2913
+
+Diseño Eléctrico
+
+12
+
+3. Modo ECG: Interfaz interactiva orientada exclusivamente a la toma del electrocardiograma en
+estado de reposo. Guiará al usuario mediante instrucciones visuales para que cierre el circuito bimanual tocando los electrodos. Adicionalmente, mostrará una cuenta regresiva del progreso y dibujará
+(se está evaluando la posibilidad) la forma de onda cardı́aca en tiempo rea.
+4. Menú del Sistema: Interfaz de configuración general que albergará opciones avanzadas. Aquı́ se
+incluirá la función de reiniciar a cero el contador de pasos, activar el modo de emparejamiento Bluetooth (BLE) para la sincronización de datos (Data Logger ) con la aplicación móvil/PC y gestionar
+el apagado del equipo.
+
+5.
+
+Elección de componentes y justificación
+
+El componente más importante de nuestro wearable es el microcontrolador, ya que actúa como el cerebro
+del sistema: gobierna todos los periféricos, ejecuta los algoritmos de procesamiento de señales, corre el
+modelo de Machine Learning y gestiona las comunicaciones inalámbricas. Una elección inadecuada en esta
+etapa comprometerı́a la autonomı́a energética, la capacidad de procesamiento y la viabilidad de futuras
+expansiones del producto.
+A continuación se presenta una tabla comparativa de las distintas opciones analizadas como MCU del
+wearable. Es importante aclarar que los tamaños utilizados para la columna de dimensiones están referidos
+a módulos que tienen integrados los microcontroladores mencionados.
+
+IEE2913
+
+Diseño Eléctrico
+
+13
+
+MCU
+
+Arch y Freq
+
+Math Process (DSP/ML)
+
+Connect
+
+Power
+Consumption
+
+Size/ Integration
+
+PinOut
+GPIO
+
+ESP32-C3
+SUPER MINI (Seleccionado) [7]
+
+RISC-V 32-bit
+de un núcleo
+(160 MHz)
+
+Por software. No posee
+FPU (hardware), los cálculos de ML y
+filtros requerirán más ciclos de reloj.
+
+WiFi 4 y
+Bluetooth 5
+(LE)
+
+Medio.
+Requiere
+diseño cuidadoso de
+Deep Sleep.
+
+22.5 mm x
+18 mm
+
+13
+
+ESP32-S3
+(Seleccionado) [8]
+
+Xtensa 32bit Dual-Core
+(240 MHz)
+
+Sobresaliente. WiFi 4 y
+Posee insBluetooth 5
+trucciones
+(LE)
+vectoriales
+para acelerar
+redes neuronales.
+
+Alto. Consumo peak
+de 340 mA
+transmitiendo por
+Wifi 2.4
+GHz, 1
+Mbps y
+21 dBm .
+
+Muy
+bueno, pero requiere
+un área de
+PCB ligeramente
+mayor.
+
+27
+
+NRF52840
+[20]
+
+ARM CortexM4F (64
+MHz)
+
+Excelente.
+Posee FPU
+por hardware,
+ideal para el
+filtrado del
+ECG y ML de
+bajo consumo.
+
+Solo Bluetooth 5
+(LE) y
+otros. Sin
+WiFi.
+
+Ultra Bajo. Perfecto
+para wearables de alta
+autonomı́a.
+
+Excelente,
+existen
+módulos
+SMD diminutos.
+
+11
+
+STM32WB55 Dual-Core:
+[21]
+ARM CortexM4 (64 MHz)
+para aplicación y CortexM0+ (32
+MHz) dedicado a radio.
+
+Excelente.
+Posee FPU
+por hardware
+y soporte nativo optimizado
+para ML
+
+Bluetooth
+5 (LE) y
+802.15.4
+(Zigbee/Thread). Sin
+WiFi.
+
+Ultra Bajo. El procesador de
+radio independiente
+permite
+ahorrar
+mucha baterı́a durante las
+transmisiones.
+
+Muy
+bueno.
+Empaquetados muy
+pequeños,
+pero requiere un
+diseño de
+antena RF
+si no se
+compra en
+formato
+módulo.
+
+22
+
+Cuadro 4: Comparación de Opciones de Microcontroladores (MCU)
+La decisión de utilizar la familia de microcontroladores de Espressif (ESP32-C3 y ESP32-S3) se fundamenta en su facilidad de desarrollo y la vasta cantidad de documentación y herramientas
+disponibles que el equipo ya domina. Esto permite acelerar significativamente la fase de prototipado. Adicionalmente, la compatibilidad en el ecosistema de Espressif ofrece una tremenda flexibilidad: el proyecto
+iniciará utilizando el ESP32-C3 debido a su bajo costo y menor consumo energético, con la posibilidad
+de migrar fácilmente al ESP32-S3 sin mayores cambios en el código base, en caso de que el modelo
+IEE2913
+
+Diseño Eléctrico
+
+14
+
+de Machine Learning y los algoritmos de procesamiento exijan una mayor potencia de cómputo.
+Sensor (Fabricante)
+
+Interfaz
+
+Resolución
+
+Consumo
+(Modo Activo)
+
+Ventajas / Desventajas
+
+BMI160
+(Bosch) Seleccionado
+[13]
+
+I2C / SPI
+
+16 bits (Acel
++ Giro)
+
+∼900 µA
+
+Ventaja: Excelente
+eficiencia y buffer
+FIFO grande (1024
+bytes). Ideal para
+Edge ML.
+
+MPU6050
+(InvenSense)
+[22]
+
+I2C
+
+16 bits (Acel
++ Giro)
+
+∼3900 µA (3.9
+mA)
+
+Desventaja: Consumo de energı́a excesivamente alto
+para un wearable.
+Tecnologı́a antigua
+(Legacy).
+
+LSM6DS3
+(STMicro)
+[23]
+
+I2C / SPI
+
+16 bits (Acel
++ Giro)
+
+∼1250 µA
+
+Ventaja: Muy bajo
+consumo y contador de pasos por
+hardware integrado
+(aunque el proyecto
+exige software propio).
+
+Cuadro 5: Comparación de Sensores Inerciales (IMU) para Detección de Actividad
+Para la detección de movimiento continuo (podómetro y clasificación de Machine Learning), la Tabla 5
+evidencia que el BMI160 es la opción idónea al combinar un consumo por debajo de 1 mA y un amplio
+buffer FIFO (que desacopla el trabajo de lectura continua del microcontrolador), descartando alternativas
+de tecnologı́a más antigua y alto perfil energético como el MPU6050.
+
+IEE2913
+
+Diseño Eléctrico
+
+15
+
+Sensor (Fabricante)
+
+Interfaz
+
+Resolución
+ADC
+
+Consumo
+Promedio
+
+Ventajas / Desventajas
+
+MAX30102
+(Maxim) Seleccionado
+[10]
+
+I2C
+
+18 bits
+
+∼600 µA
+
+Ventaja: Integra
+LEDs y fotodetector. Alta resolución
+y cristal protector
+que facilita la limpieza en contacto
+con la piel.
+
+MAX30100
+(Maxim) [24]
+
+I2C
+
+16 bits
+
+∼1200 µA
+
+Desventaja: Menor
+resolución, mayor
+consumo y conocido
+por problemas de
+compatibilidad de
+voltajes en módulos
+comerciales.
+
+MAX86141
+(Maxim) [25]
+
+SPI
+
+19 bits
+
+Ultra bajo
+(<100 µA)
+
+Desventaja: Requiere LEDs externos y diseño de
+hardware sumamente complejo. Excede el alcance de un
+prototipo inicial.
+
+Cuadro 6: Comparación de Sensores Ópticos (PPG) para HR y SpO2
+Por el lado de la métrica cardı́aca y de oxigenación, en la Tabla 6 se analiza el abanico de fotopletismógrafos comerciales. El MAX30102 se consagra como nuestra elección principal por su excelente relación de
+facilidad de uso e integración, ya que compila ópticas de alta resolución en un encapsulado que incluye
+vidrio protector ideal para el contacto epitelial constante en la muñeca, superando las limitaciones de
+versiones antiguas como el MAX30100.
+
+IEE2913
+
+Diseño Eléctrico
+
+16
+
+Sensor (Fabricante)
+
+Interfaz
+
+Precisión
+(Rango
+Clı́nico)
+
+Consumo
+Activo
+
+Ventajas / Desventajas
+
+MAX30205
+(Maxim) Seleccionado
+[11]
+
+I2C
+
+±0.1◦ C (37◦ C
+a 39◦ C)
+
+∼600 µA
+
+Ventaja: Precisión
+de grado clı́nico especı́fica para piel
+humana. Fácil integración en bus I2C.
+
+MLX90614
+(Melexis)
+[26]
+
+I2C /
+PWM
+
+±0.2◦ C
+
+∼1.5 mA
+
+Desventaja: Medición infrarroja sin
+contacto. Es muy
+voluminoso (empaque TO-39) e inviable para un diseño
+ultracompacto.
+
+DS18B20
+(Maxim) [27]
+
+1-Wire
+
+±0.5◦ C
+
+∼1 mA
+
+Desventaja: Precisión insuficiente
+para uso biomédico
+y el protocolo 1Wire consume más
+recursos de software
+que el I2C.
+
+Cuadro 7: Comparación de Sensores de Temperatura para Aplicaciones Médicas/Wearables
+La medición de fiebre o estrés térmico requiere alta fidelidad; como describe la Tabla 7, descartamos
+medidores de propósito general (DS18B20) o módulos infrarrojos muy abultados (MLX90614, propio
+de termómetros de pistola). En contraste, el MAX30205 proporciona precisión con certificación clı́nica
+(±0.1◦ C en rango humano) mediante simple contacto superficial con la piel.
+
+IEE2913
+
+Diseño Eléctrico
+
+17
+
+IC de Carga
+(Fabricante)
+
+Topologı́a
+
+Protección
+Integrada
+
+Corriente
+de Carga
+
+Ventajas / Desventajas
+
+TP4056 +
+DW01A Seleccionado
+[28]
+
+Cargador Lineal LDO
+
+Requiere
+IC externo
+(DW01A)
+
+Hasta 1A
+(Ajustable)
+
+Ventaja: Costo extremadamente bajo,
+circuito comprobado
+y fácil de soldar a
+mano. Ideal para el
+prototipo.
+
+BQ24075
+(Texas Instruments)
+[29]
+
+Cargador
+Lineal con
+Power-Path
+
+Sı́ (Sobretensión y Temperatura)
+
+Hasta 1.5A
+
+Desventaja: Costoso y empaquetado
+QFN difı́cil de ensamblar. Ventaja:
+Permite usar el dispositivo mientras se
+carga sin estresar la
+baterı́a.
+
+MCP73831
+(Microchip)
+[30]
+
+Cargador Lineal
+
+No (Solo gestión térmica)
+
+Hasta 500
+mA
+
+Desventaja: Aunque es diminuto
+(SOT-23), carece
+de protección contra
+sobredescarga, obligando a añadir más
+circuiterı́a.
+
+Cuadro 8: Comparación de Circuitos Integrados para Carga y Protección (BMS)
+Respecto a la fuente de poder, se seleccionó una baterı́a de polı́mero de litio (LiPo) de 3.7V. Para
+justificar la capacidad seleccionada, la Tabla 9 presenta un desglose detallado del consumo energético
+estimado de cada subsistema, basándose en los valores tı́picos de las hojas de datos de cada componente.
+
+IEE2913
+
+Diseño Eléctrico
+
+18
+
+Componente
+
+Modo Activo (mA)
+
+Modo Reposo (mA)
+
+Ciclo de uso ( %)
+
+ESP32-C3 (CPU +
+Radio off) [7]
+
+15.0
+
+0.05
+
+100
+
+ESP32-C3 (BLE Tx,
+periódico) [7]
+
+5.0
+
+0.0
+
+10
+
+Pantalla ST7789 (backlight) [14]
+
+25.0
+
+0.0
+
+40
+
+MAX30102 (PPG activo) [10]
+
+0.6
+
+0.0
+
+50
+
+MAX30205 (Temperatura) [11]
+
+0.6
+
+0.01
+
+5
+
+BMI160 (IMU normal)
+[13]
+
+0.9
+
+0.003
+
+100
+
+MAX17048 (Fuel Gauge) [31]
+
+0.05
+
+0.05
+
+100
+
+AD8232 (ECG, bajo
+demanda) [12]
+
+0.17
+
+0.0
+
+2
+
+LDO ME6211 (IQ ) [32]
+
+0.055
+
+0.055
+
+100
+
+Total ponderado
+
+∼22.9
+
+∼0.17
+
+—
+
+Cuadro 9: Desglose del consumo energético estimado por componente (valores de hojas de datos).
+Considerando un perfil de uso diario de 8 horas de modo activo (pantalla encendida, sensores operando)
+y 16 horas de modo reposo (pantalla apagada, solo IMU activo), el consumo promedio ponderado
+resulta:
+Iavg =
+
+8 × 22,9 + 16 × 0,17
+≈ 7,7 mA
+24
+
+(1)
+
+Con una baterı́a de 250 mAh (modelo 502030, dimensiones 30×20×5 mm, con circuito de protección
+PCM integrado) y considerando una eficiencia del LDO del 90 % [32], la autonomı́a teórica es:
+tautonomia =
+
+250 × 0,9
+≈ 29,2 horas ≈ 1,2 dı́as
+7,7
+
+(2)
+
+Este cálculo valida la selección de la celda de 250 mAh, superando holgadamente el requerimiento mı́nimo
+de 12 horas de operación.
+Consideraciones mecánicas: El diseño contempla una arquitectura tipo sandwich de doble PCB (PCB
+superior con MCU y conector de pantalla, baterı́a en el centro, PCB inferior con los sensores de contacto
+con la piel: MAX30102 y MAX30205). Se utilizará la misma celda 502030 en ambas versiones del producto.
+La Tabla 10 presenta el análisis de apilamiento (stack-up).
+
+IEE2913
+
+Diseño Eléctrico
+
+19
+
+Capa
+
+Prototipo (mm)
+
+Versión Pro (mm)
+
+Display + cristal
+
+2.5
+
+2.0
+
+Top PCB (MCU, conectores)
+
+1.6
+
+1.0
+
+Baterı́a LiPo 502030
+
+5.0 (250 mAh)
+
+5.0 (250 mAh)
+
+Bottom PCB (sensores
+skin-contact)
+
+1.6
+
+1.0
+
+Cover posterior (ventana
+óptica PPG)
+
+0.5
+
+0.5
+
+Carcasa (paredes superior
+e inferior)
+
+1.5
+
+1.2
+
+Espesor total
+
+∼12.7
+
+∼10.7
+
+Referencia: Apple Watch
+(10.7), Galaxy Watch
+(9.8)
+
+Rango comercial: 9–11 mm
+
+Cuadro 10: Análisis de apilamiento mecánico (stack-up) para la arquitectura sandwich de doble PCB.
+La huella de 20×30 mm de la celda 502030 se ajusta al espacio disponible bajo la pantalla de 1.69”
+(∼35×42 mm), dejando margen para el ruteo de cables y conectores FPC. La versión “Pro” (PCB SMD
+de 4 capas fabricada en JLCPCB) reduce el espesor total a ∼10.7 mm gracias a PCBs de 1.0 mm y una
+carcasa más delgada, igualando el perfil de un Apple Watch.
+Para la gestión térmica y energética de dicha celda, la Tabla 8 resume el análisis del subsistema de carga
+(BMS). La combinación de los integrados genéricos TP4056 y el circuito de protección DW01A es ideal
+para el primer prototipo. Este módulo se adquiere fácilmente soldado en placa base con puerto Type-C
+integrado por un valor bajo, superando las barreras de soldadura que ofrecen QFNs como el BQ24075.
+
+IEE2913
+
+Diseño Eléctrico
+
+20
+
+Componente
+(Fabricante)
+
+Método de
+Medición
+
+Hardware
+Externo
+
+Consumo
+Promedio
+
+Ventajas / Desventajas
+
+MAX17043
+(Maxim) Seleccionado
+[33]
+
+ModelGauge
+(Basado en
+voltaje)
+
+Ninguno
+
+∼50 µA
+
+Ventaja: Estima
+el estado de carga
+(SOC) sin resistencia de sensado
+(shunt), ahorrando
+valioso espacio en la
+PCB.
+
+BQ27441-G1
+(Texas Instruments)
+[34]
+
+Impedance
+Track (Coulomb Counting)
+
+Resistencia
+Shunt externa
+
+∼93 µA
+
+Desventaja: Mayor precisión, pero
+requiere ruteo crı́tico de la resistencia
+shunt y configuración compleja del
+perfil de baterı́a.
+
+Lectura
+directa
+por ADC
+(ESP32)
+
+Divisor de voltaje resistivo
+
+2 Resistencias
+
+Variable
+(Corriente
+de fuga)
+
+Desventaja: El
+ADC del ESP32 no
+es lineal. Desperdicia baterı́a por el
+divisor de tensión y
+es muy impreciso.
+
+Cuadro 11: Comparación de Monitores de Baterı́a (Fuel Gauges)
+Representar el State of Charge (nivel de baterı́a en la pantalla de la muñeca) sin dañar la autonomı́a general
+requiere un integrado especializado. Tal como indica la Tabla 11, la decisión decantó por el MAX17043
+ya que utiliza el algoritmo patentado ModelGauge sobre el voltaje crudo (sin utilizar derivadores shunt
+externos o puentes resistivos analógicos), ahorrando considerable consumo estático en la placa.
+
+IEE2913
+
+Diseño Eléctrico
+
+21
+
+Regulador
+LDO
+
+Corriente
+Máxima
+
+Voltaje de
+Caı́da (Dropout)
+
+Corriente
+Quiescente
+(IQ )
+
+Ventajas / Desventajas
+
+ME6211 /
+AP2112K Seleccionado
+[32]
+
+∼500 mA
+
+Ultra bajo
+(∼100 mV a
+100 mA)
+
+∼55 µA
+
+Ventaja: Excelente
+balance entre tamaño (SOT-23-5),
+eficiencia cuando la
+baterı́a baja de 3.6V
+y capacidad de corriente para el WiFi.
+
+AMS11173.3 [35]
+
+1A
+
+Muy alto
+(∼1.1 V)
+
+∼5 mA (5000
+µA)
+
+Desventaja: Pésima elección para
+baterı́as. Su alto
+dropout cortarı́a el
+ESP32 incluso cuando la baterı́a esté al
+50 %. Drena energı́a
+en reposo.
+
+TPS7A02
+(Texas Instruments)
+[36]
+
+200 mA
+
+Bajo (∼140
+mV)
+
+Nano-poder
+(25 nA)
+
+Desventaja: Corriente máxima insuficiente para los
+picos de transmisión
+WiFi del ESP32-C3
+(que superan los 300
+mA).
+
+Cuadro 12: Comparación de Reguladores de Voltaje LDO (3.3V) para Fase 2
+Traducir los voltajes inestables de la baterı́a de litio (4.2V a 3.0V) a los estables 3.3V que demanda el
+microcontrolador debe hacerse con máxima eficiencia térmica y con el mı́nimo dropout posible (Voltaje
+de caı́da extra). La Tabla 12 deja en evidencia que reguladores comunes (como el AMS1117) son pésimos
+para baterı́as móviles; por ello, elegimos el ME6211, el cual puede entregar ráfagas de alta corriente sin
+bloquearse cuando la celda baje de 3.6V.
+
+IEE2913
+
+Diseño Eléctrico
+
+22
+
+Tecnologı́a (Controlador)
+
+Interfaz
+
+Color y Resolución
+
+Consumo Estimado
+
+Ventajas / Desventajas
+
+IPS LCD
+1.3”(ST7789) Seleccionado [14]
+
+SPI
+
+RGB
+(240x240)
+
+Medio (∼20-40
+mA con retroiluminación)
+
+Ventaja: Excelente
+densidad de pı́xeles,
+colores vibrantes para gráficas (ECG) y la
+interfaz SPI maneja la
+tasa de refresco sin cuellos de botella.
+
+OLED
+0.96”(SSD1306)
+[37]
+
+I2C / SPI
+
+Monocromo
+(128x64)
+
+Bajo-Medio
+(∼10-20 mA)
+
+Desventaja: Menor
+resolución y tamaño.
+Difı́cil visualizar 4
+señales simultáneas y
+la predicción de Machine
+Learning de forma legible.
+
+Memory LCD
+(Sharp) [38]
+
+SPI
+
+Monocromo
+(Alto contraste)
+
+Ultra bajo (∼10
+µA)
+
+Desventaja: Muy costosa y sin retroiluminación (ilegible en la oscuridad). Excelente para
+autonomı́a extrema, pero no justifica el costo
+en este alcance.
+
+Cuadro 13: Comparación de Tecnologı́as de Pantalla para Interfaz de Usuario
+Finalmente, dotar al sistema de una cara visual local y dinámica decanta en la elección del controlador
+de pantalla ST7789 (Tabla 13). Al descartar opciones monocromáticas limitadas o extremadamente costosas, la pantalla IPS permite un pintado en alta resolución que es ideal para dibujar los vectores del
+Electrocardiograma (ECG) en vivo, junto a una paleta de colores vibrantes para un entorno de usuario
+premium.
+
+6.
+
+Diagrama de bloques
+
+6.1.
+
+Diagrama de bloques de alto nivel
+
+Para la implementación de la propuesta, se planteó el diagrama de bloques de la Fig.4, el cual presenta una
+vista integral de todos los subsistemas del proyecto SupaClock y sus interacciones. El diagrama abarca
+desde la adquisición de señales biométricas en el dispositivo hasta el almacenamiento y análisis de datos
+en la nube, pasando por la aplicación móvil que actúa como enlace entre ambos dominios. Los colores de
+las cajas y las conexiones permiten identificar rápidamente cada dominio funcional, tal como se detalla
+en la leyenda incluida en la parte inferior del diagrama.
+
+IEE2913
+
+Diseño Eléctrico
+
+23
+
+Interfaz Local
+
+Botones (x3)
+GPIO + ISR
+
+Pantalla LCD
+ST7789 (SPI)
+I2C
+
+Backend (Firebase)
+
+Sensores y Adquisición
+SPI
+Interacción Usuario
+
+Muñeca
+(Temp,
+PPG, IMU)
+
+MAX30102
+(SpO2/HR)
+
+BMI160
+(IMU 6-ejes)
+
+MAX30205
+(Temperatura)
+
+AD8232
+(ECG)
+
+Procesamiento (MCU)
+
+ESP32-C3/S3
+FreeRTOS
+TinyML
+
+ADC
+
+Aplicación Móvil
+W
+
+BLE
+
+i-F
+
+i/
+
+5G
+
+App Android
+(Gateway BLE)
+
+BPM
+W
+
+i-F
+
+i/
+
+5G
+
+Futuro
+
+Mano opuesta
+(ECG bimanual)
+
+Cloud Firestore
+(Perfiles/Hist.)
+
+Cloud Functions
+(Pan-Tompkins)
+
+3.3V
+
+Raspberry Pi 3B+
+(Edge Server)
+
+LDO 3.3V
+(ME6211)
+
+USB-C
+(5V Entrada)
+
+Fuel Gauge
+(MAX17048)
+
+BMS TP4056
++ DW01A
+
+Carga / Descarga
+
+Baterı́a LiPo
+(3.7V)
+
+Subsistema de Energı́a
+Interacción usuario
+Subsistema de energı́a
+Sensores biométricos
+MCU
+Interfaz local
+Aplicación móvil
+Backend nube
+
+Bus digital (I2C/SPI)
+Lı́nea de potencia
+Señal analógica (ADC)
+Enlace BLE
+Proyección futura
+
+Figura 4: Diagrama de bloques de alto nivel del sistema SupaClock, incluyendo el dispositivo, la aplicación
+móvil y el backend en la nube.
+1. Bloque de Interacción (Usuario): Representa el vı́nculo fı́sico entre el wearable y el individuo.
+Diferencia la zona de la muñeca (para la captura constante de temperatura, inercia y fotopletismografı́a y ECG) de la extremidad opuesta (necesaria para cerrar el circuito bioeléctrico del ECG
+bimanual). A su vez, ilustra la retroalimentación visual y táctil mediante la pantalla y los botones.
+2. Bloque de Energı́a: Está compuesto por una celda de polı́mero de litio (LiPo), un módulo BMS
+TP4056 que garantiza una recarga segura por USB-C, y un regulador lineal (LDO) que estabiliza
+el voltaje a una pista principal de 3.3V, alimentando a toda la electrónica de forma ininterrumpida.
+3. Bloque de Sensores y Adquisición: Constituye la etapa de instrumentación periférica. Agrupa al
+sensor MAX17048 (para telemetrı́a de baterı́a), MAX30102 (SpO2/HR), MAX30205 (Temperatura)
+y BMI160 (IMU), los cuales multiplexan su información digital a través de un bus I2C unificado. De
+forma paralela, el módulo AD8232 entrega una señal analógica continua para el electrocardiograma.
+4. Bloque de Procesamiento (MCU): El núcleo del dispositivo, operado por el microcontrolador
+ESP32-C3 bajo el sistema en tiempo real FreeRTOS. Se encarga de gobernar los periféricos, ejecutar
+el filtrado digital local y correr el modelo de Machine Learning (TinyML) para la inferencia y
+clasificación de actividades del usuario.
+5. Bloque de Interfaz Local: Permite la operatividad local sin depender del teléfono móvil. Está
+compuesto por un panel LCD IPS (ST7789) manejado mediante un bus de alta velocidad SPI (vı́a
+acceso directo a memoria, DMA) y un set de botones configurados como interrupciones por hardware
+(GPIO).
+6. Bloque de Aplicación Móvil: La aplicación Android actúa como Gateway entre el dispositivo
+y la nube. Recibe datos vı́a BLE, los visualiza en tiempo real y los reenvı́a al backend para su
+almacenamiento y análisis.
+7. Bloque de Backend (Firebase): Cloud Firestore almacena perfiles y métricas históricas, mientras
+IEE2913
+
+Diseño Eléctrico
+
+24
+
+que Cloud Functions ejecuta algoritmos de procesamiento pesado (como Pan-Tompkins para ECG).
+Como proyección futura, se contempla una Raspberry Pi 3B+ como servidor local.
+
+6.2.
+
+Diagrama de potencia
+
+El subsistema de energización y distribución de potencia ha sido diseñado para garantizar la seguridad
+operativa de la baterı́a y proveer un voltaje altamente estable a la electrónica sensible. El flujo de energı́a
+se estructura en tres etapas principales, tal como se ilustra en la Fig.5:
+USB-C
+5V Entrada
+
+5V
+
+BMS TP4056
++ DW01A
+
+Carga / Descarga
+
+Baterı́a LiPo
+3.7V, 250 mAh
+
+OUT (3.0–4.2V)
+
+V CELL
+
+LDO ME6211
+3.3V Salida
+
+Fuel Gauge
+MAX17048
+
+3.3V
+
+ESP32-C3/S3
+(MCU)
+
+ST7789
+(Pantalla)
+
+MAX30102
+(PPG)
+
+MAX30205
+(Temp)
+
+BMI160
+(IMU)
+
+AD8232
+(ECG)
+
+Dominio Lógico 3.3V
+I2C (SoC %)
+Flujo de potencia
+Señal de datos
+
+Figura 5: Diagrama de flujo de potencia y gestión de baterı́a del sistema SupaClock.
+Fuentes de Entrada y Gestión (BMS): El sistema posee un funcionamiento autónomo alimentado por una baterı́a LiPo de 3.7V. Para el proceso de recarga, se utiliza un puerto USB tipo
+C que suministra 5V a los pines de entrada (IN+/IN-) del módulo de gestión de baterı́a (BMS)
+TP4056. Este módulo actúa como intermediario, encargándose de cargar la celda de forma segura
+(pines B+/B-) y aislar el circuito para protegerlo contra sobredescargas y cortocircuitos mediante
+el integrado DW01A.
+Monitoreo Independiente (Fuel Gauge): Para informar el nivel de carga al usuario, se ha
+integrado el sensor MAX17048. Este componente realiza una lectura de voltaje directa desde los
+terminales de la celda LiPo, operando en paralelo al BMS.
+Regulación y Dominio Lógico (3.3V): La salida de energı́a protegida (OUT+/OUT-) proveniente del BMS se direcciona hacia un regulador lineal (LDO). Este componente estabiliza la tensión
+fluctuante de la baterı́a y establece una pista principal constante de 3.3V. Este dominio lógico unificado alimenta simultáneamente a todos los circuitos integrados del sistema: el microcontrolador
+central ESP32-C3 (S3 en posteriores versiones), la pantalla IPS ST7789, el acelerómetro BMI160,
+los biosensores MAX30102 y MAX30205, y el acondicionador de señal analógico del ECG (AD8232).
+
+6.3.
+
+Diagrama de señales y buses de comunicación
+
+La arquitectura de comunicación del SupaClock ha sido diseñada para minimizar el uso de pines del
+microcontrolador, agrupar sensores de la misma naturaleza y facilitar la futura migración del ESP32-C3
+
+IEE2913
+
+Diseño Eléctrico
+
+25
+
+al ESP32-S3 de ser necesario (más que nada por temás de potencia a la hora de probar el Machine
+Learning). El flujo de datos se ilustra en la Fig.6:
+Dominio SPI
+
+ST7789
+LCD 240×280
+RGB565
+
+Dominio I2C
+
+MAX30102
+PPG (SpO2/HR)
+
+Bus SPI
+80 MHz
+
+MOSI/SCK/CS/DC/RST
+
+0x57
+
+MAX30205
+Temperatura
+0x48
+
+BMI160
+IMU 6-ejes
+0x68
+
+ADC (GPIO 0)
+Bus I2C
+400 kHz
+
+SDA/SCL
+
+ESP32-C3/S3
+FreeRTOS
+(160/240 MHz)
+
+MAX17048
+Fuel Gauge
+
+GPIO / ADC
+
+AD8232
+ECG Analógico
+Botón Seleccionar
+GPIO 10
+Botón Arriba
+GPIO 20
+
+0x36
+
+Botón Abajo
+GPIO 21
+INT1 BMI160
+GPIO 1
+
+Bus I2C (bidireccional, 400 kHz)
+Bus SPI (unidireccional, 80 MHz)
+Señal analógica (ADC)
+Entrada digital (GPIO)
+Interrupción hardware (ISR)
+
+Figura 6: Diagrama de arquitectura de señales, buses lógicos y direcciones I2C.
+El sistema divide las señales en cuatro dominios principales:
+Bus I2C (Sensores): Actúa como el bus principal de telemetrı́a operando a 400 kHz. Agrupa
+el sensor de oximetrı́a (MAX30102 - 0x57), el monitor de baterı́a (MAX17048 - 0x36), el sensor
+de temperatura (MAX30205 - 0x48) y la unidad inercial (BMI160 - 0x68). El uso de este bus
+compartido es crı́tico para ahorrar puertos de I/O.
+Bus SPI (Pantalla): Un bus dedicado de alta velocidad. Está asignado al controlador ST7789
+de la pantalla LCD. Solo requiere señales de salida (MOSI, Reloj, CS, DC, Reset), ya que no es
+necesario leer información desde la pantalla, ahorrando el pin MISO.
+Canal Analógico (ECG): La salida analógica filtrada proveniente del módulo AD8232 requiere
+de un conversor analógo-digital, el cual funcionará mediante la DMA. Este se conectará a un pin
+ADC dedicado.
+Entradas Digitales (Botones e Interrupciones): Tres lı́neas GPIO configuradas como entradas
+con resistencias pull-up internas para los botones fı́sicos, y un pin adicional conectado al pin INT1 del
+BMI160, permitiendo despertar al microcontrolador mediante este mismo de ser necesario a futuro.
+6.3.1.
+
+Mapeo de pines y plan de migración (C3 a S3)
+
+El proyecto contempla el desarrollo de los primeros prototipos con la placa ESP32-C3 SuperMini (que
+posee 13 GPIOs expuestos) y la migración final hacia el ESP32-S3 SuperMini (que posee 16 GPIOs), esto es
+altamente probable debido a los requerimientos de Machine Learning, pero debido al bajo costo monetario
+
+IEE2913
+
+Diseño Eléctrico
+
+26
+
+de los módulos, preferimos probar primero con el de menor consumo. Tras analizar los esquemáticos de
+ambas placas, se confirma que la cantidad de pines es suficiente. Aprovechando la matriz GPIO, se
+ha definido un mapa de pines (Tabla 14) que intenta mantener la compatibilidad fı́sica entre ambas
+arquitecturas:
+Periférico / Señal
+Bus I2C (SDA)
+Bus I2C (SCL)
+Pantalla SPI (MOSI)
+Pantalla SPI (SCK)
+Pantalla SPI (CS)
+Pantalla SPI (DC)
+Pantalla SPI (RST)
+ECG (AD8232 Out)
+Interrupción IMU (INT1)
+Botón 1 (Seleccionar)
+Botón 2 (Arriba)
+Botón 3 (Abajo)
+
+Pin ESP32-C3
+GPIO 8
+GPIO 9
+GPIO 6
+GPIO 4
+GPIO 5
+GPIO 3
+GPIO 7
+GPIO 0 (A0)
+GPIO 1
+GPIO 10
+GPIO 20
+GPIO 21
+
+Pin ESP32-S3
+GPIO 33
+GPIO 34
+GPIO 6
+GPIO 4
+GPIO 5
+GPIO 3
+GPIO 7
+GPIO 1
+GPIO 2
+GPIO 14
+GPIO 15
+GPIO 16
+
+Tipo de Señal
+Digital Bidireccional
+Digital Reloj
+Digital Salida
+Digital Reloj
+Digital Salida
+Digital Salida
+Digital Salida
+Analógica (ADC)
+Entrada Digital
+Entrada Digital (Pull-up)
+Entrada Digital (Pull-up)
+Entrada Digital (Pull-up)
+
+Cuadro 14: Mapeo definitivo de señales para placas SuperMini.
+
+6.4.
+
+Arquitectura de Firmware (FreeRTOS)
+
+Para gestionar la concurrencia de múltiples sensores y garantizar tiempos de ejecución deterministas, el
+microcontrolador ESP32 operará bajo el sistema operativo en tiempo real FreeRTOS. La arquitectura
+interna del dispositivo se estructurará de la siguiente manera:
+Gestión de Tareas (Multitasking): El sistema se dividirá en tareas independientes asignadas a
+distintos niveles de prioridad para optimizar el uso del procesador:
+• Tarea de Adquisición (Prioridad Alta): Encargada de muestrear el ADC (para el ECG) mediante acceso directo a memoria (DMA) y leer los buses I2C a frecuencias precisas.
+• Tarea de Procesamiento Edge (Prioridad Media): Ejecutará el modelo de TinyML para la
+clasificación de actividad y el algoritmo del contador de pasos de forma local.
+• Tarea de Interfaz Gráfica (Prioridad Media-Baja): Actualizará la pantalla LCD vı́a SPI y
+gestionará las interrupciones de los botones fı́sicos para la navegación fluida.
+• Tarea de Comunicación BLE (Prioridad Baja): Empaquetará los datos y manejará la conexión
+con el teléfono móvil de forma ası́ncrona, evitando bloquear el sistema principal.
+Sincronización y Comunicación (IPC): Para evitar colisiones en los buses de datos (como el bus
+I2C compartido por cuatro sensores biométricos), se implementarán semáforos de exclusión mutua
+(Mutexes). La transferencia de datos entre la tarea de adquisición y la de procesamiento se realizará
+mediante colas de mensajes (Queues), asegurando que no se pierdan muestras crı́ticas.
+Gestión Energética Activa: El planificador de FreeRTOS se configurará en conjunto con las
+rutinas de bajo consumo del ESP32 (Light Sleep). El sistema dormirá la mayor parte del tiempo y
+será despertado únicamente por interrupciones de hardware o temporizadores internos.
+
+IEE2913
+
+Diseño Eléctrico
+
+27
+
+6.4.1.
+
+Frecuencias de Muestreo y Optimización de Memoria
+
+Para optimizar el uso de la memoria SRAM del microcontrolador y el ancho de banda de transmisión
+Bluetooth, se diferenciarán las tasas de muestreo interno (hardware) de las tasas de registro lógico:
+Sensores Dinámicos (IMU y PPG): Muestreados internamente a frecuencias elevadas (50 a 100
+Hz) para alimentar el modelo de Machine Learning y algoritmos de biometrı́a. Los datos crudos no
+serán almacenados; el microcontrolador extraerá las caracterı́sticas en tiempo real y solo registrará
+en el buffer de transmisión los resultados procesados a 1 Hz.
+Sensores de Dinámica Lenta (Temperatura): El sensor operará a 1 Hz, dada la alta inercia
+térmica del cuerpo humano.
+Telemetrı́a Cruda (ECG): Durante la medición puntual, el ADC operará a 100 Hz mı́nimo.
+Estos datos sı́ serán almacenados de forma cruda (raw ) y transmitidos inmediatamente por BLE,
+delegando su procesamiento a la nube.
+La Fig.7 presenta el diagrama de bloques del firmware, mostrando la arquitectura de tareas concurrentes
+bajo FreeRTOS, los periféricos de hardware conectados al microcontrolador y los mecanismos de comunicación entre procesos (IPC). Las cajas grises representan los periféricos de hardware, las cajas azules
+las tareas de software, las cajas amarillas las colas de mensajes (Queues) y el cı́rculo rojo el semáforo de
+exclusión mutua (Mutex ) que protege el bus I2C compartido. Las flechas continuas indican flujo de datos
+y las discontinuas representan interrupciones ası́ncronas.
+Microcontrolador ESP32 (FreeRTOS)
+Tarea Adquisición
+Prioridad: Alta
+(Muestreo de sensores)
+
+ADC / DMA
+(ECG 100Hz)
+
+Queue: Datos
+Bus I2C
+(IMU, PPG,
+Temp)
+
+M
+
+Tarea Com. BLE
+Prioridad: Baja
+(Empaquetado y envı́o)
+
+Tarea Procesamiento
+Prioridad: Media
+(TinyML, Pasos)
+
+BLE
+
+Smartphone
+(App Gateway)
+
+Queue: Tx BLE
+Botones fı́sicos
+(Interrupciones)
+
+ISR
+
+Tarea Interfaz Gráfica
+Prioridad: Media-Baja
+(Actualización SPI)
+
+SPI
+
+Pantalla LCD
+(ST7789)
+
+Periférico de hardware
+Tarea FreeRTOS
+Cola de mensajes (Queue)
+Mutex (exclusión mutua)
+Flujo de datos
+Interrupción ası́ncrona (ISR)
+Enlace BLE inalámbrico
+
+Figura 7: Diagrama de bloques del firmware y gestión de tareas en FreeRTOS.
+
+6.5.
+
+Arquitectura de Ecosistema (App y Servidor)
+
+El dispositivo actuará como un nodo de adquisición en el borde (Edge), delegando el almacenamiento
+histórico y el análisis profundo a una arquitectura externa compuesta por una Aplicación Móvil y un
+backend en la nube.
+IEE2913
+
+Diseño Eléctrico
+
+28
+
+Estrategia de Transmisión (BLE): Para optimizar el consumo energético, la transmisión Bluetooth Low Energy (BLE) operará en dos modalidades. La telemetrı́a continua (pasos, temperatura,
+SpO2, actividad) se enviará a la aplicación móvil en paquetes consolidados de forma periódica. Para
+la medición del electrocardiograma, se abrirá un canal de alto rendimiento que transmitirá los datos
+a 100 Hz en tiempo real durante los 30 segundos de captura.
+Aplicación Móvil (Android): Funcionará como el enlace principal o Gateway. Se encargará de
+emparejarse con el dispositivo, visualizar el resumen en tiempo real, calibrar métricas del usuario y
+subir los paquetes de datos al servidor.
+Backend Principal (Firebase): Durante las primeras fases de desarrollo, se utilizará el ecosistema de Firebase. Cloud Firestore almacenará los perfiles y métricas históricas, mientras que el
+procesamiento pesado se ejecutará mediante Cloud Functions utilizando Python. Esto asegura alta
+disponibilidad y un despliegue rápido.
+Proyección a Servidor Propio (Edge Server): Como objetivo extendido, y sujeto a la holgura
+en la Carta Gantt, se contempla la migración del backend a un servidor propio gestionado mediante
+una Raspberry Pi 3B+. Esta arquitectura On-Premise (utilizando una API propia, bases de datos
+de series de tiempo e interfaces como Grafana) eliminarı́a la dependencia de servicios externos y
+maximizarı́a la privacidad de los datos biométricos.
+La Fig.8 ilustra esta arquitectura de ecosistema. En el diagrama, las flechas azules representan la telemetrı́a
+continua enviada a baja frecuencia (1 Hz), mientras que las flechas rojas indican el canal de alta velocidad
+para la transmisión de datos crudos de ECG (100 Hz). Las cajas verdes corresponden a dispositivos fı́sicos,
+las azules a la aplicación de software y las naranjas al ecosistema en la nube. El nodo punteado en púrpura
+representa la proyección futura del servidor local.
+
+Cloud Firestore
+(Perfiles)
+BLE (1 Hz)
+Telemetrı́a Continua
+
+SupaClock
+(Nodo Edge)
+BLE (100 Hz)
+ECG Crudo
+
+Dispositivo fı́sico
+Aplicación de software
+Servicio en la nube
+Proyección futura
+BLE: Telemetrı́a (1 Hz)
+BLE: ECG crudo (100 Hz)
+Enlace futuro
+
+Aplicación
+Móvil
+(Gateway
+Android)
+
+Wi-Fi / 5G
+
+Ecosistema
+Firebase
+
+Proyección local
+
+Actualiza BPM
+
+Cloud Functions
+(Python)
+Algoritmo ECG
+
+Raspberry
+Pi 3B+
+(Edge Server)
+
+Figura 8: Arquitectura de ecosistema: flujo de datos desde el dispositivo Edge hacia la aplicación móvil y
+el backend en la nube.
+
+6.5.1.
+
+Algoritmos de Procesamiento de Señales (ECG en Servidor)
+
+Para la estimación de la frecuencia cardı́aca a partir de la señal del AD8232, se implementará el algoritmo
+de Pan-Tompkins de manera ası́ncrona en el servidor (ej. funciones nativas en Python):
+1. Filtrado Digital Pasabanda: Atenuación del ruido de alta frecuencia (interferencia electromagnética) y eliminación de la deriva de la lı́nea base (baseline wander ).
+2. Procesamiento Morfológico: Aplicación de un filtro derivativo y función de cuadratura para
+resaltar la pendiente aguda del complejo QRS.
+
+IEE2913
+
+Diseño Eléctrico
+
+29
+
+3. Detección de Picos R: Integración de ventana móvil combinada con umbrales adaptativos (adaptive thresholding) para identificar el instante exacto de cada latido.
+4. Cálculo de Métricas: Evaluación de la distancia temporal entre picos consecutivos (intervalos RR) para calcular los latidos por minuto (BPM) y evaluar la Variabilidad de la Frecuencia Cardı́aca
+(HRV).
+
+7.
+
+Bosquejo de la solución
+
+La Fig.9 presenta el bosquejo preliminar del prototipo SupaClock, el cual ilustra las principales vistas
+y dimensiones del dispositivo. Desde la vista cenital se aprecia la interfaz del usuario con la pantalla
+principal y los ı́conos de navegación. En la vista frontal se observan los tres botones fı́sicos ubicados en el
+costado derecho, los cuales cumplirán las funciones de navegación (arriba/abajo) y selección/acción. La
+vista lateral derecha muestra la ubicación de los electrodos de contacto seco para la medición de ECG,
+posicionados en la zona más cercana a la mano del usuario. Finalmente, la vista posterior exhibe el puerto
+USB-C de carga y la correa ajustable. Las cotas indicadas corresponden a las dimensiones máximas de
+diseño: largo ≤ 80 mm, ancho ≤ 50 mm y altura ≤ 30 mm.
+
+Figura 9: Bosquejo preliminar del prototipo SupaClock con vistas cenital, frontal, lateral y posterior.
+
+8.
+
+Metodologı́a de trabajo
+
+Para el proyecto se colocarán los avances que cada persona va realizando en una tarea en particular, para
+esto se utilizará la plataforma Notion y Git (github), en las cuales se organiza la creación y ejecución de
+tareas, registran los avances de los proyectos de código respectivamente. También realizaremos trabajo
+presencial en conjunto al menos cuatro módulos a la semana se realizarán jornadas remotas orientadas
+principalmente para los bloques de programación y escritura de código.
+
+IEE2913
+
+Diseño Eléctrico
+
+30
+
+8.1.
+
+Áreas y roles
+
+El desarrollo del proyecto se divide en tres áreas principales: Hardware, Software y Procesamiento, e
+Interfaz y Sistema. Esta división permite un trabajo modular, paralelo y eficiente, facilitando la integración
+final del sistema.
+8.1.1.
+
+Área 1: Hardware
+
+La primera área es Hardware, esta contempla los sensores, el diseño de la PCB, el manejo fı́sico de la
+energı́a y la integración de estos bloques. Dentro de sus tareas se encuentran la selección de componentes,
+diseño esquemático, diseño de PCB, integración fı́sica, diseño del sistema de alimentación y pruebas
+eléctricas.
+A cargo de esta área se encuentra Benjamı́n Sepúlveda, encargado de registrar los avances asociados a
+esta rama.
+Los roles asociados a esta área son:
+Diseñador de Hardware: encargado del diseño completo del sistema, tanto a nivel fı́sico como
+eléctrico.
+Energı́a: responsable del manejo de la baterı́a, sistema de carga y optimización del consumo
+energético.
+Electrónica: encargado de la conexión entre sensores y microcontrolador, además del debug de
+hardware.
+8.1.2.
+
+Área 2: Software y Procesamiento
+
+La segunda área es Software y Procesamiento, la cual cubre firmware, algoritmos y machine learning.
+Dentro de sus tareas se encuentra la lectura de sensores y su comunicación, filtrado de señales de ECG,
+implementación del contador de pasos y gestión del sistema operativo FreeRTOS.
+A cargo de esta área se encuentra Pablo Uribe, encargado de la gestión de los procesos asociados.
+Los roles asociados a esta área son:
+Firmware: encargado de la arquitectura del código, implementación de drivers y comunicación con
+los sensores.
+Procesamiento y Señales: responsable del filtrado de señales (ECG), cálculo de métricas fisiológicas y desarrollo del contador de pasos.
+Machine Learning: encargado de implementar y optimizar el modelo de clasificación de actividades
+en el dispositivo (TinyML), considerando restricciones de consumo y latencia.
+8.1.3.
+
+Área 3: Interfaz y Sistema
+
+La tercera área es Interfaz y Sistema, la cual contempla la interacción con el usuario, visualización de
+datos y comunicación externa del dispositivo. Dentro de sus tareas se encuentra el diseño de la interfaz
+gráfica (GUI), navegación del sistema, despliegue de métricas en pantalla, implementación de comunicación
+inalámbrica (BLE/WiFi) y la integración completa del sistema.
+
+IEE2913
+
+Diseño Eléctrico
+
+31
+
+A cargo de esta área se encuentra Tomás Avendaño, responsable de coordinar la integración final del
+dispositivo.
+Los roles asociados a esta área son:
+Desarrollador UI/UX: encargado del diseño e implementación de la interfaz gráfica, asegurando
+una experiencia de usuario clara e intuitiva.
+Comunicaciones: responsable de la transmisión de datos mediante BLE/WiFi hacia dispositivos
+externos o plataformas externas.
+Integrador de Sistema: encargado de la integración de hardware, software e interfaz, además de
+realizar pruebas completas del sistema.
+
+8.2.
+
+Trabajo colaborativo
+
+El desarrollo del proyecto se basa en una metodologı́a de trabajo colaborativo, donde cada área cuenta con
+un encargado responsable de su correcta ejecución. Sin embargo, esto no implica que el trabajo recaiga
+exclusivamente en dicha persona, sino que su rol principal es coordinar, organizar y supervisar las tareas
+dentro de su área.
+Cada encargado deberá distribuir los roles definidos previamente entre los integrantes del equipo, asignando responsabilidades especı́ficas de acuerdo a las necesidades del proyecto y a las habilidades de cada
+miembro. De esta forma, se busca asegurar una carga de trabajo equilibrada, fomentar la especialización
+en distintas áreas y mejorar la eficiencia del desarrollo.
+Adicionalmente, se promoverá la colaboración entre áreas, especialmente en etapas de integración, donde
+será necesario coordinar esfuerzos entre hardware, software e interfaz para asegurar el correcto funcionamiento del sistema completo. Este enfoque permite reducir errores de integración y facilita la detección
+temprana de problemas.
+
+8.3.
+
+Asignación de tareas
+
+La asignación de tareas se realizará de manera dinámica y progresiva, en función del avance del proyecto
+y los hitos establecidos en la planificación. Cada área definirá sus propias tareas especı́ficas, las cuales
+serán desglosadas en actividades más pequeñas y manejables.
+Para la gestión de estas tareas se utilizarán herramientas colaborativas como Notion y GitHub, las cuales
+permitirán llevar un seguimiento continuo del progreso, asignar responsables, establecer plazos y documentar los avances realizados. Cada tarea contará con un responsable principal, quien será el encargado
+de su ejecución, sin perjuicio de recibir apoyo de otros integrantes cuando sea necesario.
+Asimismo, se establecerán instancias periódicas de revisión, donde cada área reportará sus avances, dificultades y próximos pasos. Esto permitirá mantener una visión global del estado del proyecto, facilitar la
+toma de decisiones y asegurar el cumplimiento de los objetivos planteados.
+Finalmente, la asignación de tareas será flexible, permitiendo reasignaciones en caso de sobrecarga de
+trabajo, dificultades técnicas o cambios en los requerimientos del proyecto, garantizando ası́ la continuidad
+y adaptabilidad del desarrollo.
+
+IEE2913
+
+Diseño Eléctrico
+
+32
+
+9.
+
+Objetivos a cumplir
+
+El desarrollo del proyecto SupaClock tiene como objetivo principal el diseño e implementación de un
+dispositivo wearable funcional, capaz de adquirir, procesar y visualizar variables biométricas en tiempo
+real, cumpliendo con los requerimientos de portabilidad, autonomı́a energética y robustez del sistema.
+Para alcanzar este objetivo general, se plantean los siguientes objetivos especı́ficos:
+Diseñar e implementar el sistema de adquisición de señales biométricas, incluyendo sensores de
+frecuencia cardı́aca, SpO2, temperatura, aceleración y ECG.
+Desarrollar la arquitectura de procesamiento basada en un microcontrolador ESP32, capaz de ejecutar algoritmos de filtrado, análisis de señales y clasificación de actividad mediante Machine Learning.
+Implementar una interfaz gráfica que permita visualizar en tiempo real las métricas obtenidas, junto
+con un sistema de navegación intuitivo.
+Diseñar un sistema de alimentación autónomo basado en baterı́a LiPo, incluyendo gestión de carga,
+regulación de voltaje y monitoreo de baterı́a.
+Integrar todos los subsistemas en una PCB funcional, asegurando la correcta comunicación entre
+módulos y la estabilidad del sistema.
+Validar experimentalmente el funcionamiento del dispositivo mediante pruebas de sensores, consumo
+energético y desempeño del sistema completo.
+
+9.1.
+
+Hitos
+
+El desarrollo del proyecto se organiza en distintos hitos de avance, los cuales permiten evaluar el progreso
+del sistema de manera incremental.
+9.1.1.
+
+Hito 5 %: Definición y planificación inicial
+
+En esta etapa se establece la base conceptual del proyecto. Se espera contar con:
+Prueba preliminar de componentes por separado.
+Crear la base de datos en Firebase.
+Crear el servidor en Firebase.
+Crear el repositorio en GitHub.
+9.1.2.
+
+Hito 25 %: Validación de subsistemas iniciales
+
+En este punto se busca validar el funcionamiento básico de los principales módulos del sistema:
+Implementación del bloque de energı́a (BMS y regulación).
+Integración inicial de sensores.
+Pruebas preliminares de adquisición de datos.
+Primera integración con microcontrolador de los sensores en conjunto.
+Validación básica de algoritmos.
+
+IEE2913
+
+Diseño Eléctrico
+
+33
+
+9.1.3.
+
+Hito 60 %: Integración funcional del sistema
+
+En esta etapa el sistema comienza a operar de manera integrada:
+Diseño e implementación de la PCB.
+Integración de sensores en la PCB.
+Desarrollo de la interfaz gráfica en pantalla.
+Implementación de algoritmos de procesamiento (ECG, pasos).
+Integración de comunicación inalámbrica (Bluetooth).
+Pruebas funcionales del sistema completo.
+9.1.4.
+
+Hito 90 %: Validación avanzada y optimización
+
+En esta fase el sistema se encuentra prácticamente completo y se enfoca en su validación:
+Pruebas biométricas completas en condiciones reales.
+Optimización del consumo energético.
+Ajuste de algoritmos de Machine Learning.
+Validación de estabilidad del sistema.
+Integración final de hardware, software e interfaz.
+9.1.5.
+
+Hito 100 %: Entrega final
+
+Corresponde a la finalización del proyecto:
+Dispositivo completamente funcional e integrado.
+Validación final del sistema.
+Documentación completa del proyecto.
+Presentación final del prototipo.
+La Fig.10 presenta la carta Gantt del proyecto, la cual desglosa las actividades planificadas para cada hito
+en un horizonte temporal que abarca el semestre académico completo. Las barras de color representan
+la duración estimada de cada tarea, permitiendo visualizar el paralelismo entre actividades de hardware,
+software e interfaz, ası́ como identificar las dependencias crı́ticas entre subsistemas.
+
+IEE2913
+
+Diseño Eléctrico
+
+34
+
+Figura 10: Carta Gantt del proyecto SupaClock con la planificación temporal de actividades por hito.
+
+10.
+
+Presupuesto estimado
+
+La Tabla 15 presenta el listado de materiales (Bill of Materials, BOM) con el costo de los componentes
+principales del prototipo. Los precios corresponden a las transacciones reales realizadas a través de la
+plataforma AliExpress durante marzo de 2026, los cuales ya incluyen el 19 % correspondiente al
+IVA de importación, junto a estimaciones conservadoras para los demás componentes genéricos. Cabe
+destacar que la fabricación de la placa de desarrollo prototipo es otorgada gratuitamente por el laboratorio;
+no obstante, para el objetivo extendido (Bonus ”Versión Pro”), se contempla la manufactura externa
+(JLCPCB o PCBWay) estimando un valor de $30.000 CLP con envı́o incluido.
+
+IEE2913
+
+Diseño Eléctrico
+
+35
+
+Componente
+
+Cantidad
+
+Referencia
+
+Costo (CLP)
+
+ESP32-C3 SuperMini
+
+3
+
+MCU principal
+
+$8.211
+
+ESP32-S3 SuperMini
+
+1
+
+MCU migración
+
+$3.500
+
+Módulo de expansión ESP32-C3
+
+1
+
+Soporte desarrollo
+
+$2.235
+
+MAX30102 (Módulo PPG)
+
+2
+
+SpO2 / HR
+
+$3.853
+
+MAX30205 (Sensor Temp.)
+
+1
+
+Temperatura clı́nica
+
+$5.949
+
+AD8232 (Módulo ECG)
+
+1
+
+Electrocardiograma
+
+$3.500
+
+BMI160 (Módulo IMU)
+
+2
+
+Acelerómetro + Giro
+
+$3.204
+
+MAX17048 (Fuel Gauge)
+
+1
+
+Monitor de baterı́a
+
+$3.000
+
+Módulo Cargador TP4056 Type-C
+
+1
+
+Carga y protección
+
+$1.142
+
+ME6211 / AP2112K (LDO 3.3V)
+
+1
+
+Regulador de voltaje
+
+$300
+
+Pantalla IPS LCD 1.69”ST7789
+
+1
+
+Display principal
+
+$3.195
+
+Pantalla TFT LCD 1.3”
+
+1
+
+Display alternativo
+
+$2.059
+
+Conectores 24PIN FPC
+
+10
+
+Interfaz pantallas
+
+$2.161
+
+Baterı́a LiPo 3.7V 250 mAh (502030)
+
+1
+
+Alimentación
+
+$7.980
+
+Pulsadores táctiles SMD
+
+50
+
+Botones navegación
+
+$2.248
+
+Conector USB-C hembra
+
+1
+
+Puerto de carga
+
+$500
+
+Pernos M3
+
+10
+
+Contactos ECG
+
+$2.264
+
+Componentes pasivos (R, C)
+
+—
+
+Varios
+
+$1.000
+
+Filamento PLA (carcasa 3D)
+
+—
+
+Impresión 3D
+
+$2.000
+
+PCB prototipo
+
+1
+
+FabLab
+
+Gratis
+
+Subtotal (Prototipo)
+
+—
+
+—
+
+$58.301
+
+PCB SMD (JLCPCB/PCBWay)
+
+1
+
+Versión Pro (Bonus)
+
+$30.000
+
+Total con Bonus
+
+—
+
+—
+
+$88.301
+
+Cuadro 15: Bill of Materials (BOM) con precios reales de adquisición (IVA incl.) para componentes
+crı́ticos.
+
+IEE2913
+
+Diseño Eléctrico
+
+36
+
+Informe de Avance 1 (5 %)
+11.
+
+Diagramas de bloques de bajo nivel actualizados
+
+El diagrama de bloques de alto nivel del sistema SupaClock (presentado en la Fig.4) se mantiene sin
+modificaciones respecto a la entrega de planificación. Sin embargo, tras validar la integración de los
+componentes y el ecosistema de desarrollo, se han diseñado diagramas de bajo nivel para detallar el
+funcionamiento interno de la concurrencia del firmware y el flujo de los datos biomédicos hacia la nube.
+
+11.1.
+
+Arquitectura de Firmware (FreeRTOS)
+
+El microcontrolador gestiona la concurrencia a través del RTOS. Para el entorno principal (env:main),
+se implementaron tareas independientes para la lectura de sensores (especı́ficamente temperatura en esta
+iteración) y la actualización de la interfaz gráfica local. Las tareas están separadas lógicamente y se
+comunican mediante colas de mensajes estructuradas (xQueue), garantizando la concurrencia segura. La
+tarea encargada de las notificaciones BLE (TaskBLE) se encuentra delineada en la arquitectura, pero no
+se ha activado ya que la aplicación móvil no es parte del alcance técnico de esta entrega.
+
+Bus I2C
+(ej. MAX30205)
+
+Bus SPI
+(ST7789)
+
+Polling 50Hz
+
+LVGL Flush
+
+TaskDisplay
+Lectura
+TaskSensor Temp
+xQueue
+(Prioridad
+(Datos de Sensores)
+(Prioridad Alta)
+Media)
+
+Datos (Futuro)
+
+TaskBLE
+(Inactiva/Futuro)
+Figura 11: Arquitectura de tareas concurrentes (FreeRTOS) implementada en el ESP32-C3, destacando
+el flujo de lectura de sensores y visualización gráfica local.
+
+IEE2913
+
+Diseño Eléctrico
+
+37
+
+11.2.
+
+Pipeline de Datos Biomédicos
+
+El flujo de datos desde la captura en hardware hasta el procesamiento analı́tico en la nube se modela en
+una tuberı́a (pipeline). A pesar de que los datos biomédicos complejos del ECG y la fotopletismografı́a
+aún no entran en funcionamiento, la arquitectura subyacente para su ingesta, digitalización, transmisión
+BLE y almacenamiento en Firebase está completamente definida en el backend implementado.
+1. Adquisición
+
+2. Digitalización
+
+3. Transmisión
+
+Sensores ADC / I2C
+MCU
+NotificacionesGateway BLE GATT
+(AD8232 /
+(ESP32-C3)
+MTU 247 Bytes
+MAX30102)
++ Buffer Circular
+
+4. Recepción
+
+5. Procesamiento Nube
+
+App Móvil REST / Wi-Fi
+Cloud Firestore
+(Flutter)
++ Functions
+
+Algoritmo Pan-Tompkins
+Filtro Pasa-Banda
+Detección Picos R
+
+Figura 12: Pipeline de adquisición y procesamiento de datos biomédicos, modelando hacia el futuro el
+recorrido completo de la señal.
+
+12.
+
+Planificación actualizada
+
+12.1.
+
+Estado de avance respecto a la planificación
+
+La Tabla 16 presenta el contraste entre las tareas planificadas para el hito del 5 % y el estado actual de
+ejecución.
+
+IEE2913
+
+Diseño Eléctrico
+
+38
+
+Tarea planificada (5 %)
+
+Estado
+
+Observaciones
+
+Prueba preliminar de componentes
+
+Completado
+
+Se probaron: ST7789, MAX30205,
+MAX30102 y BMI160 de forma
+individual.
+
+Crear base de datos en Firebase
+
+Completado
+
+Cloud Firestore desplegado con
+estructura de colecciones y reglas
+de seguridad.
+
+Crear servidor en Firebase
+
+Completado
+
+Cloud Functions desplegadas con
+el algoritmo Pan-Tompkins [19] en
+Python.
+
+Crear repositorio en GitHub
+
+Completado
+
+Repositorio activo con estructura
+modular PlatformIO y múltiples
+entornos de test.
+
+Driver de pantalla LCD (adelantado)
+
+Completado
+
+Driver ST7789 funcional con SPI a
+80 MHz y soporte DMA. Integración con LVGL 8.4 [39].
+
+Decodificación JPEG en
+MCU (adelantado)
+
+Completado
+
+Algoritmo JPEGDEC [40] integrado con SPIFFS [41] para renderizar
+imágenes directamente en pantalla.
+
+Prueba de BLE con NimBLE
+(adelantado)
+
+Completado
+
+Stack BLE funcional con servicios
+GATT, bonding y notificaciones de
+telemetrı́a simulada [42].
+
+Cuadro 16: Contraste entre avance esperado (5 %) y avance logrado. Las filas amarillas indican tareas
+adelantadas respecto a la planificación original.
+Como se observa, todas las tareas planificadas para el hito del 5 % han sido completadas satisfactoriamente.
+Adicionalmente, se realizaron avances no previstos originalmente para este hito (resaltados en amarillo),
+como la integración completa del driver de pantalla con LVGL, la decodificación de imágenes JPEG en
+el microcontrolador y la implementación del stack BLE con NimBLE. Estos avances adelantan trabajo
+correspondiente al hito del 25 %.
+
+12.2.
+
+Actualización de la Carta Gantt
+
+La carta Gantt presentada en la Fig.10 se mantiene como referencia base. Respecto a ella, se registran los
+siguientes ajustes producto del avance real:
+Tareas adelantadas: Las actividades de “Driver de pantalla”, “Integración LVGL” y “Prueba
+BLE” originalmente planificadas para el hito del 25 % fueron completadas durante el hito del 5 %,
+ya que resultaron ser prerrequisitos naturales para validar la arquitectura de firmware.
+Tareas repriorizadas: La “Integración inicial de sensores en conjunto” (planificada para 25 %) se
+mantiene en su fecha original, ya que requiere la implementación previa del subsistema de energı́a
+(BMS + LDO) para operar los sensores de forma autónoma sin alimentación USB.
+Sin atrasos: No se reportan tareas atrasadas respecto a la planificación original.
+
+IEE2913
+
+Diseño Eléctrico
+
+39
+
+12.3.
+
+Distribución del trabajo
+
+Para esta primera etapa, el equipo adoptó un enfoque de trabajo colaborativo integral, donde los
+tres integrantes participaron activamente en todas las áreas del proyecto. La distribución de roles fue la
+siguiente:
+Tomás Avendaño: Participó en las pruebas de sensores (MAX30205, MAX30102), implementación
+del stack BLE con NimBLE y despliegue del backend Firebase.
+Benjamı́n Sepúlveda: Contribuyó en el cableado de prototipos, verificación de niveles de voltaje
+en protoboard, pruebas del bus I2C y documentación del informe.
+Pablo Uribe: Participó en la implementación del driver ST7789, integración de JPEGDEC y LVGL,
+y actuó como verificador del trabajo conjunto, asegurando la coherencia entre los módulos
+desarrollados por cada integrante.
+
+13.
+
+Implementación y resultados
+
+En esta sección se describen los bloques implementados durante este primer hito de avance. Cada subsección detalla la funcionalidad del bloque, las pruebas realizadas y los resultados obtenidos.
+
+13.1.
+
+Bloque de Interfaz Local: Driver de pantalla ST7789
+
+13.1.1.
+
+Descripción y funcionalidad
+
+Se implementó un driver completo en C para el controlador de pantalla ST7789 [14] (pantalla IPS LCD
+de 1.69”, 240×280 pı́xeles, RGB565). El driver opera sobre el bus SPI del ESP32-C3 [7] a una velocidad
+de reloj de 80 MHz, utilizando DMA automático (SPI DMA CH AUTO) para transferencias ası́ncronas que
+liberan al procesador durante el volcado de pı́xeles.
+Las funciones principales implementadas son:
+st7789 init(): Configura el bus SPI, ejecuta la secuencia de inicialización del controlador (software
+reset, sleep out, inversión de color para IPS, modo RGB565 de 16 bits) y enciende la pantalla.
+st7789 fill screen(color): Pinta la pantalla completa de un color uniforme, enviando los datos
+en bloques de 40 lı́neas.
+st7789 draw bitmap(x, y, w, h, bitmap): Renderiza un bloque rectangular de pı́xeles en la posición especificada, con recorte automático en los bordes para evitar artefactos (ghosting).
+Un detalle técnico relevante es la compensación de offset vertical de 20 pı́xeles en la función set addr window(),
+necesaria porque la RAM interna del ST7789 tiene una resolución de 320 lı́neas [14], pero la pantalla fı́sica
+solo expone 280.
+13.1.2.
+
+Integración con LVGL 8.4
+
+Se integró la librerı́a LVGL versión 8.4 [39]. Se implementó un callback flush cb que conecta el lienzo virtual de LVGL con st7789 draw bitmap(), permitiendo renderizar widgets (etiquetas, barras de progreso,
+animaciones) de forma eficiente.
+El buffer de dibujo parcial se configuró en 14.4 KB (240 × 30 lı́neas × 2 bytes/pı́xel), permitiendo un
+uso eficiente de la SRAM del ESP32-C3 (400 KB) [7].
+IEE2913
+
+Diseño Eléctrico
+
+40
+
+13.1.3.
+
+Resultados
+
+Se verificó el correcto funcionamiento mostrando textos con anti-aliasing, barras de progreso animadas y
+colores a ∼30 FPS.
+
+13.2.
+
+Bloque de Interfaz Local: Decodificación JPEG (JPEGDEC)
+
+13.2.1.
+
+Descripción y funcionalidad
+
+Se integró la librerı́a JPEGDEC [40] para decodificar imágenes JPEG almacenadas en la partición
+SPIFFS [41] del ESP32 directamente hacia la pantalla, sin almacenar el bitmap descomprimido en RAM.
+JPEGDEC decodifica en bloques MCU de 16×16 pı́xeles, invocando un callback (JPEGDraw) que envı́a
+cada bloque al ST7789 vı́a st7789 draw bitmap().
+Este enfoque de streaming es fundamental: una imagen de 240×280 en RGB565 ocuparı́a 134.4 KB
+descomprimida (más del 30 % de la SRAM), mientras que el JPEG comprimido ocupa 10–20 KB en flash
+con un overhead de RAM de solo ∼4 KB.
+13.2.2.
+
+Resultados
+
+Se logró decodificar y mostrar imágenes JPEG de 240×280 almacenadas en SPIFFS. El tiempo de renderizado completo es de 200–400 ms.
+
+13.3.
+
+Bloque de Sensores: Prueba del MAX30205
+
+13.3.1.
+
+Descripción y funcionalidad
+
+Se implementó un driver inicial para el sensor de temperatura MAX30205 [11], operando en el bus I2C
+a la dirección 0x48. El driver implementa inicialización y lectura de temperatura.
+La lectura de datos accede al registro TEMP (0x00) [11].
+13.3.2.
+
+Resultados
+
+Se verificó la comunicación I2C confirmando la lectura correcta del registro PART ID (0xFF) = 0x15 [11].
+Se obtuvieron lecturas de temperatura con variación al colocar el dedo sobre el sensor.
+
+13.4.
+
+Bloque de Backend: Firebase y Cloud Firestore
+
+13.4.1.
+
+Descripción y funcionalidad
+
+Se desplegó el ecosistema de backend utilizando Firebase [17]:
+Cloud Firestore se configuró con la siguiente jerarquı́a:
+users/{userId}: Perfil del usuario.
+users/.../sessions/{sessionId}: Sesiones con métricas agregadas.
+users/.../ecgReadings/{readingId}: Lecturas de ECG crudas y procesadas.
+
+IEE2913
+
+Diseño Eléctrico
+
+41
+
+13.4.2.
+
+Resultados
+
+Se verificó el correcto acceso a la base de datos con autenticación y autorización.
+
+13.5.
+
+Evaluación general y próximos pasos
+
+Los resultados de este primer hito validan la viabilidad de la arquitectura. Todos los componentes probados
+individualmente operan correctamente a través de las interfaces planificadas (I2C y SPI). El backend está
+operativo y listo para recibir datos reales.
+Para el siguiente hito (25 %), los esfuerzos se concentrarán en:
+Integración simultánea de múltiples sensores en el bus I2C (con mutex FreeRTOS [9]).
+Implementación del subsistema de energı́a (BMS TP4056 [28] + LDO + Fuel Gauge).
+Desarrollo del algoritmo de conteo de pasos sobre datos reales del BMI160 [13].
+Inicio de la recolección de datos de entrenamiento para el modelo de ML.
+
+14.
+
+Referencias
+
+Referencias
+[1] Jude Nwadiuto Njoku, Manuel Estrada, Sebastian Ma, Zixian Zhong, Rafi Ibn Sultan Chowdhury,
+et al. Deep learning-based human activity recognition on edge devices: A benchmark analysis. In
+IEEE International Conference on Communications (ICC), 2024. Disponible en: https://arxiv.
+org/abs/2307.09424.
+[2] CIPER Chile. Resultados de la encuesta nacional de actividad fı́sica y deporte: una oportunidad
+para fortalecer el bienestar integral en chile, 2025. Disponible en: https://www.ciperchile.cl/
+2025/05/24/resultados-de-la-encuesta-nacional-de-actividad-fisica-y-deporte/.
+[3] UC Christus.
+5 razones por las que chile es el paı́s con más obesidad de latinoamérica, 2025. Disponible en: https://www.ucchristus.cl/blog-salud-uc/articulos/2025/
+5-razones-por-las-que-chile-es-el-pais-con-mas-obesidad-de-latinoamerica.
+[4] K. Kushlev, J. Proulx, and E. W. Dunn. Silence your phones: Smartphone notifications increase
+inattention and hyperactivity symptoms. In Proceedings of the 2016 CHI Conference on Human
+Factors in Computing Systems, pages 1011–1020, 2016.
+[5] M. Pielot, K. Church, and R. de Oliveira. An in-situ study of mobile phone notifications. In 16th
+International Conference on Human-Computer Interaction with Mobile Devices & Services, pages
+233–242, 2014.
+[6] G. Shin, MC. Jarrahi, Y. Fei, and A. Karami. Wearable activity trackers, accuracy, adoption, acceptance and health impact. Biomedical engineering letters, 9(1):45–52, 2019.
+[7] Espressif Systems. ESP32-C3 Series Datasheet, 2024. Disponible en: https://www.espressif.com/
+sites/default/files/documentation/esp32-c3_datasheet_en.pdf.
+[8] Espressif Systems. ESP32-S3 Series Datasheet, 2024. Disponible en: https://www.espressif.com/
+sites/default/files/documentation/esp32-s3_datasheet_en.pdf.
+
+IEE2913
+
+Diseño Eléctrico
+
+42
+
+[9] Amazon Web Services. FreeRTOS Reference Manual, 2024. Disponible en: https://www.freertos.
+org/Documentation/RTOS_book.html.
+[10] Analog Devices (Maxim Integrated). MAX30102: High-Sensitivity Pulse Oximeter and HeartRate Sensor for Wearable Health, 2018. Disponible en: https://www.analog.com/media/en/
+technical-documentation/data-sheets/MAX30102.pdf.
+[11] Analog Devices (Maxim Integrated). MAX30205: Human Body Temperature Sensor, 2016. Disponible en: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX30205.
+pdf.
+[12] Analog Devices. AD8232: Single-Lead, Heart Rate Monitor Front End, 2012. Disponible en: https:
+//www.analog.com/media/en/technical-documentation/data-sheets/ad8232.pdf.
+[13] Bosch Sensortec.
+BMI160: Small, Low Power Inertial Measurement Unit, 2020.
+Disponible en: https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/
+bst-bmi160-ds000.pdf.
+[14] Sitronix Technology. ST7789V: 240RGB x 320 Dot 262K Color with Frame Memory SingleChip TFT Controller/Driver, 2014. Disponible en: https://www.newhavendisplay.com/appnotes/
+datasheets/LCDs/ST7789V.pdf.
+[15] Edge Impulse Inc. Edge Impulse Documentation, 2024. Disponible en: https://docs.edgeimpulse.
+com/.
+[16] Google. TensorFlow Lite for Microcontrollers, 2024. Disponible en: https://www.tensorflow.org/
+lite/microcontrollers.
+[17] Google. Firebase Documentation: Cloud Firestore and Cloud Functions, 2024. Disponible en: https:
+//firebase.google.com/docs.
+[18] Bluetooth SIG. Bluetooth Core Specification v5.3, 2021. Disponible en: https://www.bluetooth.
+com/specifications/specs/core-specification-5-3/.
+[19] Jiapu Pan and Willis J. Tompkins. A real-time qrs detection algorithm. IEEE Transactions on
+Biomedical Engineering, BME-32(3):230–236, 1985. doi: 10.1109/TBME.1985.325532.
+[20] Nordic Semiconductor. nRF52840 Product Specification, 2021. Disponible en: https://docs.
+nordicsemi.com/bundle/nRF52840_PS_v1.8/page/keyfeatures_html5.html.
+[21] STMicroelectronics. STM32WB55xx Datasheet, 2022.
+resource/en/datasheet/stm32wb55cg.pdf.
+
+Disponible en: https://www.st.com/
+
+[22] InvenSense (TDK). MPU-6050: Six-Axis MEMS MotionTracking Device, 2013. Disponible en: https:
+//invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf.
+[23] STMicroelectronics. LSM6DS3: iNEMO inertial module, 2017. Disponible en: https://www.st.
+com/resource/en/datasheet/lsm6ds3.pdf.
+[24] Analog Devices (Maxim Integrated).
+MAX30100: Pulse Oximeter and Heart-Rate Sensor IC for Wearable Health, 2014.
+Disponible en: https://www.analog.com/media/en/
+technical-documentation/data-sheets/MAX30100.pdf.
+[25] Analog Devices (Maxim Integrated).
+MAX86141: Optical Data Acquisition System, 2019.
+Disponible en: https://www.analog.com/media/en/technical-documentation/data-sheets/
+MAX86140-MAX86141.pdf.
+
+IEE2913
+
+Diseño Eléctrico
+
+43
+
+[26] Melexis.
+MLX90614 Family: Single and Dual Zone Infra Red Thermometer in TO39, 2019. Disponible en: https://www.melexis.com/-/media/files/documents/datasheets/
+mlx90614-datasheet-melexis.pdf.
+[27] Analog Devices (Maxim Integrated). DS18B20: Programmable Resolution 1-Wire Digital Thermometer, 2019. Disponible en: https://www.analog.com/media/en/technical-documentation/
+data-sheets/DS18B20.pdf.
+[28] NanJing Top Power ASIC Corp. TP4056: 1A Standalone Linear Li-Ion Battery Charger with
+Thermal Regulation, 2008. Disponible en: https://dlnmh9ip6v2uc.cloudfront.net/datasheets/
+Prototyping/TP4056.pdf.
+[29] Texas Instruments. bq2407x Standalone 1-Cell 1.5-A Linear Battery Charger with Power Path
+Management, 2019. Disponible en: https://www.ti.com/lit/ds/symlink/bq24075.pdf.
+[30] Microchip Technology. MCP73831/2: Miniature Single-Cell, Fully Integrated Li-Ion, Li-Polymer
+Charge Management Controllers, 2014. Disponible en: https://ww1.microchip.com/downloads/
+en/DeviceDoc/20001984g.pdf.
+[31] Analog Devices (Maxim Integrated).
+MAX17048/MAX17049: Micropower 1-Cell/2-Cell Li+
+Fuel Gauge with ModelGauge, 2013.
+Disponible en: https://www.analog.com/media/en/
+technical-documentation/data-sheets/MAX17048-MAX17049.pdf.
+[32] Micro One Electronic Inc. ME6211: High Speed LDO Regulators, 2019. Disponible en: https://
+datasheet.lcsc.com/lcsc/1811131510_MICRONE-Nanjing-Micro-One-Elec-ME6211C33M5G-N_
+C82942.pdf.
+[33] Analog Devices (Maxim Integrated).
+MAX17043/MAX17044: Compact, Low-Cost 1S/2S
+Fuel Gauges with ModelGauge, 2014.
+Disponible en: https://www.analog.com/media/en/
+technical-documentation/data-sheets/MAX17043-MAX17044.pdf.
+[34] Texas Instruments. bq27441-G1 System-Side Impedance Track Fuel Gauge, 2018. Disponible en:
+https://www.ti.com/lit/ds/slusbq8b/slusbq8b.pdf.
+[35] Advanced Monolithic Systems. AMS1117: 1A LOW DROPOUT VOLTAGE REGULATOR, 2006.
+Disponible en: http://www.advanced-monolithic.com/pdf/ds1117.pdf.
+[36] Texas Instruments. TPS7A02 200-mA, Nanopower IQ (25 nA), Low-Dropout Regulator, 2022. Disponible en: https://www.ti.com/lit/ds/symlink/tps7a02.pdf.
+[37] Solomon Systech. SSD1306: 128 x 64 Dot Matrix OLED/PLED Segment/Common Driver with
+Controller, 2008. Disponible en: https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf.
+[38] Sharp Microelectronics. LS013B7DH03: Memory LCD Data Sheet, 2014. Disponible en: https:
+//www.sharpsma.com/documents/20181/0/LS013B7DH03_Spec.pdf.
+[39] LVGL LLC. LVGL: Light and Versatile Graphics Library, v8.4, 2024. Disponible en: https://docs.
+lvgl.io/8.4/.
+[40] Larry Bank. JPEGDEC: An optimized JPEG decoder for Arduino and other embedded platforms,
+2023. Disponible en: https://github.com/bitbank2/JPEGDEC.
+[41] Espressif Systems.
+ESP-IDF SPIFFS Filesystem Documentation, 2024.
+Disponible en:
+https://docs.espressif.com/projects/esp-idf/en/stable/esp32c3/api-reference/
+storage/spiffs.html.
+[42] Apache Software Foundation. Apache Mynewt NimBLE: Bluetooth Low Energy Stack, 2024. Disponible en: https://mynewt.apache.org/latest/network/.
+
+IEE2913
+
+Diseño Eléctrico
+
+44
+
+1
+2
+3
+4
+5
+6
+7
+8
+
+15.
+
+Anexos
+
+15.1.
+
+Anexo A: Código del driver ST7789 (extracto principal)
+
+esp_err_t st7789_init ( void ) {
+// GPIO Config para pines DC y RST
+gpio_config_t gc = {
+. pin_bit_mask = (1 ULL << ST7789_DC_PIN )
+| (1 ULL << ST7789_RST_PIN ) ,
+. mode = GPIO_MODE_OUTPUT ,
+};
+gpio_config (& gc ) ;
+
+9
+
+// SPI Bus a 80 MHz con DMA automatico
+spi_bus_config_t buscfg = {
+. mosi_io_num = ST7789_MOSI_PIN ,
+. sclk_io_num = ST7789_SCK_PIN ,
+. max_transfer_sz = 240 * 280 * 2 + 8
+};
+sp i_ bu s_ in it ia li ze ( SPI2_HOST , & buscfg ,
+SPI_DMA_CH_AUTO ) ;
+
+10
+11
+12
+13
+14
+15
+16
+17
+18
+
+// Hardware Reset + Init Sequence
+lcd_cmd ( spi , ST7789_SWRESET ) ;
+lcd_cmd ( spi , ST7789_SLPOUT ) ;
+lcd_cmd ( spi , ST7789_INVON ) ; // IPS requiere inversion
+lcd_cmd ( spi , ST7789_DISPON ) ;
+return ESP_OK ;
+
+19
+20
+21
+22
+23
+24
+25
+
+}
+
+Listing 1: Función de inicialización del driver ST7789.
+
+15.2.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+Anexo B: Callback de decodificación JPEG
+
+// Callback que envia bloques 16 x16 decodificados
+// directamente al ST7789 sin almacenar en RAM
+int JPEGDraw ( JPEGDRAW * pDraw ) {
+st 77 89 _d ra w_ bi tm ap (
+pDraw - >x , pDraw - >y ,
+pDraw - > iWidth , pDraw - > iHeight ,
+pDraw - > pPixels
+);
+return 1; // Continuar decodificacion
+}
+
+11
+12
+13
+14
+15
+16
+
+// Uso : decodificar desde SPIFFS
+jpeg . open ( " / spiffs / foto . jpg " , myOpen , myClose ,
+myRead , mySeek , JPEGDraw ) ;
+jpeg . setPixelType ( RG B565_B IG_END IAN ) ;
+jpeg . decode (0 , 0 , 0) ;
+
+Listing 2: Callback de renderizado JPEG por bloques MCU.
+
+IEE2913
+
+Diseño Eléctrico
+
+45
+
+15.3.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+
+Anexo C: Driver MAX30102 (lectura FIFO)
+
+esp_err_t m ax3 01 02 _r ea d_ fi fo ( uint32_t * red ,
+uint32_t * ir ) {
+uint8_t reg = M A X 3 0 1 0 2 _ R E G _ F I F O _ D A T A ;
+uint8_t data [6];
+esp_err_t err = i 2 c _ m a s t e r _ w r i t e _ r e a d _ d e v i c e (
+I2C_MASTER_NUM , MAX30102_I2C_ADDR ,
+& reg , 1 , data , 6 ,
+I 2 C _ M A S T E R _ T I M E O U T _ M S / p or tT IC K_ PE RIO D_ MS
+);
+if ( err == ESP_OK ) {
+* red = (( uint32_t ) data [0] << 16)
+| (( uint32_t ) data [1] << 8) | data [2];
+* red &= 0 x03FFFF ; // 18 - bit data
+* ir = (( uint32_t ) data [3] << 16)
+| (( uint32_t ) data [4] << 8) | data [5];
+* ir &= 0 x03FFFF ;
+}
+return err ;
+}
+
+Listing 3: Lectura de muestras desde la FIFO del MAX30102.
+
+15.4.
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+
+Anexo D: Extracto de Cloud Functions (Pan-Tompkins)
+
+@firestore_fn . o n _ do c u me n t _c r e at e d (
+document = " users /{ userId }/ sessions / "
+" { sessionId }/ ecgReadings /{ readingId } " ,
+region = " us - central1 " ,
+memory = options . MemoryOption . MB_256 ,
+)
+def process_ecg ( event ) :
+data = event . data . to_dict ()
+raw_data = data . get ( " rawData " , [])
+fs = data . get ( " samplingRate " , 100.0)
+
+11
+12
+13
+
+# Pipeline Pan - Tompkins completo
+results = pan_tompkins ( raw_data , fs )
+
+14
+15
+16
+17
+18
+19
+20
+21
+
+# Actualizar documento con resultados
+event . data . reference . update ({
+" processedBPM " : results [ " bpm " ] ,
+" hrv " : results [ " hrv " ] ,
+" rPeaks " : results [ " r_peaks " ] ,
+" processingStatus " : " completed " ,
+})
+
+Listing 4: Trigger de procesamiento de ECG en Cloud Functions.
+
+IEE2913
+
+Diseño Eléctrico
+
+46
+
+

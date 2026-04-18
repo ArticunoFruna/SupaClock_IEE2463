@@ -57,19 +57,16 @@
 \contentsline {subsection}{\numberline {13.2}Bloque de Interfaz Local: Decodificación JPEG (JPEGDEC)}{41}{subsection.13.2}%
 \contentsline {subsubsection}{\numberline {13.2.1}Descripción y funcionalidad}{41}{subsubsection.13.2.1}%
 \contentsline {subsubsection}{\numberline {13.2.2}Resultados}{41}{subsubsection.13.2.2}%
-\contentsline {subsection}{\numberline {13.3}Bloque de Sensores: Prueba del MAX30102 (PPG)}{41}{subsection.13.3}%
+\contentsline {subsection}{\numberline {13.3}Bloque de Sensores: Prueba del MAX30205}{41}{subsection.13.3}%
 \contentsline {subsubsection}{\numberline {13.3.1}Descripción y funcionalidad}{41}{subsubsection.13.3.1}%
 \contentsline {subsubsection}{\numberline {13.3.2}Resultados}{41}{subsubsection.13.3.2}%
-\contentsline {subsection}{\numberline {13.4}Bloque de Comunicación: BLE con NimBLE}{41}{subsection.13.4}%
+\contentsline {subsection}{\numberline {13.4}Bloque de Backend: Firebase y Cloud Firestore}{41}{subsection.13.4}%
 \contentsline {subsubsection}{\numberline {13.4.1}Descripción y funcionalidad}{41}{subsubsection.13.4.1}%
 \contentsline {subsubsection}{\numberline {13.4.2}Resultados}{42}{subsubsection.13.4.2}%
-\contentsline {subsection}{\numberline {13.5}Bloque de Backend: Firebase y Cloud Firestore}{42}{subsection.13.5}%
-\contentsline {subsubsection}{\numberline {13.5.1}Descripción y funcionalidad}{42}{subsubsection.13.5.1}%
-\contentsline {subsubsection}{\numberline {13.5.2}Resultados}{42}{subsubsection.13.5.2}%
-\contentsline {subsection}{\numberline {13.6}Evaluación general y próximos pasos}{42}{subsection.13.6}%
-\contentsline {section}{\numberline {14}Referencias}{43}{section.14}%
+\contentsline {subsection}{\numberline {13.5}Evaluación general y próximos pasos}{42}{subsection.13.5}%
+\contentsline {section}{\numberline {14}Referencias}{42}{section.14}%
 \contentsline {section}{\numberline {15}Anexos}{45}{section.15}%
 \contentsline {subsection}{\numberline {15.1}Anexo A: Código del driver ST7789 (extracto principal)}{45}{subsection.15.1}%
-\contentsline {subsection}{\numberline {15.2}Anexo B: Callback de decodificación JPEG}{46}{subsection.15.2}%
+\contentsline {subsection}{\numberline {15.2}Anexo B: Callback de decodificación JPEG}{45}{subsection.15.2}%
 \contentsline {subsection}{\numberline {15.3}Anexo C: Driver MAX30102 (lectura FIFO)}{46}{subsection.15.3}%
-\contentsline {subsection}{\numberline {15.4}Anexo D: Extracto de Cloud Functions (Pan-Tompkins)}{47}{subsection.15.4}%
+\contentsline {subsection}{\numberline {15.4}Anexo D: Extracto de Cloud Functions (Pan-Tompkins)}{46}{subsection.15.4}%

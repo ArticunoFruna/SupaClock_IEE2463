@@ -1,0 +1,68 @@
+\begin{tikzpicture}[
+                node distance=1.2cm and 1.5cm,
+                sensor/.style={rectangle, rounded corners, draw=black, top color=white, bottom color=gray!20, text width=2.5cm, align=center, minimum height=1cm, font=\footnotesize},
+                task/.style={rectangle, rounded corners, draw=black, thick, top color=white, bottom color=blue!10, text width=4cm, align=center, minimum height=1.5cm, font=\small},
+                queue/.style={rectangle, draw=black, fill=yellow!20, text width=2.5cm, align=center, minimum height=0.8cm, font=\footnotesize\ttfamily},
+                mutex/.style={circle, draw=black, fill=red!20, inner sep=2pt, font=\footnotesize\bfseries},
+                arrow/.style={thick, ->, >=stealth},
+                dashed_arrow/.style={thick, dashed, ->, >=stealth},
+                legend/.style={rectangle, draw=black!50, fill=white, inner sep=5pt, font=\scriptsize}
+            ]%
+            % Nodos de Hardware
+            \node[sensor] (adc) {ADC / DMA\\(ECG 100Hz)};
+            \node[sensor, below=of adc] (i2c) {Bus I2C\\(IMU, PPG, Temp)};
+            \node[sensor, below=of i2c] (btns) {Botones físicos\\(Interrupciones)};
+            %
+            % Mutex
+            \node[mutex, right=0.5cm of i2c] (mut) {M};
+            %
+            % Nodos de Tareas FreeRTOS
+            \node[task, right=1.5cm of adc] (t_acq) {\textbf{Tarea Adquisición}\\ \textit{Prioridad: Alta}\\(Muestreo de sensores)};
+            \node[task, below=1cm of t_acq] (t_proc) {\textbf{Tarea Procesamiento}\\ \textit{Prioridad: Media}\\(TinyML, Pasos)};
+            \node[task, below=1cm of t_proc] (t_gui) {\textbf{Tarea Interfaz Gráfica}\\ \textit{Prioridad: Media-Baja}\\(Actualización SPI)};
+            \node[task, right=1.5cm of t_proc] (t_ble) {\textbf{Tarea Com. BLE}\\ \textit{Prioridad: Baja}\\(Empaquetado y envío)};
+            %
+            % Colas (Queues)
+            \node[queue, right=0.3cm of t_acq, yshift=-1cm] (q_data) {Queue: Datos};
+            \node[queue, right=0.3cm of t_proc, yshift=-1cm] (q_ble) {Queue: Tx BLE};
+            %
+            % Background / Boundary para ESP32
+            \begin{scope}[on background layer]
+                \node[rectangle, draw=black!50, dashed, inner sep=0.5cm, fit=(adc) (i2c) (btns) (t_acq) (t_proc) (t_gui) (t_ble) (q_data) (q_ble) (mut), fill=black!2] (esp32) {};
+                \node[anchor=north west, font=\bfseries] at (esp32.north west) {Microcontrolador ESP32 (FreeRTOS)};
+            \end{scope}
+            %
+            % Conexiones Hardware -> Tareas
+            \draw[arrow] (adc) -- (t_acq);
+            \draw[arrow] (i2c) -- (mut) -- (t_acq);
+            \draw[dashed_arrow] (btns) -- node[above, font=\scriptsize] {ISR} (t_gui);
+            %
+            % Conexiones entre Tareas (IPC)
+            \draw[arrow] (t_acq) |- (q_data);
+            \draw[arrow] (q_data) -| (t_proc);
+            \draw[arrow] (t_proc) |- (q_ble);
+            \draw[arrow] (q_ble) -| (t_ble);
+            %
+            % Conexiones de visualización
+            \draw[arrow] (t_proc) -- (t_gui);
+            %
+            % Salidas externas
+            \node[sensor, right=1.5cm of t_ble] (phone) {Smartphone\\(App Gateway)};
+            \node[sensor, right=1.5cm of t_gui] (lcd) {Pantalla LCD\\(ST7789)};
+            %
+            \draw[arrow, blue, thick] (t_ble) -- node[above, font=\scriptsize] {BLE} (phone);
+            \draw[arrow] (t_gui) -- node[above, font=\scriptsize] {SPI} (lcd);
+            %
+            % === LEYENDA ===
+            \node[legend, below=0.5cm of esp32] (leg) {
+                \begin{tabular}{cl}
+                    \tikz\draw[fill=gray!20] (0,0) rectangle (0.3,0.2);   & Periférico de hardware       \\
+                    \tikz\draw[fill=blue!10] (0,0) rectangle (0.3,0.2);   & Tarea FreeRTOS               \\
+                    \tikz\draw[fill=yellow!20] (0,0) rectangle (0.3,0.2); & Cola de mensajes (Queue)     \\
+                    \tikz\draw[fill=red!20] (0,0) circle (0.1);           & Mutex (exclusión mutua)      \\
+                    \tikz\draw[thick, ->] (0,0.1) -- (0.4,0.1);           & Flujo de datos               \\
+                    \tikz\draw[thick, dashed, ->] (0,0.1) -- (0.4,0.1);   & Interrupción asíncrona (ISR) \\
+                    \tikz\draw[blue, thick, ->] (0,0.1) -- (0.4,0.1);     & Enlace BLE inalámbrico       \\
+                \end{tabular}
+            };
+        \end{tikzpicture}

@@ -1,2 +1,2 @@
 dependencies:
-  espressif/esp_jpeg: "^1.0.6"
+  espressif/esp-dsp: "*"

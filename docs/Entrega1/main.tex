@@ -1472,7 +1472,7 @@ Se integró la librería LVGL versión 8.4 \citep{lvgl_ref}. Se implementó un c
 El buffer de dibujo parcial se configuró en \textbf{14.4~KB} (240~$\times$~30 líneas $\times$ 2~bytes/píxel), permitiendo un uso eficiente de la SRAM del ESP32-C3 (400~KB) \citep{esp32c3_ds}.
 
 \subsubsection{Resultados}
-Se verificó el correcto funcionamiento mostrando textos con anti-aliasing, barras de progreso animadas y colores vibrantes a $\sim$30~FPS.
+Se verificó el correcto funcionamiento mostrando textos con anti-aliasing, barras de progreso animadas y colores a $\sim$30~FPS.
 
 \subsection{Bloque de Interfaz Local: Decodificación JPEG (JPEGDEC)}
 
@@ -1484,30 +1484,15 @@ Este enfoque de \textit{streaming} es fundamental: una imagen de 240$\times$280 
 \subsubsection{Resultados}
 Se logró decodificar y mostrar imágenes JPEG de 240$\times$280 almacenadas en SPIFFS. El tiempo de renderizado completo es de 200--400~ms.
 
-\subsection{Bloque de Sensores: Prueba del MAX30102 (PPG)}
+\subsection{Bloque de Sensores: Prueba del MAX30205}
 
 \subsubsection{Descripción y funcionalidad}
-Se implementó un driver inicial para el sensor fotopletismógrafo \textbf{MAX30102} \citep{max30102_ds}, operando en el bus I2C a la dirección \texttt{0x57}. El driver implementa inicialización (software reset, modo SpO2, ajuste de LEDs) y lectura de la FIFO (muestras de 18 bits para canales rojo e IR).
+Se implementó un driver inicial para el sensor de temperatura \textbf{MAX30205} \citep{max30205_ds}, operando en el bus I2C a la dirección \texttt{0x48}. El driver implementa inicialización y lectura de temperatura.
 
-La lectura de datos accede al registro \texttt{FIFO\_DATA (0x07)} \citep{max30102_ds}, donde cada muestra consiste en 6 bytes (3 por canal), enmascarados a 18 bits significativos.
-
-\subsubsection{Resultados}
-Se verificó la comunicación I2C confirmando la lectura correcta del registro \texttt{PART\_ID (0xFF) = 0x15} \citep{max30102_ds}. Se obtuvieron lecturas crudas de señales roja e IR con variación al colocar el dedo sobre el sensor. La calibración algorítmica para SpO2 y BPM será implementada en la siguiente etapa.
-
-\subsection{Bloque de Comunicación: BLE con NimBLE}
-
-\subsubsection{Descripción y funcionalidad}
-Se implementó el stack Bluetooth Low Energy utilizando la librería \textbf{Apache NimBLE} \citep{nimble_ref} integrada en ESP-IDF. Se configuraron dos servicios GATT:
-
-\begin{itemize}
-    \item \textbf{Device Information Service (0x180A):} Expone el nombre del fabricante (``ArticunoFruna'') y el modelo (``SupaClock-C3'') como características de solo lectura.
-    \item \textbf{SupaClock Telemetry Service (UUID personalizado):} Contiene tres características con notificaciones: HR/SpO2, Temperatura y Pasos.
-\end{itemize}
-
-Se configuró el \textit{Appearance} como ``Wristwatch'' (0x00C1) según la especificación BLE \citep{ble_core_spec}, y se habilitó \textit{Secure Connections} (SC) con bonding para persistir el emparejamiento entre sesiones. La publicidad BLE se dividió en dos paquetes: el principal con flags y UUID del servicio, y el \textit{Scan Response} con el nombre del dispositivo.
+La lectura de datos accede al registro \texttt{TEMP (0x00)} \citep{max30205_ds}.
 
 \subsubsection{Resultados}
-El dispositivo es visible y emparejable desde cualquier teléfono Android/iOS. Se verificó la recepción de notificaciones con datos de telemetría simulada (dummies) a 1~Hz.
+Se verificó la comunicación I2C confirmando la lectura correcta del registro \texttt{PART\_ID (0xFF) = 0x15} \citep{max30205_ds}. Se obtuvieron lecturas de temperatura con variación al colocar el dedo sobre el sensor.
 
 \subsection{Bloque de Backend: Firebase y Cloud Firestore}
 
@@ -1521,14 +1506,8 @@ Se desplegó el ecosistema de backend utilizando \textbf{Firebase} \citep{fireba
     \item \texttt{users/.../ecgReadings/\{readingId\}}: Lecturas de ECG crudas y procesadas.
 \end{itemize}
 
-\textbf{Cloud Functions} (Python 3.12) implementa:
-\begin{itemize}
-    \item \texttt{process\_ecg}: Trigger automático que ejecuta el pipeline \textbf{Pan-Tompkins} \citep{pan_tompkins} completo (filtrado pasabanda, derivación, cuadratura, integración de ventana móvil, detección de picos R con umbral adaptativo). Calcula BPM y HRV (SDNN).
-    \item \texttt{compute\_daily\_summary}: Función callable que agrega métricas diarias.
-\end{itemize}
-
 \subsubsection{Resultados}
-Se verificó el correcto despliegue mediante pruebas con datos sintéticos. El algoritmo Pan-Tompkins detecta correctamente picos R y calcula BPM dentro de rangos fisiológicamente plausibles (60--100 BPM para adulto en reposo simulado).
+Se verificó el correcto acceso a la base de datos con autenticación y autorización.
 
 \subsection{Evaluación general y próximos pasos}
 

@@ -1,0 +1,51 @@
+\begin{tikzpicture}[
+                node distance=1.5cm and 2cm,
+                device/.style={rectangle, rounded corners, draw=black, thick, top color=white, bottom color=green!10, text width=3cm, align=center, minimum height=1.5cm, font=\small\bfseries},
+                app/.style={rectangle, rounded corners, draw=black, thick, top color=white, bottom color=blue!10, text width=3cm, align=center, minimum height=1.5cm, font=\small\bfseries},
+                cloud/.style={ellipse, draw=black, thick, top color=white, bottom color=orange!10, text width=3.5cm, align=center, minimum height=2cm, font=\small},
+                db/.style={cylinder, shape border rotate=90, aspect=0.25, draw=black, thick, top color=white, bottom color=orange!20, text width=2.5cm, align=center, minimum height=2cm, font=\footnotesize},
+                func/.style={rectangle, draw=black, dashed, fill=gray!10, text width=3.5cm, align=center, minimum height=1.5cm, font=\footnotesize},
+                arrow/.style={thick, ->, >=stealth},
+                double_arrow/.style={thick, <->, >=stealth},
+                legend/.style={rectangle, draw=black!50, fill=white, inner sep=5pt, font=\scriptsize}
+            ]%
+            % Nodos Principales
+            \node[device] (watch) {SupaClock\\(Nodo Edge)};
+            \node[app, right=3.5cm of watch] (android) {Aplicación Móvil\\(Gateway Android)};
+            %
+            % Nodos de Nube
+            \node[cloud, right=2.5cm of android] (firebase) {\textbf{Ecosistema Firebase}};
+            \node[db, right=1cm of firebase, yshift=1.5cm] (firestore) {Cloud Firestore\\(Perfiles)};
+            \node[func, right=1cm of firebase, yshift=-1.5cm] (functions) {\textbf{Cloud Functions}\\(Python)\\ \textit{Algoritmo ECG}};
+            %
+            % Nodo Raspberry (Futuro)
+            \node[device, bottom color=purple!10, dashed, below=2cm of android] (rpi) {Raspberry Pi 3B+\\(Edge Server)};
+            %
+            % Conexiones BLE
+            \draw[arrow, blue] ([yshift=0.5cm]watch.east) -- node[above, font=\scriptsize, text=black, align=center] {BLE (1 Hz) Enviada cada X minutos\\Telemetría Continua} ([yshift=0.5cm]android.west);
+            \draw[arrow, red] ([yshift=-0.5cm]watch.east) -- node[below, font=\scriptsize, text=black, align=center] {BLE (100 Hz)\\ECG Crudo} ([yshift=-0.5cm]android.west);
+            %
+            % Conexiones App -> Nube
+            \draw[double_arrow] (android) -- node[above, font=\scriptsize] {Wi-Fi / 5G} (firebase);
+            %
+            % Conexiones internas nube
+            \draw[arrow] (firebase) -- (firestore);
+            \draw[arrow] (firebase) -- (functions);
+            \draw[arrow, dashed] (functions) -- node[right, font=\scriptsize] {Actualiza BPM} (firestore);
+            %
+            % Conexión Futura
+            \draw[double_arrow, dashed, purple] (android) -- node[right, font=\scriptsize] {Proyección local} (rpi);
+            %
+            % === LEYENDA ===
+            \node[legend, below=1cm of watch, xshift=2cm] (leg) {
+                \begin{tabular}{cl}
+                    \tikz\draw[fill=green!10] (0,0) rectangle (0.3,0.2);          & Dispositivo físico      \\
+                    \tikz\draw[fill=blue!10] (0,0) rectangle (0.3,0.2);           & Aplicación de software  \\
+                    \tikz\draw[fill=orange!10] (0,0) rectangle (0.3,0.2);         & Servicio en la nube     \\
+                    \tikz\draw[fill=purple!10, dashed] (0,0) rectangle (0.3,0.2); & Proyección futura       \\
+                    \tikz\draw[blue, thick, ->] (0,0.1) -- (0.4,0.1);             & BLE: Telemetría (1 Hz)  \\
+                    \tikz\draw[red, thick, ->] (0,0.1) -- (0.4,0.1);              & BLE: ECG crudo (100 Hz) \\
+                    \tikz\draw[purple, thick, dashed, <->] (0,0.1) -- (0.4,0.1);  & Enlace futuro           \\
+                \end{tabular}
+            };
+        \end{tikzpicture}

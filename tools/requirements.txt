@@ -1,0 +1,6 @@
+pyqt6>=6.5
+bleak>=0.21
+matplotlib>=3.7
+numpy>=1.20
+pandas>=2.0.0
+scipy>=1.10.0

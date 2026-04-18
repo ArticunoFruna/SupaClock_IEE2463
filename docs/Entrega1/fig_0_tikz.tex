@@ -1,0 +1,121 @@
+\begin{tikzpicture}[
+                node distance=0.8cm and 1.2cm,
+                % Estilos de bloques
+                userblock/.style={rectangle, rounded corners, draw=black, thick, fill=teal!15, text width=2.8cm, align=center, minimum height=1cm, font=\footnotesize},
+                energyblock/.style={rectangle, rounded corners, draw=black, thick, fill=yellow!20, text width=2.5cm, align=center, minimum height=1cm, font=\footnotesize},
+                sensorblock/.style={rectangle, rounded corners, draw=black, thick, fill=green!15, text width=2.5cm, align=center, minimum height=1cm, font=\footnotesize},
+                mcublock/.style={rectangle, rounded corners, draw=black, thick, fill=blue!15, text width=3cm, align=center, minimum height=1.2cm, font=\footnotesize},
+                ifaceblock/.style={rectangle, rounded corners, draw=black, thick, fill=cyan!15, text width=2.5cm, align=center, minimum height=1cm, font=\footnotesize},
+                appblock/.style={rectangle, rounded corners, draw=black, thick, fill=orange!20, text width=2.8cm, align=center, minimum height=1.2cm, font=\footnotesize},
+                cloudblock/.style={rectangle, rounded corners, draw=black, thick, fill=red!10, text width=2.8cm, align=center, minimum height=1cm, font=\footnotesize},
+                futureblock/.style={rectangle, rounded corners, draw=black, thick, dashed, fill=purple!10, text width=2.8cm, align=center, minimum height=1cm, font=\footnotesize},
+                groupbox/.style={rectangle, draw=black!60, dashed, rounded corners, inner sep=0.35cm},
+                arrow/.style={thick, ->, >=stealth},
+                dataarrow/.style={thick, ->, >=stealth, blue!70},
+                powerarrow/.style={thick, ->, >=stealth, red!70},
+                analogarrow/.style={thick, ->, >=stealth, orange!80!black},
+                blearrow/.style={thick, ->, >=stealth, blue!60},
+                wifiarrow/.style={thick, <->, >=stealth, black!70},
+                futurearrow/.style={thick, <->, >=stealth, dashed, purple!70},
+                legend/.style={rectangle, draw=black!50, fill=white, inner sep=5pt, font=\scriptsize}
+            ]%
+            % === BLOQUE USUARIO ===
+            \node[userblock] (user_wrist) {Muñeca\\(Temp, PPG, IMU)};
+            \node[userblock, below=0.8cm of user_wrist] (user_hand) {Mano opuesta\\(ECG bimanual)};
+
+            % === BLOQUE SENSORES ===
+            \node[sensorblock, right=2.0cm of user_wrist, yshift=1.5cm] (ppg) {MAX30102\\(SpO2/HR)};
+            \node[sensorblock, right=1.5cm of ppg] (temp) {MAX30205\\(Temperatura)};
+            \node[sensorblock, below=0.7cm of ppg] (imu) {BMI160\\(IMU 6-ejes)};
+            \node[sensorblock, below=0.8cm of temp] (ecg) {AD8232\\(ECG)};
+            %
+            % === BLOQUE MCU ===
+            \node[mcublock, right=7.0cm of imu, yshift=0.5cm] (mcu) {\textbf{ESP32-C3/S3}\\FreeRTOS\\TinyML};
+            %
+            % === BLOQUE ENERGÍA ===
+            \node[energyblock, below=3.5cm of mcu, xshift=-1.9cm] (ldo) {LDO 3.3V\\(ME6211)};
+            \node[energyblock, right=1.0cm of ldo] (fuel) {Fuel Gauge\\(MAX17048)};
+            \node[energyblock, below=1.0cm of ldo, xshift=1.9cm] (bms) {BMS TP4056\\+ DW01A};
+            \node[energyblock, left=1.0cm of bms] (usbc) {USB-C\\(5V Entrada)};
+            \node[energyblock, right=3.0cm of bms] (lipo) {Batería LiPo\\(3.7V)};
+            %
+            % === BLOQUE INTERFAZ ===
+            \node[ifaceblock, above=2.5cm of mcu] (lcd) {Pantalla LCD\\ST7789 (SPI)};
+            \node[ifaceblock, above=0.8cm of lcd] (btns) {Botones (x3)\\GPIO + ISR};
+            %
+            % === BLOQUE APP ===
+            \node[appblock, right=2.5cm of mcu] (app) {\textbf{App Android}\\(Gateway BLE)};
+            %
+            % === BLOQUE NUBE ===
+            \node[cloudblock, right=2.5cm of app, yshift=1.5cm] (firestore) {Cloud Firestore\\(Perfiles/Hist.)};
+            \node[cloudblock, right=2.5cm of app, yshift=-1.5cm] (functions) {Cloud Functions\\(Pan-Tompkins)};
+            %
+            % === BLOQUE FUTURO ===
+            \node[futureblock, below=2cm of app] (rpi) {Raspberry Pi 3B+\\(Edge Server)};
+            %
+            % === GRUPOS ===
+            \begin{scope}[on background layer]
+                \node[groupbox, fill=teal!5, fit=(user_wrist) (user_hand), label={[font=\scriptsize\bfseries]above:Interacción Usuario}] (g_user) {};
+                \node[groupbox, fill=yellow!5, fit=(usbc) (bms) (lipo) (ldo) (fuel), label={[font=\scriptsize\bfseries]below:Subsistema de Energía}] (g_energy) {};
+                \node[groupbox, fill=green!5, fit=(ppg) (temp) (imu) (ecg), label={[font=\scriptsize\bfseries]above:Sensores y Adquisición}] (g_sensors) {};
+                \node[groupbox, fill=blue!5, fit=(mcu), label={[font=\scriptsize\bfseries]above:Procesamiento (MCU)}] (g_mcu) {};
+                \node[groupbox, fill=cyan!5, fit=(lcd) (btns), label={[font=\scriptsize\bfseries]above:Interfaz Local}] (g_iface) {};
+                \node[groupbox, fill=orange!5, fit=(app), label={[font=\scriptsize\bfseries]above:Aplicación Móvil}] (g_app) {};
+                \node[groupbox, fill=red!5, fit=(firestore) (functions), label={[font=\scriptsize\bfseries]above:Backend (Firebase)}] (g_cloud) {};
+            \end{scope}
+            %
+            % === CONEXIONES ===
+            % Usuario -> Sensores
+            \draw[arrow] (user_wrist.east) -- ++(0.5,0) |- (ppg.west);
+            \draw[arrow] (user_wrist.east) -- ++(0.5,0) |- (imu.west);
+            \path (ecg.south) ++(0, -0.6) coordinate (under_sensors);
+            \draw[arrow] (user_hand.east) -- ++(0.3,0) |- (under_sensors) -| (ecg.south);
+            %
+            % Energía interna
+            \draw[powerarrow] (usbc.east) -- (bms.west);
+            \draw[powerarrow, <->] (bms.east) -- node[above, font=\scriptsize] {Carga / Descarga} (lipo.west);
+            \draw[powerarrow] (bms.north) |- (ldo.east);
+            \draw[powerarrow] (lipo.north) |- (fuel.east);
+            %
+            % Sensores I2C -> MCU
+            \path (ppg.north) ++(0, 0.8) coordinate (i2c_bus_top);
+            \draw[dataarrow] (ppg.north) -- (ppg.north |- i2c_bus_top) -- ([xshift=-0.5cm]mcu.north |- i2c_bus_top) node[midway, above, font=\scriptsize] {I2C} -- ([xshift=-0.5cm]mcu.north);
+            \draw[dataarrow] (temp.north) -- (temp.north |- i2c_bus_top);
+            
+            \path (ecg.south) ++(0, -1.2) coordinate (i2c_bus_bot);
+            \draw[dataarrow] (imu.south) |- (i2c_bus_bot) -- ([xshift=-0.25cm]mcu.south |- i2c_bus_bot) -- ([xshift=-0.25cm]mcu.south);
+            \draw[dataarrow] (fuel.north) -- ([xshift=0.5cm]mcu.south);
+            
+            \draw[analogarrow] (ecg.east) -- node[above, font=\scriptsize] {ADC} (ecg.east -| mcu.west);
+            %
+            % MCU -> Interfaz
+            \draw[arrow] (mcu.north) -- node[right, font=\scriptsize] {SPI} (lcd.south);
+            \draw[arrow] (btns.east) -| ++(1.5,-2.0) |- ([yshift=0.4cm]mcu.east);
+            %
+            % MCU -> App
+            \draw[blearrow] (mcu.east) -- node[above, font=\scriptsize] {BLE} (app.west);
+            %
+            % App -> Nube
+            \draw[wifiarrow] (app.east) -- node[above, font=\scriptsize, sloped] {Wi-Fi / 5G} (firestore.west);
+            \draw[wifiarrow] (app.east) -- node[below, font=\scriptsize, sloped] {Wi-Fi / 5G} (functions.west);
+            \draw[arrow, dashed] (functions.north) -- node[right, font=\scriptsize] {BPM} (firestore.south);
+            %
+            % App -> RPi futuro
+            \draw[futurearrow] (app.south) -- node[right, font=\scriptsize] {Futuro} (rpi.north);
+            %
+            % LDO alimenta todo
+            \draw[powerarrow, dashed] (ldo.north) -- node[left, font=\scriptsize] {3.3V} ([xshift=-1.0cm]mcu.south);
+            %
+            % === LEYENDA ===
+            \node[legend, left=5.5cm of g_energy, xshift=5cm] (leg) {
+                \begin{tabular}{cl|cl}
+                    \tikz\draw[fill=teal!15] (0,0) rectangle (0.3,0.2);   & Interacción usuario   & \tikz\draw[blue!70, thick, ->] (0,0.1) -- (0.4,0.1);            & Bus digital (I2C/SPI) \\
+                    \tikz\draw[fill=yellow!20] (0,0) rectangle (0.3,0.2); & Subsistema de energía & \tikz\draw[red!70, thick, ->] (0,0.1) -- (0.4,0.1);             & Línea de potencia     \\
+                    \tikz\draw[fill=green!15] (0,0) rectangle (0.3,0.2);  & Sensores biométricos  & \tikz\draw[orange!80!black, thick, ->] (0,0.1) -- (0.4,0.1);    & Señal analógica (ADC) \\
+                    \tikz\draw[fill=blue!15] (0,0) rectangle (0.3,0.2);   & MCU                   & \tikz\draw[blue!60, thick, ->] (0,0.1) -- (0.4,0.1);            & Enlace BLE            \\
+                    \tikz\draw[fill=cyan!15] (0,0) rectangle (0.3,0.2);   & Interfaz local        & \tikz\draw[purple!70, thick, dashed, <->] (0,0.1) -- (0.4,0.1); & Proyección futura     \\
+                    \tikz\draw[fill=orange!20] (0,0) rectangle (0.3,0.2); & Aplicación móvil      & & \\
+                    \tikz\draw[fill=red!10] (0,0) rectangle (0.3,0.2);    & Backend nube          & & \\
+                \end{tabular}
+            };
+        \end{tikzpicture}
