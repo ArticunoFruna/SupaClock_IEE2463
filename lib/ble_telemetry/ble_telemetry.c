@@ -22,6 +22,9 @@ static uint16_t sensor_chr_val_handle;  /* UUID 0xFF02 — Sensors (baja freq)  
 #define IMU_CHR_UUID       0xFF01
 #define SENSOR_CHR_UUID    0xFF02
 
+// BLE GAP Appearance: 0x00C1 = Watch: Sports Watch (Assigned Numbers §2.6.3)
+#define BLE_APPEARANCE_WATCH  0x00C1
+
 // Forward declaracion de handlers
 static int chr_access_cb(uint16_t conn_handle, uint16_t attr_handle,
                           struct ble_gatt_access_ctxt *ctxt, void *arg);
@@ -67,14 +70,20 @@ static int chr_access_cb(uint16_t conn_handle, uint16_t attr_handle,
 static void ble_telemetry_advertise(void) {
     struct ble_gap_adv_params adv_params;
     struct ble_hs_adv_fields fields;
+    struct ble_hs_adv_fields rsp_fields;
     const char *name;
 
+    /* ── Primary Advertising Data ── */
     memset(&fields, 0, sizeof fields);
     
     fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
     fields.tx_pwr_lvl_is_present = 1;
     fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
-    
+
+    /* Appearance: Sports Watch → el teléfono lo muestra como reloj/wearable */
+    fields.appearance = BLE_APPEARANCE_WATCH;
+    fields.appearance_is_present = 1;
+
     name = ble_svc_gap_device_name();
     fields.name = (uint8_t *)name;
     fields.name_len = strlen(name);
@@ -82,6 +91,14 @@ static void ble_telemetry_advertise(void) {
 
     ble_gap_adv_set_fields(&fields);
 
+    /* ── Scan Response: incluir UUID del servicio para que lo descubran apps ── */
+    memset(&rsp_fields, 0, sizeof rsp_fields);
+    rsp_fields.uuids16 = (ble_uuid16_t[]) { BLE_UUID16_INIT(IMU_SVC_UUID) };
+    rsp_fields.num_uuids16 = 1;
+    rsp_fields.uuids16_is_complete = 1;
+    ble_gap_adv_rsp_set_fields(&rsp_fields);
+
+    /* ── Advertising Parameters ── */
     memset(&adv_params, 0, sizeof adv_params);
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
     adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
@@ -96,6 +113,9 @@ static int ble_telemetry_gap_event(struct ble_gap_event *event, void *arg) {
             if (event->connect.status == 0) {
                 ESP_LOGI(TAG, "Bluetooth Conectado!");
                 conn_handle_active = event->connect.conn_handle;
+
+                /* Iniciar Security (pairing) automáticamente al conectar */
+                ble_gap_security_initiate(conn_handle_active);
             } else {
                 ESP_LOGW(TAG, "Fallo conexion BLE, reenviando publicidad...");
                 ble_telemetry_advertise();
@@ -111,6 +131,22 @@ static int ble_telemetry_gap_event(struct ble_gap_event *event, void *arg) {
         case BLE_GAP_EVENT_SUBSCRIBE:
             ESP_LOGI(TAG, "GATT Subscribe event (handle: 0x%04X)", event->subscribe.attr_handle);
             break;
+
+        case BLE_GAP_EVENT_ENC_CHANGE:
+            if (event->enc_change.status == 0) {
+                ESP_LOGI(TAG, "Enlace cifrado exitosamente (bonded)");
+            } else {
+                ESP_LOGW(TAG, "Cifrado fallido: status=%d", event->enc_change.status);
+            }
+            break;
+
+        case BLE_GAP_EVENT_REPEAT_PAIRING: {
+            /* Eliminar la clave vieja y permitir re-pairing */
+            struct ble_gap_conn_desc desc;
+            ble_gap_conn_find(event->repeat_pairing.conn_handle, &desc);
+            ble_store_util_delete_peer(&desc.peer_id_addr);
+            return BLE_GAP_REPEAT_PAIRING_RETRY;
+        }
     }
     return 0;
 }
@@ -143,6 +179,14 @@ esp_err_t ble_telemetry_init(void) {
     ble_hs_cfg.gatts_register_cb = NULL;
     ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
+    /* ── Security Manager: Just Works pairing + Bonding ── */
+    ble_hs_cfg.sm_io_cap = BLE_SM_IO_CAP_NO_IO;  /* Sin display ni teclado → Just Works */
+    ble_hs_cfg.sm_bonding = 1;                     /* Guardar claves en NVS */
+    ble_hs_cfg.sm_mitm = 0;                        /* Sin MITM (Just Works) */
+    ble_hs_cfg.sm_sc = 1;                          /* Secure Connections (LE SC) */
+    ble_hs_cfg.sm_our_key_dist = BLE_SM_PAIR_KEY_DIST_ENC | BLE_SM_PAIR_KEY_DIST_ID;
+    ble_hs_cfg.sm_their_key_dist = BLE_SM_PAIR_KEY_DIST_ENC | BLE_SM_PAIR_KEY_DIST_ID;
+
     ble_svc_gap_init();
     ble_svc_gatt_init();
     
@@ -150,10 +194,11 @@ esp_err_t ble_telemetry_init(void) {
     if (ble_gatts_add_svcs(gatt_svr_svcs) != 0) return ESP_FAIL;
 
     ble_svc_gap_device_name_set("SupaClock_BLE");
+    ble_svc_gap_device_appearance_set(BLE_APPEARANCE_WATCH);
 
     nimble_port_freertos_init(ble_telemetry_host_task);
 
-    ESP_LOGI(TAG, "BLE: Servicio 0x%04X con chr IMU(0x%04X) + Sensors(0x%04X)",
+    ESP_LOGI(TAG, "BLE: Servicio 0x%04X con chr IMU(0x%04X) + Sensors(0x%04X) | Appearance: Watch",
              IMU_SVC_UUID, IMU_CHR_UUID, SENSOR_CHR_UUID);
     return ESP_OK;
 }

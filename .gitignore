@@ -9,35 +9,34 @@
 *.bin
 *.elf
 
-# Archivos auto-generados de ESP-IDF (¡NUNCA SUBIR EL sdkconfig!)
-# Solo deben subir el sdkconfig.defaults que creamos antes.
+# Archivos auto-generados de ESP-IDF
 sdkconfig
+sdkconfig.old
+# NO ignorar sdkconfig.defaults (es la base para otros desarrolladores)
+!sdkconfig.defaults
+# Ignorar archivos temporales de compilación de PlatformIO por entorno
 sdkconfig.*
+!sdkconfig.defaults
+
+# Compilación y Herramientas
 build/
+managed_components/
+compile_commands.json
+.venv/
+.python-version
+__pycache__/
+*.pyc
 
 # Archivos temporales de Sistemas Operativos
 .DS_Store
 Thumbs.db
 
-# Si luego agregan la carpeta de KiCad, ignoren los backups de hardware
+# Hardware / KiCad
 *-backups/
 *.bck
 
-# Firebase
-firebase/firebase-debug.log
-firebase/firebase-debug.*.log
-firebase/functions/venv/
-firebase/.firebase/
-*firebase/
-
-# Flutter
-app/.dart_tool/
-app/.packages
-app/build/
-app/.flutter-plugins
-app/.flutter-plugins-dependencies
-app/android/.gradle/
-app/android/local.properties
-*app/
+# Carpetas de otros proyectos (App / Firebase)
+firebase/
+app/
 
 *.cache/

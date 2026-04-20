@@ -1,303 +1,396 @@
+"""
+SupaClock Monitor v2 — Unified Dashboard
+Merges supaclock_monitor.py + live_viewer.py into a single premium app.
+
+Features:
+  • Real-time 2D waveforms (pyqtgraph — GPU-accelerated, much faster than matplotlib)
+  • 3D orientation cube via OpenGL
+  • Sensor telemetry panel (temperature, battery, steps)
+  • CSV Data Logger with REC button
+  • Dark-themed premium UI
+"""
+
 import sys
 import os
 import csv
 import struct
 import time
+import math
+import queue
 import asyncio
 import threading
 from datetime import datetime
 
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QLabel, QPushButton, QGroupBox, QGridLayout)
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout,
+    QHBoxLayout, QLabel, QPushButton, QGroupBox, QGridLayout,
+    QFrame, QSplitter
+)
 from PyQt6.QtCore import pyqtSignal, QObject, Qt, QTimer
-from PyQt6.QtGui import QFont, QColor
+from PyQt6.QtGui import QFont, QColor, QPalette
+
 from bleak import BleakClient, BleakScanner
 
-import matplotlib
-matplotlib.use('QtAgg')
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 import numpy as np
 
-IMU_CHR_UUID = "0000FF01-0000-1000-8000-00805F9B34FB"
+# ═══════════════════════════════════════════════════════════════════════
+#                         BLE UUIDs & Config
+# ═══════════════════════════════════════════════════════════════════════
+DEVICE_NAME    = "SupaClock_BLE"
+IMU_CHR_UUID   = "0000FF01-0000-1000-8000-00805F9B34FB"
 SENSOR_CHR_UUID = "0000FF02-0000-1000-8000-00805F9B34FB"
 
+# ═══════════════════════════════════════════════════════════════════════
+#                         BLE Worker (Async Thread)
+# ═══════════════════════════════════════════════════════════════════════
 class BleWorker(QObject):
-    imu_received = pyqtSignal(tuple)
+    """Runs Bleak in a daemon thread, emits Qt signals on data arrival."""
+    imu_received    = pyqtSignal(tuple)
     sensor_received = pyqtSignal(tuple)
-    status_changed = pyqtSignal(str)
+    status_changed  = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
-        self.client = None
-        self.loop = None
         self.running = True
 
     def start_loop(self):
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-        self.loop.run_until_complete(self.run_ble())
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self._run_ble())
 
-    async def run_ble(self):
+    async def _run_ble(self):
         while self.running:
             try:
-                self.status_changed.emit("Buscando SupaClock_BLE...")
-                devices = await BleakScanner.discover(timeout=5.0)
-                target = None
-                for d in devices:
-                    if d.name == "SupaClock_BLE" or d.name == "SupaClock":
-                        target = d
-                        break
+                self.status_changed.emit("Buscando SupaClock_BLE…")
+                device = await BleakScanner.find_device_by_name(DEVICE_NAME, timeout=5.0)
 
-                if target:
-                    self.status_changed.emit(f"Conectando a {target.address}...")
-                    async with BleakClient(target.address) as client:
-                        self.client = client
-                        self.status_changed.emit("Conectado")
-                        
-                        await client.start_notify(IMU_CHR_UUID, self.imu_handler)
-                        await client.start_notify(SENSOR_CHR_UUID, self.sensor_handler)
+                if device is None:
+                    self.status_changed.emit("Dispositivo no encontrado. Reintentando…")
+                    await asyncio.sleep(3.0)
+                    continue
 
-                        while client.is_connected and self.running:
-                            await asyncio.sleep(1.0)
-                            
-                        self.client = None
-                else:
-                    await asyncio.sleep(2.0)
+                self.status_changed.emit(f"Conectando a {device.address}…")
+                async with BleakClient(device, timeout=10.0) as client:
+                    self.status_changed.emit("Conectado ✓")
+
+                    await client.start_notify(IMU_CHR_UUID, self._on_imu)
+                    await client.start_notify(SENSOR_CHR_UUID, self._on_sensor)
+
+                    while client.is_connected and self.running:
+                        await asyncio.sleep(1.0)
+
+                self.status_changed.emit("Desconectado")
+
             except Exception as e:
                 self.status_changed.emit(f"Error: {e}")
-                await asyncio.sleep(2.0)
+                await asyncio.sleep(3.0)
 
-    def imu_handler(self, sender, data):
+    def _on_imu(self, _sender, data):
         if len(data) == 12:
-            vals = struct.unpack('<hhhhhh', data) # ax, ay, az, gx, gy, gz
-            self.imu_received.emit(vals)
+            self.imu_received.emit(struct.unpack('<hhhhhh', data))
 
-    def sensor_handler(self, sender, data):
+    def _on_sensor(self, _sender, data):
         if len(data) == 11:
-            vals = struct.unpack('<hHIHB', data) # temp, steps_hw, steps_sw, bat_mv, bat_soc
-            self.sensor_received.emit(vals)
+            self.sensor_received.emit(struct.unpack('<hHIHB', data))
 
     def stop(self):
         self.running = False
 
 
-class MplCanvas(FigureCanvasQTAgg):
-    def __init__(self, parent=None, width=5, height=4, dpi=100, title=""):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        fig.patch.set_facecolor('#1e1e1e')
-        self.axes = fig.add_subplot(111)
-        self.axes.set_facecolor('#1e1e1e')
-        self.axes.tick_params(colors='white')
-        self.axes.set_title(title, color='white')
-        super().__init__(fig)
-        self.setStyleSheet("background-color: transparent;")
+# ═══════════════════════════════════════════════════════════════════════
+#                         Styles & Theme
+# ═══════════════════════════════════════════════════════════════════════
+DARK_STYLE = """
+QMainWindow { background-color: #0d1117; }
+QWidget { color: #e6edf3; font-family: 'Inter', 'Segoe UI', sans-serif; }
+QGroupBox {
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    margin-top: 16px;
+    padding-top: 20px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #8b949e;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+}
+QLabel { font-size: 14px; }
+QPushButton {
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+}
+"""
 
 
+# ═══════════════════════════════════════════════════════════════════════
+#                         Main Window
+# ═══════════════════════════════════════════════════════════════════════
 class SupaClockMonitor(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SupaClock Monitor & Data Logger")
-        self.resize(1000, 700)
-        self.setStyleSheet("background-color: #121212; color: #ffffff;")
+        self.setWindowTitle("SupaClock Monitor v2")
+        self.resize(1400, 800)
+        self.setStyleSheet(DARK_STYLE)
 
-        # Data states
+        # ── Recording state ──
         self.is_recording = False
         self.csv_file = None
         self.csv_writer = None
-        self.latest_sensor_data = {
-            'temp_c': 0.0,
-            'steps_hw': 0,
-            'steps_sw': 0,
-            'bat_mv': 0,
-            'bat_soc': 0.0
+
+        # ── Latest slow-sensor data (for CSV sync) ──
+        self.sensor_cache = {
+            'temp_c': 0.0, 'steps_hw': 0, 'steps_sw': 0,
+            'bat_mv': 0, 'bat_soc': 0
         }
 
-        # Plot data (rolling windows of 150 samples ~ 3s at 50Hz)
-        self.plot_size = 150
-        self.accel_x = np.zeros(self.plot_size)
-        self.accel_y = np.zeros(self.plot_size)
-        self.accel_z = np.zeros(self.plot_size)
-        self.gyro_x = np.zeros(self.plot_size)
-        self.gyro_y = np.zeros(self.plot_size)
-        self.gyro_z = np.zeros(self.plot_size)
+        # ── Rolling data buffers (200 pts ≈ 4s @ 50 Hz) ──
+        N = 200
+        self.buf_ax = np.zeros(N); self.buf_ay = np.zeros(N); self.buf_az = np.zeros(N)
+        self.buf_gx = np.zeros(N); self.buf_gy = np.zeros(N); self.buf_gz = np.zeros(N)
+        self.latest_accel = (0, 0, 0)
 
-        self.setup_ui()
-        
-        # Start BLE Thread
-        self.ble_worker = BleWorker()
-        self.ble_worker.imu_received.connect(self.on_imu_data)
-        self.ble_worker.sensor_received.connect(self.on_sensor_data)
-        self.ble_worker.status_changed.connect(self.update_status)
-        
-        self.ble_thread = threading.Thread(target=self.ble_worker.start_loop, daemon=True)
-        self.ble_thread.start()
+        self._build_ui()
+        self._start_ble()
 
-        # Update plots via timer (30 fps)
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_plots)
-        self.timer.start(33)
+        # ── GUI refresh timer (30 FPS) ──
+        self._timer = QTimer()
+        self._timer.timeout.connect(self._refresh)
+        self._timer.start(33)
 
-    def setup_ui(self):
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
+    # ─────────────────────────── UI ────────────────────────────────
+    def _build_ui(self):
+        central = QWidget()
+        self.setCentralWidget(central)
+        root = QVBoxLayout(central)
+        root.setContentsMargins(12, 8, 12, 8)
+        root.setSpacing(8)
 
-        # Header controls
-        header_layout = QHBoxLayout()
-        
-        self.status_label = QLabel("Estado: Desconectado")
-        self.status_label.setFont(QFont("Arial", 14))
-        self.status_label.setStyleSheet("color: #ff5555;")
-        
-        self.rec_btn = QPushButton("⏺ REC")
-        self.rec_btn.setFixedSize(120, 40)
-        self.rec_btn.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        self.rec_btn.setStyleSheet("background-color: #d32f2f; color: white; border-radius: 5px;")
-        self.rec_btn.clicked.connect(self.toggle_recording)
+        # ── Top bar: status + REC ──
+        top = QHBoxLayout()
 
-        header_layout.addWidget(self.status_label)
-        header_layout.addStretch()
-        header_layout.addWidget(self.rec_btn)
-        main_layout.addLayout(header_layout)
+        self.lbl_status = QLabel("⬤ Desconectado")
+        self.lbl_status.setFont(QFont("Inter", 15, QFont.Weight.Bold))
+        self.lbl_status.setStyleSheet("color: #f85149;")
 
-        # Labels for slow sensors
-        sensors_group = QGroupBox("Sensores (1 Hz)")
-        sensors_group.setStyleSheet("QGroupBox { border: 1px solid #444; margin-top: 1ex; font-weight: bold; font-size: 14px; }")
-        sensors_layout = QGridLayout()
-        
-        large_font = QFont("Arial", 18)
-        self.temp_label = QLabel("Temp: -- °C")
-        self.temp_label.setFont(large_font)
-        
-        self.bat_label = QLabel("Batería: -- V / -- %")
-        self.bat_label.setFont(large_font)
-        
-        self.steps_label = QLabel("Pasos: HW 0 | SW 0")
-        self.steps_label.setFont(large_font)
+        self.btn_rec = QPushButton("⏺  REC")
+        self.btn_rec.setFixedSize(130, 38)
+        self.btn_rec.setStyleSheet(
+            "background-color: #da3633; color: white; border: none;"
+        )
+        self.btn_rec.clicked.connect(self._toggle_rec)
 
-        sensors_layout.addWidget(self.temp_label, 0, 0)
-        sensors_layout.addWidget(self.bat_label, 0, 1)
-        sensors_layout.addWidget(self.steps_label, 0, 2)
-        sensors_group.setLayout(sensors_layout)
-        main_layout.addWidget(sensors_group)
+        top.addWidget(self.lbl_status)
+        top.addStretch()
+        top.addWidget(self.btn_rec)
+        root.addLayout(top)
 
-        # Plots for IMU
-        plots_layout = QHBoxLayout()
+        # ── Sensor cards (temp, battery, steps) ──
+        cards = QGroupBox("Telemetría de Sensores")
+        cg = QGridLayout()
 
-        self.canvas_accel = MplCanvas(self, width=5, height=4, dpi=100, title="Acelerómetro (raw)")
-        self.line_ax, = self.canvas_accel.axes.plot(self.accel_x, 'r', label='Ax')
-        self.line_ay, = self.canvas_accel.axes.plot(self.accel_y, 'g', label='Ay')
-        self.line_az, = self.canvas_accel.axes.plot(self.accel_z, 'b', label='Az')
-        self.canvas_accel.axes.legend(loc='upper right', framealpha=0.5)
-        self.canvas_accel.axes.set_ylim(-32768, 32767)
+        self.card_temp  = self._make_card("🌡  Temperatura",  "--.- °C",  "#f0883e")
+        self.card_bat   = self._make_card("🔋  Batería",      "-.-- V / --%", "#3fb950")
+        self.card_steps = self._make_card("👟  Pasos",         "SW 0 | HW 0",  "#a371f7")
 
-        self.canvas_gyro = MplCanvas(self, width=5, height=4, dpi=100, title="Giroscopio (raw)")
-        self.line_gx, = self.canvas_gyro.axes.plot(self.gyro_x, 'r', label='Gx')
-        self.line_gy, = self.canvas_gyro.axes.plot(self.gyro_y, 'g', label='Gy')
-        self.line_gz, = self.canvas_gyro.axes.plot(self.gyro_z, 'b', label='Gz')
-        self.canvas_gyro.axes.legend(loc='upper right', framealpha=0.5)
-        self.canvas_gyro.axes.set_ylim(-32768, 32767)
+        cg.addWidget(self.card_temp[0],  0, 0)
+        cg.addWidget(self.card_bat[0],   0, 1)
+        cg.addWidget(self.card_steps[0], 0, 2)
+        cards.setLayout(cg)
+        root.addWidget(cards)
 
-        plots_layout.addWidget(self.canvas_accel)
-        plots_layout.addWidget(self.canvas_gyro)
-        main_layout.addLayout(plots_layout)
+        # ── Main content: plots (left) + 3D (right) ──
+        splitter = QSplitter(Qt.Orientation.Horizontal)
 
-    def toggle_recording(self):
+        # Left: pyqtgraph 2D plots
+        plot_widget = QWidget()
+        plot_layout = QVBoxLayout(plot_widget)
+        plot_layout.setContentsMargins(0, 0, 0, 0)
+
+        pg.setConfigOptions(antialias=True)
+
+        self.pw_accel = pg.PlotWidget(title="Acelerómetro (raw)")
+        self.pw_accel.setBackground('#0d1117')
+        self.pw_accel.showGrid(x=True, y=True, alpha=0.15)
+        self.pw_accel.addLegend(offset=(10, 10))
+        self.c_ax = self.pw_accel.plot(pen=pg.mkPen('#ff6e6e', width=1.5), name="Ax")
+        self.c_ay = self.pw_accel.plot(pen=pg.mkPen('#7ee787', width=1.5), name="Ay")
+        self.c_az = self.pw_accel.plot(pen=pg.mkPen('#79c0ff', width=1.5), name="Az")
+
+        self.pw_gyro = pg.PlotWidget(title="Giroscopio (raw)")
+        self.pw_gyro.setBackground('#0d1117')
+        self.pw_gyro.showGrid(x=True, y=True, alpha=0.15)
+        self.pw_gyro.addLegend(offset=(10, 10))
+        self.c_gx = self.pw_gyro.plot(pen=pg.mkPen('#ff9bce', width=1.5), name="Gx")
+        self.c_gy = self.pw_gyro.plot(pen=pg.mkPen('#d2a8ff', width=1.5), name="Gy")
+        self.c_gz = self.pw_gyro.plot(pen=pg.mkPen('#a5d6ff', width=1.5), name="Gz")
+
+        plot_layout.addWidget(self.pw_accel)
+        plot_layout.addWidget(self.pw_gyro)
+
+        # Right: 3D orientation viewer
+        self.view3d = gl.GLViewWidget()
+        self.view3d.opts['distance'] = 40
+        self.view3d.setMinimumWidth(300)
+
+        grid = gl.GLGridItem()
+        grid.setColor((60, 60, 60, 120))
+        self.view3d.addItem(grid)
+
+        axis = gl.GLAxisItem(glOptions='opaque')
+        axis.setSize(x=10, y=10, z=10)
+        self.view3d.addItem(axis)
+
+        self.box3d = gl.GLBoxItem()
+        self.box3d.setSize(x=6, y=6, z=2)
+        self.box3d.translate(-3, -3, -1)
+        self.view3d.addItem(self.box3d)
+
+        splitter.addWidget(plot_widget)
+        splitter.addWidget(self.view3d)
+        splitter.setSizes([900, 400])
+        root.addWidget(splitter, stretch=1)
+
+    def _make_card(self, title, default_val, accent_color):
+        """Create a styled sensor info card; returns (frame, value_label)."""
+        frame = QFrame()
+        frame.setStyleSheet(
+            f"QFrame {{ background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 10px; }}"
+        )
+        lay = QVBoxLayout(frame)
+        t = QLabel(title)
+        t.setFont(QFont("Inter", 11))
+        t.setStyleSheet("color: #8b949e; border: none;")
+        v = QLabel(default_val)
+        v.setFont(QFont("Inter", 20, QFont.Weight.Bold))
+        v.setStyleSheet(f"color: {accent_color}; border: none;")
+        lay.addWidget(t)
+        lay.addWidget(v)
+        return frame, v
+
+    # ─────────────────────────── BLE ───────────────────────────────
+    def _start_ble(self):
+        self._ble = BleWorker()
+        self._ble.imu_received.connect(self._on_imu)
+        self._ble.sensor_received.connect(self._on_sensor)
+        self._ble.status_changed.connect(self._on_status)
+
+        t = threading.Thread(target=self._ble.start_loop, daemon=True)
+        t.start()
+
+    def _on_status(self, text):
+        self.lbl_status.setText(f"⬤ {text}")
+        if "Conectado" in text:
+            self.lbl_status.setStyleSheet("color: #3fb950;")
+        elif "Error" in text or "no encontrado" in text:
+            self.lbl_status.setStyleSheet("color: #f85149;")
+        else:
+            self.lbl_status.setStyleSheet("color: #d29922;")
+
+    def _on_imu(self, vals):
+        ax, ay, az, gx, gy, gz = vals
+
+        # Shift buffers
+        self.buf_ax[:-1] = self.buf_ax[1:]; self.buf_ax[-1] = ax
+        self.buf_ay[:-1] = self.buf_ay[1:]; self.buf_ay[-1] = ay
+        self.buf_az[:-1] = self.buf_az[1:]; self.buf_az[-1] = az
+        self.buf_gx[:-1] = self.buf_gx[1:]; self.buf_gx[-1] = gx
+        self.buf_gy[:-1] = self.buf_gy[1:]; self.buf_gy[-1] = gy
+        self.buf_gz[:-1] = self.buf_gz[1:]; self.buf_gz[-1] = gz
+
+        self.latest_accel = (ax, ay, az)
+
+        # CSV logging at IMU rate
+        if self.is_recording and self.csv_writer:
+            ts = int(time.time() * 1000)
+            s = self.sensor_cache
+            self.csv_writer.writerow([
+                ts, ax, ay, az, gx, gy, gz,
+                s['temp_c'], s['steps_hw'], s['steps_sw'],
+                s['bat_mv'], s['bat_soc']
+            ])
+
+    def _on_sensor(self, vals):
+        temp_x100, steps_hw, steps_sw, bat_mv, bat_soc = vals
+        temp_c = temp_x100 / 100.0
+
+        self.sensor_cache.update({
+            'temp_c': temp_c, 'steps_hw': steps_hw,
+            'steps_sw': steps_sw, 'bat_mv': bat_mv, 'bat_soc': bat_soc
+        })
+
+        self.card_temp[1].setText(f"{temp_c:.2f} °C")
+        self.card_bat[1].setText(f"{bat_mv / 1000.0:.2f} V / {bat_soc}%")
+        self.card_steps[1].setText(f"SW {steps_sw}  |  HW {steps_hw}")
+
+    # ─────────────────────── Plot refresh ─────────────────────────
+    def _refresh(self):
+        # 2D waveforms
+        self.c_ax.setData(self.buf_ax)
+        self.c_ay.setData(self.buf_ay)
+        self.c_az.setData(self.buf_az)
+        self.c_gx.setData(self.buf_gx)
+        self.c_gy.setData(self.buf_gy)
+        self.c_gz.setData(self.buf_gz)
+
+        # 3D orientation (pitch/roll from accel)
+        ax, ay, az = self.latest_accel
+        if ax != 0 or ay != 0 or az != 0:
+            pitch = math.atan2(-ax, math.sqrt(ay * ay + az * az)) * 180.0 / math.pi
+            roll  = math.atan2(ay, az) * 180.0 / math.pi
+
+            self.box3d.resetTransform()
+            self.box3d.translate(-3, -3, -1)
+            self.box3d.rotate(pitch, 0, 1, 0)
+            self.box3d.rotate(roll,  1, 0, 0)
+
+    # ──────────────────────── Recording ───────────────────────────
+    def _toggle_rec(self):
         if not self.is_recording:
-            # Empezar a grabar
-            filename = datetime.now().strftime("supaclock_%Y%m%d_%H%M%S.csv")
-            filepath = os.path.join(os.getcwd(), filename)
+            fname = datetime.now().strftime("supaclock_%Y%m%d_%H%M%S.csv")
+            fpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), fname)
             try:
-                self.csv_file = open(filepath, 'w', newline='')
+                self.csv_file = open(fpath, 'w', newline='')
                 self.csv_writer = csv.writer(self.csv_file)
-                self.csv_writer.writerow(['timestamp_ms', 'ax', 'ay', 'az', 'gx', 'gy', 'gz', 
-                                          'temp_c', 'steps_hw', 'steps_sw', 'bat_mv', 'bat_soc'])
+                self.csv_writer.writerow([
+                    'timestamp_ms', 'ax', 'ay', 'az', 'gx', 'gy', 'gz',
+                    'temp_c', 'steps_hw', 'steps_sw', 'bat_mv', 'bat_soc'
+                ])
                 self.is_recording = True
-                self.rec_btn.setText("⏹ STOP")
-                self.rec_btn.setStyleSheet("background-color: #555555; color: white; border-radius: 5px;")
-                print(f"Data logging iniciado: {filepath}")
+                self.btn_rec.setText("⏹  STOP")
+                self.btn_rec.setStyleSheet(
+                    "background-color: #484f58; color: #e6edf3; border: none;"
+                )
+                print(f"🔴 Grabando → {fpath}")
             except Exception as e:
                 print(f"Error abriendo CSV: {e}")
         else:
-            # Parar de grabar
             self.is_recording = False
             if self.csv_file:
                 self.csv_file.close()
                 self.csv_file = None
                 self.csv_writer = None
-            self.rec_btn.setText("⏺ REC")
-            self.rec_btn.setStyleSheet("background-color: #d32f2f; color: white; border-radius: 5px;")
-            print("Data logging detenido.")
+            self.btn_rec.setText("⏺  REC")
+            self.btn_rec.setStyleSheet(
+                "background-color: #da3633; color: white; border: none;"
+            )
+            print("⬜ Grabación detenida.")
 
-    def update_status(self, text):
-        self.status_label.setText(f"Estado: {text}")
-        if "Conectado" in text:
-            self.status_label.setStyleSheet("color: #55ff55;")
-        else:
-            self.status_label.setStyleSheet("color: #ff5555;")
-
-    def on_sensor_data(self, vals):
-        temp_x100, steps_hw, steps_sw, bat_mv, bat_soc = vals
-        
-        self.latest_sensor_data['temp_c'] = temp_x100 / 100.0
-        self.latest_sensor_data['steps_hw'] = steps_hw
-        self.latest_sensor_data['steps_sw'] = steps_sw
-        self.latest_sensor_data['bat_mv'] = bat_mv
-        self.latest_sensor_data['bat_soc'] = bat_soc
-
-        self.temp_label.setText(f"Temp: {self.latest_sensor_data['temp_c']:.2f} °C")
-        self.bat_label.setText(f"Batería: {bat_mv/1000.0:.2f} V / {bat_soc} %")
-        self.steps_label.setText(f"Pasos: HW {steps_hw} | SW {steps_sw}")
-
-    def on_imu_data(self, vals):
-        ax, ay, az, gx, gy, gz = vals
-        
-        # Shift buffers
-        self.accel_x = np.roll(self.accel_x, -1)
-        self.accel_y = np.roll(self.accel_y, -1)
-        self.accel_z = np.roll(self.accel_z, -1)
-        self.gyro_x = np.roll(self.gyro_x, -1)
-        self.gyro_y = np.roll(self.gyro_y, -1)
-        self.gyro_z = np.roll(self.gyro_z, -1)
-        
-        # New values
-        self.accel_x[-1] = ax
-        self.accel_y[-1] = ay
-        self.accel_z[-1] = az
-        self.gyro_x[-1] = gx
-        self.gyro_y[-1] = gy
-        self.gyro_z[-1] = gz
-
-        # Data logging taking sync from IMU rate (approx 50Hz)
-        if self.is_recording and self.csv_writer:
-            ts_ms = int(time.time() * 1000)
-            self.csv_writer.writerow([
-                ts_ms, ax, ay, az, gx, gy, gz,
-                self.latest_sensor_data['temp_c'],
-                self.latest_sensor_data['steps_hw'],
-                self.latest_sensor_data['steps_sw'],
-                self.latest_sensor_data['bat_mv'],
-                self.latest_sensor_data['bat_soc']
-            ])
-
-    def update_plots(self):
-        self.line_ax.set_ydata(self.accel_x)
-        self.line_ay.set_ydata(self.accel_y)
-        self.line_az.set_ydata(self.accel_z)
-        self.canvas_accel.draw_idle()
-
-        self.line_gx.set_ydata(self.gyro_x)
-        self.line_gy.set_ydata(self.gyro_y)
-        self.line_gz.set_ydata(self.gyro_z)
-        self.canvas_gyro.draw_idle()
-
+    # ──────────────────────── Cleanup ─────────────────────────────
     def closeEvent(self, event):
-        self.ble_worker.stop()
+        self._ble.stop()
         if self.is_recording and self.csv_file:
             self.csv_file.close()
         super().closeEvent(event)
 
+
+# ═══════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = SupaClockMonitor()
