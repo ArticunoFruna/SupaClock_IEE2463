@@ -207,28 +207,33 @@ void app_main(void) {
     xGuiSemaphore = xSemaphoreCreateMutex();
     xSensorDataMutex = xSemaphoreCreateMutex();
 
-    ESP_LOGI(TAG, "Inicializando display...");
-    st7789_init();
-    st7789_fill_screen(0x0000); 
-
-    ESP_LOGI(TAG, "Inicializando I2C Bus...");
+    /*
+     * ═══ FASE 1: I2C y Sensores (bajo consumo, ~5mA) ═══
+     * Inicializar primero los periféricos de bajo consumo para que el
+     * fuel gauge y el IMU estén listos antes de encender la pantalla.
+     */
+    ESP_LOGI(TAG, "[Fase 1] Inicializando I2C Bus y sensores...");
     if (i2c_master_init() != ESP_OK) ESP_LOGE(TAG, "I2C Bus failed!");
     
-    ESP_LOGI(TAG, "Inicializando MAC17048...");
     if (max17048_init() != ESP_OK) ESP_LOGW(TAG, "MAX17048 fallo / ausente");
     
-    ESP_LOGI(TAG, "Inicializando BMI160...");
     if (bmi160_init() == ESP_OK) {
         bmi160_enable_step_counter();
     } else {
         ESP_LOGE(TAG, "BMI160 falló al inicializar");
     }
 
-    ESP_LOGI(TAG, "Inicializando MAX30205...");
     if (max30205_init() != ESP_OK) ESP_LOGW(TAG, "MAX30205 fallo / ausente");
-    
-    ESP_LOGI(TAG, "Inicializando BLE...");
-    if (ble_telemetry_init() != ESP_OK) ESP_LOGE(TAG, "BLE Stack falló al inicializar");
+
+    vTaskDelay(pdMS_TO_TICKS(500)); // Delay más largo (0.5s) para estabilizar LDO
+
+    /*
+     * ═══ FASE 2: Display (pico de corriente SPI + DMA, ~40mA) ═══
+     */
+    ESP_LOGI(TAG, "[Fase 2] Inicializando display...");
+    st7789_init();
+    vTaskDelay(pdMS_TO_TICKS(100)); // Delay post-init display
+    st7789_fill_screen(0x0000); 
 
     ESP_LOGI(TAG, "Inicializando LVGL...");
     lv_init();
@@ -237,17 +242,31 @@ void app_main(void) {
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = 240;
-    disp_drv.ver_res = 280; // o el q estes usando
+    disp_drv.ver_res = 280;
     disp_drv.flush_cb = display_flush_cb;
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);
 
     build_test_gui(); 
 
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Esperar 1 segundo completo antes del BLE
+
+    /*
+     * ═══ FASE 3: BLE (pico de corriente radio, ~130mA) ═══
+     * El radio BLE es el que más corriente consume al arrancar.
+     * Encenderlo último y con la pantalla ya estable evita que ambos
+     * picos se sumen y provoquen brownout.
+     */
+    ESP_LOGI(TAG, "[Fase 3] Inicializando BLE...");
+    if (ble_telemetry_init() != ESP_OK) ESP_LOGE(TAG, "BLE Stack falló al inicializar");
+
     // Tareas
     xTaskCreate(gui_task, "gui_task", 4096, NULL, 5, NULL);
     xTaskCreate(imu_task, "imu_task", 4096, NULL, 6, NULL);
     xTaskCreate(sensor_task, "sensor_task", 4096, NULL, 4, NULL);
+
+    ESP_LOGI(TAG, "=== SISTEMA INICIADO CORRECTAMENTE ===");
 }
+
 
 #endif

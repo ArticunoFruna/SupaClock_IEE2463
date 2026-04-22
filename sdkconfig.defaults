@@ -9,3 +9,6 @@ CONFIG_BT_NIMBLE_MAX_CONNECTIONS=1
 CONFIG_BT_NIMBLE_NVS_STR_STORE=y
 CONFIG_BT_NIMBLE_SM_LEGACY=y
 CONFIG_BT_NIMBLE_SM_SC=y
+# Brownout: desactivar para evitar resets espurios con batería
+# El LDO ME6211 del SuperMini tiene su propia protección de undervoltage
+CONFIG_ESP_BROWNOUT_DET=n

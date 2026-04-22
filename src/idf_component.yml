@@ -1,3 +1,2 @@
 dependencies:
   espressif/esp-dsp: "*"
-  lvgl/lvgl: "~8.4.0"

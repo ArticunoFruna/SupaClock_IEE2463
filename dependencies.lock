@@ -13,16 +13,8 @@ dependencies:
     source:
       type: idf
     version: 5.5.3
-  lvgl/lvgl:
-    component_hash: d7c1ac037ae6e85d94897f807d6e7ba0946a83e720074fc95a4f6241da9f9f53
-    dependencies: []
-    source:
-      registry_url: https://components.espressif.com/
-      type: service
-    version: 8.4.0
 direct_dependencies:
 - espressif/esp-dsp
-- lvgl/lvgl
-manifest_hash: 4d4c6ecc32695151ce502f0a212ff06350a6b5a50fa5d6285d2ac97ce97f7176
+manifest_hash: c764cea21528e014cdd1d6bd7869bd56cc8701b7bff36b93fb8fd68397a512cb
 target: esp32c3
 version: 3.0.0

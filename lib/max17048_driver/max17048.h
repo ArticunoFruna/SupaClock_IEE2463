@@ -24,10 +24,17 @@
 #define MAX17048_CMD_QSTRT   0x4000
 
 /**
- * @brief Initialize MAX17048 Fuel Gauge
+ * @brief Initialize MAX17048 Fuel Gauge (non-destructive, preserves ModelGauge state)
  * @return esp_err_t ESP_OK on success
  */
 esp_err_t max17048_init(void);
+
+/**
+ * @brief Force Quick Start — recalculate SOC from current voltage reading.
+ * Only call when the battery is at rest (no load) or after inserting a new cell.
+ * @return esp_err_t ESP_OK on success
+ */
+esp_err_t max17048_quick_start(void);
 
 /**
  * @brief Read battery voltage (VCELL)
@@ -42,5 +49,19 @@ esp_err_t max17048_get_voltage(uint16_t *voltage);
  * @return esp_err_t ESP_OK on success
  */
 esp_err_t max17048_get_soc(float *soc);
+
+/**
+ * @brief Read charge/discharge rate
+ * @param crate Pointer to store rate in %/hour (positive = charging, negative = discharging)
+ * @return esp_err_t ESP_OK on success
+ */
+esp_err_t max17048_get_crate(float *crate);
+
+/**
+ * @brief Set RCOMP value for temperature/battery compensation
+ * @param rcomp_value 8-bit RCOMP value (default 0x97 for 20°C)
+ * @return esp_err_t ESP_OK on success
+ */
+esp_err_t max17048_set_rcomp(uint8_t rcomp_value);
 
 #endif // MAX17048_H
