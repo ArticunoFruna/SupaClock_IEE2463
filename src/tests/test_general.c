@@ -43,6 +43,10 @@ static lv_obj_t *label_steps;
 static lv_obj_t *label_imu;
 static lv_obj_t *label_ble;
 
+// Variables para el modo ECG en la GUI
+static bool gui_ecg_state = false;
+static lv_obj_t *label_heart = NULL;
+
 /* Puntero al buffer de la pantalla */
 #define DISP_BUF_SIZE (240 * 30 * 1)
 static lv_disp_draw_buf_t draw_buf;
@@ -99,31 +103,114 @@ static void build_test_gui(void) {
 void gui_task(void *pvParameter) {
     while (1) {
         if (pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
+            bool ecg_mode = ble_telemetry_is_ecg_mode_active();
+            if (ecg_mode != gui_ecg_state) {
+                gui_ecg_state = ecg_mode;
+                if (ecg_mode) {
+                    lv_obj_add_flag(label_temp, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(label_bat, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(label_steps, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_add_flag(label_imu, LV_OBJ_FLAG_HIDDEN);
+                    lv_label_set_text(label_ble, "Modo ECG");
+                    lv_obj_set_style_text_color(label_ble, lv_color_hex(0x3fb950), LV_PART_MAIN);
+
+                    if (!label_heart) {
+                        label_heart = lv_label_create(lv_scr_act());
+                        lv_label_set_text(label_heart, "ECG Mode");
+                        lv_obj_set_style_text_color(label_heart, lv_color_hex(0xFF0000), LV_PART_MAIN);
+                        // Make it huge using transformations or just relying on font
+                        lv_obj_align(label_heart, LV_ALIGN_CENTER, 0, 0);
+                    }
+                    lv_obj_clear_flag(label_heart, LV_OBJ_FLAG_HIDDEN);
+                } else {
+                    lv_obj_clear_flag(label_temp, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_clear_flag(label_bat, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_clear_flag(label_steps, LV_OBJ_FLAG_HIDDEN);
+                    lv_obj_clear_flag(label_imu, LV_OBJ_FLAG_HIDDEN);
+                    if (label_heart) lv_obj_add_flag(label_heart, LV_OBJ_FLAG_HIDDEN);
+                    lv_label_set_text(label_ble, "BLE: Activo");
+                    lv_obj_set_style_text_color(label_ble, lv_color_hex(0x0000FF), LV_PART_MAIN);
+                }
+            }
+
             lv_timer_handler();
 
-            // LVGL printf no soporta floats por defecto, lo separamos en int y frac
-            if (xSemaphoreTake(xSensorDataMutex, portMAX_DELAY) == pdTRUE) {
-                int temp_int = (int)sensor_data.temperature_c;
-                int temp_frac = (int)((sensor_data.temperature_c - temp_int) * 100);
-                if (temp_frac < 0) temp_frac = -temp_frac;
+            if (!ecg_mode) {
+                // LVGL printf no soporta floats por defecto, lo separamos en int y frac
+                if (xSemaphoreTake(xSensorDataMutex, portMAX_DELAY) == pdTRUE) {
+                    int temp_int = (int)sensor_data.temperature_c;
+                    int temp_frac = (int)((sensor_data.temperature_c - temp_int) * 100);
+                    if (temp_frac < 0) temp_frac = -temp_frac;
 
-                int bat_v_int = sensor_data.battery_mv / 1000;
-                int bat_v_frac = (sensor_data.battery_mv % 1000) / 10;
-                
-                int bat_soc_int = (int)sensor_data.battery_soc;
-                int bat_soc_frac = (int)((sensor_data.battery_soc - bat_soc_int) * 10);
-                if (bat_soc_frac < 0) bat_soc_frac = -bat_soc_frac;
+                    int bat_v_int = sensor_data.battery_mv / 1000;
+                    int bat_v_frac = (sensor_data.battery_mv % 1000) / 10;
+                    
+                    int bat_soc_int = (int)sensor_data.battery_soc;
+                    int bat_soc_frac = (int)((sensor_data.battery_soc - bat_soc_int) * 10);
+                    if (bat_soc_frac < 0) bat_soc_frac = -bat_soc_frac;
 
-                lv_label_set_text_fmt(label_temp, "Temp: %d.%02d °C", temp_int, temp_frac);
-                lv_label_set_text_fmt(label_bat, "Bat: %d.%02dV / %d.%d%%", bat_v_int, bat_v_frac, bat_soc_int, bat_soc_frac);
-                lv_label_set_text_fmt(label_steps, "Steps: SW %lu | HW %u", (unsigned long)sensor_data.steps_sw, sensor_data.steps_hw);
-                lv_label_set_text_fmt(label_imu, "IMU:\nAx:%d Ay:%d Az:%d", sensor_data.ax, sensor_data.ay, sensor_data.az);
-                xSemaphoreGive(xSensorDataMutex);
+                    lv_label_set_text_fmt(label_temp, "Temp: %d.%02d °C", temp_int, temp_frac);
+                    lv_label_set_text_fmt(label_bat, "Bat: %d.%02dV / %d.%d%%", bat_v_int, bat_v_frac, bat_soc_int, bat_soc_frac);
+                    lv_label_set_text_fmt(label_steps, "Steps: SW %lu | HW %u", (unsigned long)sensor_data.steps_sw, sensor_data.steps_hw);
+                    lv_label_set_text_fmt(label_imu, "IMU:\nAx:%d Ay:%d Az:%d", sensor_data.ax, sensor_data.ay, sensor_data.az);
+                    xSemaphoreGive(xSensorDataMutex);
+                }
             }
             
             xSemaphoreGive(xGuiSemaphore);
         }
         vTaskDelay(pdMS_TO_TICKS(33)); // ~30 fps
+    }
+}
+
+#include "ad8232.h"
+#include "esp_adc/adc_continuous.h"
+
+void ecg_task(void *pvParameter) {
+    uint8_t dma_buf[AD8232_READ_LEN];
+    uint32_t ret_num = 0;
+    
+    #define ECG_DOWNSAMPLE_RATIO 40
+    #define ECG_BLE_CHUNK_SIZE 10
+    
+    int16_t ble_chunk[ECG_BLE_CHUNK_SIZE];
+    int chunk_idx = 0;
+    uint32_t sum = 0;
+    int count = 0;
+
+    while (1) {
+        if (!ble_telemetry_is_ecg_mode_active()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+            // Resetear contadores si se apaga el modo
+            chunk_idx = 0;
+            sum = 0;
+            count = 0;
+            continue;
+        }
+
+        // Leer DMA de forma continua (bloqueante hasta que haya datos o timeout 10ms)
+        esp_err_t ret = adc_continuous_read(ad8232_get_adc_handle(), dma_buf, AD8232_READ_LEN, &ret_num, 10);
+        if (ret == ESP_OK) {
+            for (int i = 0; i < ret_num; i += sizeof(adc_digi_output_data_t)) {
+                adc_digi_output_data_t *p = (adc_digi_output_data_t*)&dma_buf[i];
+                uint16_t raw_val = p->type2.data;
+                
+                sum += raw_val;
+                count++;
+                
+                if (count >= ECG_DOWNSAMPLE_RATIO) {
+                    ble_chunk[chunk_idx++] = (int16_t)(sum / ECG_DOWNSAMPLE_RATIO);
+                    sum = 0;
+                    count = 0;
+                    
+                    if (chunk_idx >= ECG_BLE_CHUNK_SIZE) {
+                        ble_telemetry_send_ecg(ble_chunk, sizeof(ble_chunk));
+                        chunk_idx = 0;
+                    }
+                }
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(1)); // Ceder CPU
     }
 }
 
@@ -225,6 +312,13 @@ void app_main(void) {
 
     if (max30205_init() != ESP_OK) ESP_LOGW(TAG, "MAX30205 fallo / ausente");
 
+    if (ad8232_init_dma() == ESP_OK) {
+        ad8232_start_dma();
+        ESP_LOGI(TAG, "AD8232 inicializado y DMA iniciado");
+    } else {
+        ESP_LOGW(TAG, "AD8232 fallo / ausente");
+    }
+
     vTaskDelay(pdMS_TO_TICKS(500)); // Delay más largo (0.5s) para estabilizar LDO
 
     /*
@@ -264,6 +358,7 @@ void app_main(void) {
     xTaskCreate(gui_task, "gui_task", 4096, NULL, 5, NULL);
     xTaskCreate(imu_task, "imu_task", 4096, NULL, 6, NULL);
     xTaskCreate(sensor_task, "sensor_task", 4096, NULL, 4, NULL);
+    xTaskCreate(ecg_task, "ecg_task", 4096, NULL, 7, NULL); // Mayor prioridad para no perder DMA
 
     ESP_LOGI(TAG, "=== SISTEMA INICIADO CORRECTAMENTE ===");
 }

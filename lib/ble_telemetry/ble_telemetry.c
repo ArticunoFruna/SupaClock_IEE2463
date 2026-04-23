@@ -16,11 +16,17 @@ static const char *TAG = "BLE_TELEMETRY";
 static uint16_t conn_handle_active = BLE_HS_CONN_HANDLE_NONE;
 static uint16_t imu_chr_val_handle;     /* UUID 0xFF01 — IMU 6-DOF (alta freq) */
 static uint16_t sensor_chr_val_handle;  /* UUID 0xFF02 — Sensors (baja freq)   */
+static uint16_t ecg_chr_val_handle;     /* UUID 0xFF03 — ECG (bursts)          */
+static uint16_t cmd_chr_val_handle;     /* UUID 0xFF04 — Comandos Rx           */
+
+static bool ecg_mode_active = false;
 
 // Custom 16-bit UUIDs para simplificar en Bleak
 #define IMU_SVC_UUID       0xFF00
 #define IMU_CHR_UUID       0xFF01
 #define SENSOR_CHR_UUID    0xFF02
+#define ECG_CHR_UUID       0xFF03
+#define CMD_CHR_UUID       0xFF04
 
 // BLE GAP Appearance: 0x00C1 = Watch: Sports Watch (Assigned Numbers §2.6.3)
 #define BLE_APPEARANCE_WATCH  0x00C1
@@ -51,6 +57,20 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
                 .val_handle = &sensor_chr_val_handle,
             },
             {
+                /* Característica 3: ECG (burst de muestras) */
+                .uuid = BLE_UUID16_DECLARE(ECG_CHR_UUID),
+                .access_cb = chr_access_cb,
+                .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &ecg_chr_val_handle,
+            },
+            {
+                /* Característica 4: Comandos RX */
+                .uuid = BLE_UUID16_DECLARE(CMD_CHR_UUID),
+                .access_cb = chr_access_cb,
+                .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
+                .val_handle = &cmd_chr_val_handle,
+            },
+            {
                 0, // No more characteristics
             }
         },
@@ -62,7 +82,24 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
 
 static int chr_access_cb(uint16_t conn_handle, uint16_t attr_handle,
                           struct ble_gatt_access_ctxt *ctxt, void *arg) {
-    // Las lecturas READ devuelven vacío; usamos NOTIFY para todo
+    if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_CHR) {
+        if (attr_handle == cmd_chr_val_handle) {
+            uint16_t om_len = OS_MBUF_PKTLEN(ctxt->om);
+            if (om_len > 0) {
+                uint8_t cmd_val;
+                int rc = os_mbuf_copydata(ctxt->om, 0, 1, &cmd_val);
+                if (rc == 0) {
+                    if (cmd_val == 0x01) {
+                        ecg_mode_active = true;
+                        ESP_LOGI(TAG, "Comando recibido: INICIAR ECG_MODE");
+                    } else if (cmd_val == 0x00) {
+                        ecg_mode_active = false;
+                        ESP_LOGI(TAG, "Comando recibido: DETENER ECG_MODE");
+                    }
+                }
+            }
+        }
+    }
     return 0; 
 }
 
@@ -179,13 +216,13 @@ esp_err_t ble_telemetry_init(void) {
     ble_hs_cfg.gatts_register_cb = NULL;
     ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
-    /* ── Security Manager: Just Works pairing + Bonding ── */
-    ble_hs_cfg.sm_io_cap = BLE_SM_IO_CAP_NO_IO;  /* Sin display ni teclado → Just Works */
-    ble_hs_cfg.sm_bonding = 1;                     /* Guardar claves en NVS */
-    ble_hs_cfg.sm_mitm = 0;                        /* Sin MITM (Just Works) */
-    ble_hs_cfg.sm_sc = 1;                          /* Secure Connections (LE SC) */
-    ble_hs_cfg.sm_our_key_dist = BLE_SM_PAIR_KEY_DIST_ENC | BLE_SM_PAIR_KEY_DIST_ID;
-    ble_hs_cfg.sm_their_key_dist = BLE_SM_PAIR_KEY_DIST_ENC | BLE_SM_PAIR_KEY_DIST_ID;
+    /* ── Security Manager: Desactivado para evitar problemas de pairing con BlueZ ── */
+    ble_hs_cfg.sm_io_cap = BLE_SM_IO_CAP_NO_IO;
+    ble_hs_cfg.sm_bonding = 0;                     /* NO guardar claves, conexiones abiertas */
+    ble_hs_cfg.sm_mitm = 0;
+    ble_hs_cfg.sm_sc = 0;                          /* Desactivar Secure Connections */
+    ble_hs_cfg.sm_our_key_dist = 0;
+    ble_hs_cfg.sm_their_key_dist = 0;
 
     ble_svc_gap_init();
     ble_svc_gatt_init();
@@ -204,29 +241,42 @@ esp_err_t ble_telemetry_init(void) {
 }
 
 esp_err_t ble_telemetry_send(int16_t *data, size_t length) {
+    if (ecg_mode_active) return ESP_OK; // No enviar IMU si estamos en modo ECG
+
     if (conn_handle_active != BLE_HS_CONN_HANDLE_NONE) {
         struct os_mbuf *om = ble_hs_mbuf_from_flat(data, length);
         if (om) {
             int rc = ble_gatts_notify_custom(conn_handle_active, imu_chr_val_handle, om);
-            if (rc == 0) {
-                return ESP_OK;
-            }
+            return rc == 0 ? ESP_OK : ESP_FAIL;
         }
     }
     return ESP_FAIL;
 }
 
 esp_err_t ble_telemetry_send_sensors(const ble_sensor_packet_t *pkt) {
-    if (pkt == NULL) return ESP_ERR_INVALID_ARG;
+    if (ecg_mode_active) return ESP_OK; // No enviar sensores si estamos en modo ECG
 
     if (conn_handle_active != BLE_HS_CONN_HANDLE_NONE) {
         struct os_mbuf *om = ble_hs_mbuf_from_flat(pkt, sizeof(ble_sensor_packet_t));
         if (om) {
             int rc = ble_gatts_notify_custom(conn_handle_active, sensor_chr_val_handle, om);
-            if (rc == 0) {
-                return ESP_OK;
-            }
+            return rc == 0 ? ESP_OK : ESP_FAIL;
         }
     }
     return ESP_FAIL;
+}
+
+esp_err_t ble_telemetry_send_ecg(int16_t *data, size_t length) {
+    if (conn_handle_active != BLE_HS_CONN_HANDLE_NONE) {
+        struct os_mbuf *om = ble_hs_mbuf_from_flat(data, length);
+        if (om) {
+            int rc = ble_gatts_notify_custom(conn_handle_active, ecg_chr_val_handle, om);
+            return rc == 0 ? ESP_OK : ESP_FAIL;
+        }
+    }
+    return ESP_FAIL;
+}
+
+bool ble_telemetry_is_ecg_mode_active(void) {
+    return ecg_mode_active;
 }

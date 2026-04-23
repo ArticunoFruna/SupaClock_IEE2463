@@ -2,6 +2,7 @@
 #define BLE_TELEMETRY_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "esp_err.h"
 
 /**
@@ -35,6 +36,25 @@ esp_err_t ble_telemetry_send(int16_t *data, size_t length);
  * @param pkt Pointer to sensor packet (temp, steps, battery)
  * @return esp_err_t ESP_OK if sent successfully
  */
+/**
+ * @brief Send slow sensor data via BLE notification (UUID 0xFF02, baja frecuencia)
+ * @param pkt Pointer to sensor packet (temp, steps, battery)
+ * @return esp_err_t ESP_OK if sent successfully
+ */
 esp_err_t ble_telemetry_send_sensors(const ble_sensor_packet_t *pkt);
+
+/**
+ * @brief Send ECG data via BLE notification (UUID 0xFF03)
+ * @param data Array of 16-bit values from AD8232
+ * @param length Size in bytes of the array payload
+ * @return esp_err_t ESP_OK if sent successfully
+ */
+esp_err_t ble_telemetry_send_ecg(int16_t *data, size_t length);
+
+/**
+ * @brief Check if dedicated ECG mode is active
+ * @return true if active, false otherwise
+ */
+bool ble_telemetry_is_ecg_mode_active(void);
 
 #endif // BLE_TELEMETRY_H
