@@ -15,7 +15,9 @@ typedef struct __attribute__((packed)) {
     uint32_t steps_sw;          /**< Software step counter         */
     uint16_t battery_mv;        /**< Voltaje batería en mV         */
     uint8_t  battery_soc;       /**< SOC en %                      */
-} ble_sensor_packet_t;          /* 11 bytes total                  */
+    uint8_t  hr_bpm;            /**< Frecuencia cardiaca (MAX30102), 0 = inválido */
+    uint8_t  spo2_pct;          /**< Saturación O2 %, 0 = inválido */
+} ble_sensor_packet_t;          /* 13 bytes total                  */
 
 /**
  * @brief Initialize BLE Server and GAP/GATT roles for SupaClock using NimBLE
@@ -56,5 +58,11 @@ esp_err_t ble_telemetry_send_ecg(int16_t *data, size_t length);
  * @return true if active, false otherwise
  */
 bool ble_telemetry_is_ecg_mode_active(void);
+
+/**
+ * @brief Activar/desactivar modo ECG desde el firmware (p.ej. botón físico
+ *        del wearable). Equivalente a recibir un comando 0x01/0x00 por BLE.
+ */
+void ble_telemetry_set_ecg_mode(bool enable);
 
 #endif // BLE_TELEMETRY_H

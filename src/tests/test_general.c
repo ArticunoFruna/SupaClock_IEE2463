@@ -12,8 +12,11 @@
 #include "max17048.h"
 #include "bmi160.h"
 #include "max30205.h"
+#include "max30102.h"
 #include "ble_telemetry.h"
 #include "step_algorithm.h"
+#include "gpio_buttons.h"
+#include "esp_sleep.h"
 
 static const char *TAG = "Test_General";
 
@@ -32,134 +35,376 @@ typedef struct {
     float temperature_c;
     uint16_t battery_mv;
     float battery_soc;
+    uint8_t hr_bpm;
+    uint8_t spo2_pct;
+    bool finger_present;
 } shared_sensor_data_t;
 
 static shared_sensor_data_t sensor_data = {0};
 
-/* Objetos LVGL de la GUI */
-static lv_obj_t *label_temp;
-static lv_obj_t *label_bat;
-static lv_obj_t *label_steps;
-static lv_obj_t *label_imu;
-static lv_obj_t *label_ble;
+/* ═══════════════════════════════════════════════════════════════════
+ *  GUI multi-pantalla con navegación por 2 botones
+ *  ─────────────────────────────────────────────────
+ *  NEXT (GPIO 10) → cicla pantallas (Home→Bio→ECG→Menú→Home) y dentro
+ *                   del Menú scrollea ítems.
+ *  SELECT (GPIO 1) → acción contextual (toggle ECG, activar ítem).
+ * ═══════════════════════════════════════════════════════════════════ */
 
-// Variables para el modo ECG en la GUI
-static bool gui_ecg_state = false;
-static lv_obj_t *label_heart = NULL;
+typedef enum {
+    SCREEN_HOME = 0,
+    SCREEN_BIO,
+    SCREEN_ECG,
+    SCREEN_MENU,
+    SCREEN_COUNT,
+} ui_screen_t;
+
+#define MENU_ITEM_COUNT 3
+static const char *MENU_LABELS[MENU_ITEM_COUNT] = {
+    "Reiniciar Pasos",
+    "Vincular BLE",
+    "Apagar",
+};
+
+/* Estado de navegación */
+static ui_screen_t current_screen = SCREEN_HOME;
+static uint8_t menu_selection = 0;
+static int64_t ecg_start_us = 0;   /* timestamp de inicio de grabación ECG */
+
+/* Screens (objetos raíz LVGL, uno por pantalla) */
+static lv_obj_t *scr_obj[SCREEN_COUNT];
+
+/* Labels dinámicos por pantalla */
+/*  Home */
+static lv_obj_t *home_clock, *home_steps, *home_bat, *home_hr, *home_act;
+/*  Bio  */
+static lv_obj_t *bio_hr, *bio_spo2, *bio_temp, *bio_status;
+/*  ECG  */
+static lv_obj_t *ecg_instr, *ecg_timer, *ecg_rec;
+/*  Menú */
+static lv_obj_t *menu_rows[MENU_ITEM_COUNT];
 
 /* Puntero al buffer de la pantalla */
 #define DISP_BUF_SIZE (240 * 30 * 1)
 static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf_1[DISP_BUF_SIZE];
 
+LV_FONT_DECLARE(lv_font_montserrat_14);
 LV_FONT_DECLARE(lv_font_montserrat_20);
+LV_FONT_DECLARE(lv_font_montserrat_40);
 
 static void display_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p) {
     uint16_t x = area->x1;
     uint16_t y = area->y1;
     uint16_t w = area->x2 - area->x1 + 1;
     uint16_t h = area->y2 - area->y1 + 1;
-    
+
     st7789_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
     lv_disp_flush_ready(disp_drv);
 }
 
-static void build_test_gui(void) {
-    lv_obj_t *scr = lv_scr_act();
+/* ─────────────────── Helpers de construcción ─────────────────── */
+
+static lv_obj_t *make_screen(const char *title, uint32_t title_color) {
+    lv_obj_t *scr = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(scr, lv_color_hex(0x000000), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(scr, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_width(scr, 0, LV_PART_MAIN);
+    lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
 
-    lv_obj_t *title = lv_label_create(scr);
-    lv_label_set_text(title, "SupaClock General Test");
-    lv_obj_set_style_text_color(title, lv_color_hex(0x00D2FF), LV_PART_MAIN);
-    // Asumiendo que la fuente por defecto es suficiente si no se carga otra
-    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 5);
+    lv_obj_t *t = lv_label_create(scr);
+    lv_label_set_text(t, title);
+    lv_obj_set_style_text_color(t, lv_color_hex(title_color), LV_PART_MAIN);
+    lv_obj_set_style_text_font(t, &lv_font_montserrat_14, LV_PART_MAIN);
+    lv_obj_align(t, LV_ALIGN_TOP_MID, 0, 6);
+    return scr;
+}
 
-    label_temp = lv_label_create(scr);
-    lv_label_set_text(label_temp, "Temp: --.- °C");
-    lv_obj_set_style_text_color(label_temp, lv_color_hex(0xFFA500), LV_PART_MAIN);
-    lv_obj_align(label_temp, LV_ALIGN_TOP_LEFT, 10, 40);
+static lv_obj_t *make_label(lv_obj_t *parent, const lv_font_t *font,
+                            uint32_t color_hex, lv_align_t align,
+                            int x_ofs, int y_ofs, const char *txt) {
+    lv_obj_t *l = lv_label_create(parent);
+    lv_label_set_text(l, txt);
+    lv_obj_set_style_text_color(l, lv_color_hex(color_hex), LV_PART_MAIN);
+    lv_obj_set_style_text_font(l, font, LV_PART_MAIN);
+    lv_obj_align(l, align, x_ofs, y_ofs);
+    return l;
+}
 
-    label_bat = lv_label_create(scr);
-    lv_label_set_text(label_bat, "Bat: --.-V / --%");
-    lv_obj_set_style_text_color(label_bat, lv_color_hex(0x00FF00), LV_PART_MAIN);
-    lv_obj_align(label_bat, LV_ALIGN_TOP_LEFT, 10, 70);
+/* ─────────────────── Construcción de pantallas ─────────────────── */
 
-    label_steps = lv_label_create(scr);
-    lv_label_set_text(label_steps, "Steps: SW 0 | HW 0");
-    lv_obj_set_style_text_color(label_steps, lv_color_hex(0xFF00FF), LV_PART_MAIN);
-    lv_obj_align(label_steps, LV_ALIGN_TOP_LEFT, 10, 100);
+static void build_home(void) {
+    scr_obj[SCREEN_HOME] = make_screen("SUPACLOCK", 0x00D2FF);
+    lv_obj_t *s = scr_obj[SCREEN_HOME];
 
-    label_imu = lv_label_create(scr);
-    lv_label_set_text(label_imu, "IMU:\nAx: 0 Ay: 0 Az: 0");
-    lv_obj_set_style_text_color(label_imu, lv_color_hex(0xAAAAAA), LV_PART_MAIN);
-    lv_obj_align(label_imu, LV_ALIGN_TOP_LEFT, 10, 130);
+    /* Reloj grande centrado */
+    home_clock = make_label(s, &lv_font_montserrat_40, 0xFFFFFF,
+                            LV_ALIGN_TOP_MID, 0, 35, "--:--");
 
-    label_ble = lv_label_create(scr);
-    lv_label_set_text(label_ble, "BLE: Activo");
-    lv_obj_set_style_text_color(label_ble, lv_color_hex(0x0000FF), LV_PART_MAIN);
-    lv_obj_align(label_ble, LV_ALIGN_BOTTOM_LEFT, 10, -5);
+    /* Grid 2×2 */
+    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_LEFT,  15, 120, "STEPS");
+    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_RIGHT,-15, 120, "BATTERY");
+    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_LEFT,  15, 190, "HR");
+    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_RIGHT,-15, 190, "ACTIVITY");
+
+    home_steps = make_label(s, &lv_font_montserrat_20, 0x3FB950,
+                            LV_ALIGN_TOP_LEFT, 15, 140, "0");
+    home_bat   = make_label(s, &lv_font_montserrat_20, 0xF0C34E,
+                            LV_ALIGN_TOP_RIGHT,-15, 140, "--%");
+    home_hr    = make_label(s, &lv_font_montserrat_20, 0xFF3B6E,
+                            LV_ALIGN_TOP_LEFT, 15, 210, "-- bpm");
+    home_act   = make_label(s, &lv_font_montserrat_20, 0x3F9BFF,
+                            LV_ALIGN_TOP_RIGHT,-15, 210, "Reposo");
+}
+
+static void build_bio(void) {
+    scr_obj[SCREEN_BIO] = make_screen("BIOMETRIA", 0x00D2FF);
+    lv_obj_t *s = scr_obj[SCREEN_BIO];
+
+    bio_hr     = make_label(s, &lv_font_montserrat_20, 0xFF3B6E,
+                            LV_ALIGN_TOP_LEFT, 20, 60,  "HR:   -- bpm");
+    bio_spo2   = make_label(s, &lv_font_montserrat_20, 0x3F9BFF,
+                            LV_ALIGN_TOP_LEFT, 20, 110, "SpO2: --%");
+    bio_temp   = make_label(s, &lv_font_montserrat_20, 0xF0883E,
+                            LV_ALIGN_TOP_LEFT, 20, 160, "Temp: --.- C");
+    bio_status = make_label(s, &lv_font_montserrat_20, 0x3FB950,
+                            LV_ALIGN_TOP_LEFT, 20, 210, "Estado: --");
+}
+
+static void build_ecg(void) {
+    scr_obj[SCREEN_ECG] = make_screen("MODO ECG", 0x3FB950);
+    lv_obj_t *s = scr_obj[SCREEN_ECG];
+
+    ecg_instr = make_label(s, &lv_font_montserrat_14, 0xE6EDF3,
+                           LV_ALIGN_TOP_MID, 0, 50,
+                           "Presione los electrodos\n"
+                           "laterales con la mano\n"
+                           "opuesta.\n\n"
+                           "Pulsa SELECT para iniciar");
+    lv_obj_set_style_text_align(ecg_instr, LV_TEXT_ALIGN_CENTER, 0);
+
+    ecg_timer = make_label(s, &lv_font_montserrat_40, 0xFFFFFF,
+                           LV_ALIGN_CENTER, 0, 0, "0:00");
+    lv_obj_add_flag(ecg_timer, LV_OBJ_FLAG_HIDDEN);
+
+    ecg_rec = make_label(s, &lv_font_montserrat_20, 0xDA3633,
+                         LV_ALIGN_BOTTOM_MID, 0, -20, "● REC");
+    lv_obj_add_flag(ecg_rec, LV_OBJ_FLAG_HIDDEN);
+}
+
+static void build_menu(void) {
+    scr_obj[SCREEN_MENU] = make_screen("MENU", 0x00D2FF);
+    lv_obj_t *s = scr_obj[SCREEN_MENU];
+
+    for (int i = 0; i < MENU_ITEM_COUNT; i++) {
+        menu_rows[i] = lv_label_create(s);
+        lv_obj_set_style_text_font(menu_rows[i], &lv_font_montserrat_20, LV_PART_MAIN);
+        lv_label_set_text(menu_rows[i], MENU_LABELS[i]);
+        lv_obj_set_width(menu_rows[i], 220);
+        lv_obj_set_style_pad_all(menu_rows[i], 8, LV_PART_MAIN);
+        lv_obj_set_style_radius(menu_rows[i], 6, LV_PART_MAIN);
+        lv_obj_align(menu_rows[i], LV_ALIGN_TOP_MID, 0, 50 + i * 60);
+    }
+}
+
+static void render_menu_selection(void) {
+    for (int i = 0; i < MENU_ITEM_COUNT; i++) {
+        if (i == menu_selection) {
+            lv_obj_set_style_bg_color(menu_rows[i], lv_color_hex(0x1F6FEB), LV_PART_MAIN);
+            lv_obj_set_style_bg_opa(menu_rows[i], LV_OPA_COVER, LV_PART_MAIN);
+            lv_obj_set_style_text_color(menu_rows[i], lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+        } else {
+            lv_obj_set_style_bg_opa(menu_rows[i], LV_OPA_TRANSP, LV_PART_MAIN);
+            lv_obj_set_style_text_color(menu_rows[i], lv_color_hex(0xAAAAAA), LV_PART_MAIN);
+        }
+    }
+}
+
+/* ─────────────────── Actualizadores por pantalla ─────────────────── */
+
+static void update_home_screen(const shared_sensor_data_t *d) {
+    /* Reloj desde uptime (no hay RTC externo) */
+    uint32_t s = (uint32_t)(esp_timer_get_time() / 1000000ULL);
+    lv_label_set_text_fmt(home_clock, "%lu:%02lu",
+                          (unsigned long)((s / 60) % 100),
+                          (unsigned long)(s % 60));
+
+    lv_label_set_text_fmt(home_steps, "%lu", (unsigned long)d->steps_sw);
+
+    int soc = (int)d->battery_soc;
+    lv_label_set_text_fmt(home_bat, "%d%%", soc);
+
+    if (d->finger_present && d->hr_bpm > 0) {
+        lv_label_set_text_fmt(home_hr, "%u bpm", d->hr_bpm);
+    } else {
+        lv_label_set_text(home_hr, "-- bpm");
+    }
+
+    /* Heurística simple de actividad: magnitud de accel
+     * (placeholder hasta integrar el clasificador ML) */
+    int32_t amag = (int32_t)d->ax * d->ax + (int32_t)d->ay * d->ay + (int32_t)d->az * d->az;
+    const char *act = (amag > 300000000L) ? "Activo" : "Reposo";
+    lv_label_set_text(home_act, act);
+}
+
+static void update_bio_screen(const shared_sensor_data_t *d) {
+    if (d->finger_present && d->hr_bpm > 0)
+        lv_label_set_text_fmt(bio_hr, "HR:   %u bpm", d->hr_bpm);
+    else
+        lv_label_set_text(bio_hr, "HR:   -- bpm");
+
+    if (d->finger_present && d->spo2_pct > 0)
+        lv_label_set_text_fmt(bio_spo2, "SpO2: %u%%", d->spo2_pct);
+    else
+        lv_label_set_text(bio_spo2, "SpO2: --%");
+
+    int temp_int  = (int)d->temperature_c;
+    int temp_frac = (int)((d->temperature_c - temp_int) * 10);
+    if (temp_frac < 0) temp_frac = -temp_frac;
+    lv_label_set_text_fmt(bio_temp, "Temp: %d.%d C", temp_int, temp_frac);
+
+    const char *st;
+    uint32_t   col;
+    if (!d->finger_present) { st = "Estado: Sin dedo"; col = 0x8B949E; }
+    else if (d->hr_bpm > 100) { st = "Estado: Alto";    col = 0xF0883E; }
+    else if (d->hr_bpm > 0)   { st = "Estado: Normal";  col = 0x3FB950; }
+    else                      { st = "Estado: Midiendo";col = 0xF0C34E; }
+    lv_label_set_text(bio_status, st);
+    lv_obj_set_style_text_color(bio_status, lv_color_hex(col), LV_PART_MAIN);
+}
+
+static void update_ecg_screen(void) {
+    bool rec = ble_telemetry_is_ecg_mode_active();
+    if (rec) {
+        if (ecg_start_us == 0) ecg_start_us = esp_timer_get_time();
+        uint32_t secs = (uint32_t)((esp_timer_get_time() - ecg_start_us) / 1000000ULL);
+        lv_label_set_text_fmt(ecg_timer, "%lu:%02lu",
+                              (unsigned long)(secs / 60),
+                              (unsigned long)(secs % 60));
+
+        lv_obj_add_flag(ecg_instr, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(ecg_timer, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(ecg_rec, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        ecg_start_us = 0;
+        lv_obj_clear_flag(ecg_instr, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ecg_timer, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(ecg_rec, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+/* ─────────────────── Navegación & acciones ─────────────────── */
+
+static void switch_to(ui_screen_t s) {
+    current_screen = s;
+    lv_scr_load(scr_obj[s]);
+    if (s == SCREEN_MENU) render_menu_selection();
+}
+
+static void menu_execute_selected(void) {
+    switch (menu_selection) {
+        case 0: /* Reiniciar Pasos */
+            if (xSemaphoreTake(xSensorDataMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+                sensor_data.steps_sw = 0;
+                xSemaphoreGive(xSensorDataMutex);
+            }
+            ESP_LOGI(TAG, "Menú: pasos reiniciados");
+            break;
+        case 1: /* Vincular BLE — placeholder informativo */
+            ESP_LOGI(TAG, "Menú: BLE advertising activo (vinculación automática al conectar)");
+            break;
+        case 2: /* Apagar → deep sleep, despierta con BTN_SELECT */
+            ESP_LOGI(TAG, "Menú: entrando en deep sleep. Pulsa SELECT para despertar.");
+            vTaskDelay(pdMS_TO_TICKS(200));
+            esp_deep_sleep_enable_gpio_wakeup((1ULL << BTN_SELECT_PIN),
+                                              ESP_GPIO_WAKEUP_GPIO_LOW);
+            esp_deep_sleep_start();
+            break;
+    }
+}
+
+static void handle_button(btn_event_t ev) {
+    if (ev == BTN_EVENT_NONE) return;
+
+    switch (ev) {
+        case BTN_EVENT_NEXT_SHORT:
+            if (current_screen == SCREEN_MENU) {
+                /* En menú NEXT scrollea ítems; al pasar el último, salir a Home */
+                if (menu_selection + 1 >= MENU_ITEM_COUNT) {
+                    menu_selection = 0;
+                    render_menu_selection();
+                    switch_to(SCREEN_HOME);
+                } else {
+                    menu_selection++;
+                    render_menu_selection();
+                }
+            } else {
+                switch_to((current_screen + 1) % SCREEN_COUNT);
+            }
+            break;
+        case BTN_EVENT_NEXT_LONG:
+            /* Long NEXT: salir del menú hacia Home, o ir atrás entre screens */
+            switch_to((current_screen + SCREEN_COUNT - 1) % SCREEN_COUNT);
+            break;
+        case BTN_EVENT_SELECT_SHORT:
+            if (current_screen == SCREEN_ECG) {
+                ble_telemetry_set_ecg_mode(!ble_telemetry_is_ecg_mode_active());
+            } else if (current_screen == SCREEN_MENU) {
+                menu_execute_selected();
+            }
+            break;
+        case BTN_EVENT_SELECT_LONG:
+            /* Reservado: por ahora vuelve a Home como atajo */
+            switch_to(SCREEN_HOME);
+            break;
+        default: break;
+    }
+}
+
+static void build_ui(void) {
+    build_home();
+    build_bio();
+    build_ecg();
+    build_menu();
+    render_menu_selection();
+    lv_scr_load(scr_obj[SCREEN_HOME]);
 }
 
 void gui_task(void *pvParameter) {
     while (1) {
         if (pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
-            bool ecg_mode = ble_telemetry_is_ecg_mode_active();
-            if (ecg_mode != gui_ecg_state) {
-                gui_ecg_state = ecg_mode;
-                if (ecg_mode) {
-                    lv_obj_add_flag(label_temp, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_add_flag(label_bat, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_add_flag(label_steps, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_add_flag(label_imu, LV_OBJ_FLAG_HIDDEN);
-                    lv_label_set_text(label_ble, "Modo ECG");
-                    lv_obj_set_style_text_color(label_ble, lv_color_hex(0x3fb950), LV_PART_MAIN);
 
-                    if (!label_heart) {
-                        label_heart = lv_label_create(lv_scr_act());
-                        lv_label_set_text(label_heart, "ECG Mode");
-                        lv_obj_set_style_text_color(label_heart, lv_color_hex(0xFF0000), LV_PART_MAIN);
-                        // Make it huge using transformations or just relying on font
-                        lv_obj_align(label_heart, LV_ALIGN_CENTER, 0, 0);
-                    }
-                    lv_obj_clear_flag(label_heart, LV_OBJ_FLAG_HIDDEN);
-                } else {
-                    lv_obj_clear_flag(label_temp, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_clear_flag(label_bat, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_clear_flag(label_steps, LV_OBJ_FLAG_HIDDEN);
-                    lv_obj_clear_flag(label_imu, LV_OBJ_FLAG_HIDDEN);
-                    if (label_heart) lv_obj_add_flag(label_heart, LV_OBJ_FLAG_HIDDEN);
-                    lv_label_set_text(label_ble, "BLE: Activo");
-                    lv_obj_set_style_text_color(label_ble, lv_color_hex(0x0000FF), LV_PART_MAIN);
+            /* 1) Procesar eventos de botones */
+            btn_event_t ev;
+            while ((ev = gpio_buttons_poll()) != BTN_EVENT_NONE) {
+                handle_button(ev);
+            }
+
+            /* 2) Auto-switch a pantalla ECG cuando el PC inicia modo ECG
+             *    (para que el usuario vea el timer de grabación). */
+            if (ble_telemetry_is_ecg_mode_active() && current_screen != SCREEN_ECG) {
+                switch_to(SCREEN_ECG);
+            }
+
+            /* 3) Actualizar contenido de la pantalla visible */
+            if (xSemaphoreTake(xSensorDataMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
+                shared_sensor_data_t snap = sensor_data;
+                xSemaphoreGive(xSensorDataMutex);
+
+                switch (current_screen) {
+                    case SCREEN_HOME: update_home_screen(&snap); break;
+                    case SCREEN_BIO:  update_bio_screen(&snap);  break;
+                    case SCREEN_ECG:  update_ecg_screen();       break;
+                    case SCREEN_MENU: /* estático, nada que refrescar */ break;
+                    default: break;
                 }
             }
 
+            /* 4) Render LVGL */
             lv_timer_handler();
-
-            if (!ecg_mode) {
-                // LVGL printf no soporta floats por defecto, lo separamos en int y frac
-                if (xSemaphoreTake(xSensorDataMutex, portMAX_DELAY) == pdTRUE) {
-                    int temp_int = (int)sensor_data.temperature_c;
-                    int temp_frac = (int)((sensor_data.temperature_c - temp_int) * 100);
-                    if (temp_frac < 0) temp_frac = -temp_frac;
-
-                    int bat_v_int = sensor_data.battery_mv / 1000;
-                    int bat_v_frac = (sensor_data.battery_mv % 1000) / 10;
-                    
-                    int bat_soc_int = (int)sensor_data.battery_soc;
-                    int bat_soc_frac = (int)((sensor_data.battery_soc - bat_soc_int) * 10);
-                    if (bat_soc_frac < 0) bat_soc_frac = -bat_soc_frac;
-
-                    lv_label_set_text_fmt(label_temp, "Temp: %d.%02d °C", temp_int, temp_frac);
-                    lv_label_set_text_fmt(label_bat, "Bat: %d.%02dV / %d.%d%%", bat_v_int, bat_v_frac, bat_soc_int, bat_soc_frac);
-                    lv_label_set_text_fmt(label_steps, "Steps: SW %lu | HW %u", (unsigned long)sensor_data.steps_sw, sensor_data.steps_hw);
-                    lv_label_set_text_fmt(label_imu, "IMU:\nAx:%d Ay:%d Az:%d", sensor_data.ax, sensor_data.ay, sensor_data.az);
-                    xSemaphoreGive(xSensorDataMutex);
-                }
-            }
-            
             xSemaphoreGive(xGuiSemaphore);
         }
-        vTaskDelay(pdMS_TO_TICKS(33)); // ~30 fps
+        vTaskDelay(pdMS_TO_TICKS(33)); // ~30 FPS + poll de botones
     }
 }
 
@@ -251,6 +496,55 @@ void imu_task(void *pvParameter) {
     }
 }
 
+void hrm_task(void *pvParameter) {
+    /* MAX30102 a 25 Hz efectivos (100 sps / sample_avg = 4).
+     * FIFO físico = 32 muestras = 1.28 s. Polling a 200 ms → típicamente
+     * 5 muestras/burst con 6× de margen antes del overflow, robusto frente
+     * a jitter del scheduler (GUI/BLE/mutex I2C). */
+    const TickType_t xFrequency = pdMS_TO_TICKS(100); // Polling más rápido (100 ms) para reducir riesgo de overflow
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    max30102_sample_t samples[32]; // Capacidad máxima del FIFO
+
+    /* Flushear muestras acumuladas durante el arranque (Fases 2+3 toman
+     * ~1.5 s entre init del sensor y arranque de esta task → el FIFO
+     * de 1.28 s ya estaba saturado). */
+    max30102_flush_fifo();
+
+    uint32_t last_ovf_logged = 0;
+
+    while (1) {
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+        uint8_t n = 0;
+        if (max30102_read_samples(samples, 32, &n) == ESP_OK && n > 0) {
+            for (uint8_t i = 0; i < n; i++) {
+                max30102_process_sample(samples[i].red, samples[i].ir);
+            }
+
+            uint8_t bpm = 0, spo2 = 0;
+            max30102_get_hr(&bpm);
+            max30102_get_spo2(&spo2);
+            bool finger = max30102_finger_present();
+
+            if (xSemaphoreTake(xSensorDataMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
+                sensor_data.hr_bpm = bpm;
+                sensor_data.spo2_pct = spo2;
+                sensor_data.finger_present = finger;
+                xSemaphoreGive(xSensorDataMutex);
+            }
+        }
+
+        /* Sanity-check: si se empiezan a acumular overflows, la task está
+         * siendo preempted demasiado — subir prioridad o bajar xFrequency. */
+        uint32_t ovf = max30102_get_overflow_count();
+        if (ovf - last_ovf_logged >= 10) {
+            ESP_LOGW(TAG, "MAX30102 FIFO overflows acumulados: %lu", (unsigned long)ovf);
+            last_ovf_logged = ovf;
+        }
+    }
+}
+
 void sensor_task(void *pvParameter) {
     while (1) {
         float temp_c = 0.0f;
@@ -277,7 +571,9 @@ void sensor_task(void *pvParameter) {
             pkt.steps_sw = sensor_data.steps_sw;
             pkt.battery_mv = sensor_data.battery_mv;
             pkt.battery_soc = (uint8_t)sensor_data.battery_soc;
-            
+            pkt.hr_bpm = sensor_data.hr_bpm;
+            pkt.spo2_pct = sensor_data.spo2_pct;
+
             xSemaphoreGive(xSensorDataMutex);
 
             // Enviar paquete lento (1Hz)
@@ -301,6 +597,8 @@ void app_main(void) {
      */
     ESP_LOGI(TAG, "[Fase 1] Inicializando I2C Bus y sensores...");
     if (i2c_master_init() != ESP_OK) ESP_LOGE(TAG, "I2C Bus failed!");
+
+    if (gpio_buttons_init() != ESP_OK) ESP_LOGW(TAG, "gpio_buttons_init fallo");
     
     if (max17048_init() != ESP_OK) ESP_LOGW(TAG, "MAX17048 fallo / ausente");
     
@@ -311,6 +609,8 @@ void app_main(void) {
     }
 
     if (max30205_init() != ESP_OK) ESP_LOGW(TAG, "MAX30205 fallo / ausente");
+
+    if (max30102_init_hrm() != ESP_OK) ESP_LOGW(TAG, "MAX30102 fallo / ausente");
 
     if (ad8232_init_dma() == ESP_OK) {
         ad8232_start_dma();
@@ -341,7 +641,7 @@ void app_main(void) {
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);
 
-    build_test_gui(); 
+    build_ui();
 
     vTaskDelay(pdMS_TO_TICKS(1000)); // Esperar 1 segundo completo antes del BLE
 
@@ -358,6 +658,7 @@ void app_main(void) {
     xTaskCreate(gui_task, "gui_task", 4096, NULL, 5, NULL);
     xTaskCreate(imu_task, "imu_task", 4096, NULL, 6, NULL);
     xTaskCreate(sensor_task, "sensor_task", 4096, NULL, 4, NULL);
+    xTaskCreate(hrm_task, "hrm_task", 4096, NULL, 5, NULL);
     xTaskCreate(ecg_task, "ecg_task", 4096, NULL, 7, NULL); // Mayor prioridad para no perder DMA
 
     ESP_LOGI(TAG, "=== SISTEMA INICIADO CORRECTAMENTE ===");

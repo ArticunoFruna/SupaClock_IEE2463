@@ -280,3 +280,8 @@ esp_err_t ble_telemetry_send_ecg(int16_t *data, size_t length) {
 bool ble_telemetry_is_ecg_mode_active(void) {
     return ecg_mode_active;
 }
+
+void ble_telemetry_set_ecg_mode(bool enable) {
+    ecg_mode_active = enable;
+    ESP_LOGI(TAG, "ECG_MODE %s (vía firmware)", enable ? "INICIADO" : "DETENIDO");
+}

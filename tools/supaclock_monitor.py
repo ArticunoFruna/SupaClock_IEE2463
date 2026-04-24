@@ -109,8 +109,12 @@ class BleWorker(QObject):
             self.imu_received.emit(struct.unpack('<hhhhhh', data))
 
     def _on_sensor(self, _sender, data):
-        if len(data) == 11:
-            self.sensor_received.emit(struct.unpack('<hHIHB', data))
+        if len(data) == 13:
+            self.sensor_received.emit(struct.unpack('<hHIHBBB', data))
+        elif len(data) == 11:
+            # Compatibilidad con firmware anterior (sin HR/SpO2)
+            t, hw, sw, mv, soc = struct.unpack('<hHIHB', data)
+            self.sensor_received.emit((t, hw, sw, mv, soc, 0, 0))
             
     def _on_ecg(self, _sender, data):
         # 10 samples of 16-bit int = 20 bytes
@@ -169,7 +173,8 @@ class SupaClockMonitor(QMainWindow):
         # ── Latest slow-sensor data (for CSV sync) ──
         self.sensor_cache = {
             'temp_c': 0.0, 'steps_hw': 0, 'steps_sw': 0,
-            'bat_mv': 0, 'bat_soc': 0
+            'bat_mv': 0, 'bat_soc': 0,
+            'hr_bpm': 0, 'spo2_pct': 0
         }
 
         # ── Rolling data buffers (200 pts ≈ 4s @ 50 Hz) ──
@@ -233,10 +238,12 @@ class SupaClockMonitor(QMainWindow):
         self.card_temp  = self._make_card("🌡  Temperatura",  "--.- °C",  "#f0883e")
         self.card_bat   = self._make_card("🔋  Batería",      "-.-- V / --%", "#3fb950")
         self.card_steps = self._make_card("👟  Pasos",         "SW 0 | HW 0",  "#a371f7")
+        self.card_hrm   = self._make_card("❤  HR / SpO2",      "-- bpm | --%", "#ff3b6e")
 
         cg.addWidget(self.card_temp[0],  0, 0)
         cg.addWidget(self.card_bat[0],   0, 1)
         cg.addWidget(self.card_steps[0], 0, 2)
+        cg.addWidget(self.card_hrm[0],   0, 3)
         cards.setLayout(cg)
         root.addWidget(cards)
 
@@ -403,21 +410,27 @@ class SupaClockMonitor(QMainWindow):
             self.csv_writer.writerow([
                 ts, ax, ay, az, gx, gy, gz,
                 s['temp_c'], s['steps_hw'], s['steps_sw'],
-                s['bat_mv'], s['bat_soc']
+                s['bat_mv'], s['bat_soc'],
+                s['hr_bpm'], s['spo2_pct']
             ])
 
     def _on_sensor(self, vals):
-        temp_x100, steps_hw, steps_sw, bat_mv, bat_soc = vals
+        temp_x100, steps_hw, steps_sw, bat_mv, bat_soc, hr_bpm, spo2_pct = vals
         temp_c = temp_x100 / 100.0
 
         self.sensor_cache.update({
             'temp_c': temp_c, 'steps_hw': steps_hw,
-            'steps_sw': steps_sw, 'bat_mv': bat_mv, 'bat_soc': bat_soc
+            'steps_sw': steps_sw, 'bat_mv': bat_mv, 'bat_soc': bat_soc,
+            'hr_bpm': hr_bpm, 'spo2_pct': spo2_pct
         })
 
         self.card_temp[1].setText(f"{temp_c:.2f} °C")
         self.card_bat[1].setText(f"{bat_mv / 1000.0:.2f} V / {bat_soc}%")
         self.card_steps[1].setText(f"SW {steps_sw}  |  HW {steps_hw}")
+
+        hr_str = f"{hr_bpm} bpm" if hr_bpm > 0 else "-- bpm"
+        sp_str = f"{spo2_pct}%"  if spo2_pct > 0 else "--%"
+        self.card_hrm[1].setText(f"{hr_str}  |  {sp_str}")
 
     # ─────────────────────── Plot refresh ─────────────────────────
     def _refresh(self):
@@ -452,7 +465,7 @@ class SupaClockMonitor(QMainWindow):
                 self.csv_mode = 'ecg'
             else:
                 prefix = "supaclock_imu_"
-                headers = ['timestamp_ms', 'ax', 'ay', 'az', 'gx', 'gy', 'gz', 'temp_c', 'steps_hw', 'steps_sw', 'bat_mv', 'bat_soc']
+                headers = ['timestamp_ms', 'ax', 'ay', 'az', 'gx', 'gy', 'gz', 'temp_c', 'steps_hw', 'steps_sw', 'bat_mv', 'bat_soc', 'hr_bpm', 'spo2_pct']
                 self.csv_mode = 'imu'
 
             fname = datetime.now().strftime(f"{prefix}%Y%m%d_%H%M%S.csv")
