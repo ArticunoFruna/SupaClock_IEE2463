@@ -15,6 +15,7 @@ extern "C" {
 #define ST7789_CS_PIN    5
 #define ST7789_DC_PIN    3
 #define ST7789_RST_PIN   7
+#define ST7789_BLK_PIN   21
 
 // ST7789 Config registers
 #define ST7789_SWRESET 0x01
@@ -32,6 +33,7 @@ esp_err_t st7789_init(void);
 void st7789_send_buffer(const uint8_t *buffer, size_t size);
 void st7789_draw_bitmap(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *bitmap);
 void st7789_fill_screen(uint16_t color);
+void st7789_set_brightness(uint8_t percent); // 0-100
 
 #ifdef __cplusplus
 }

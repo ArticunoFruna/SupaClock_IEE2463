@@ -1,0 +1,88 @@
+\begin{tikzpicture}[
+    node distance=0.6cm and 0.9cm,
+    every node/.style={font=\scriptsize},
+    blockOK/.style={rectangle, rounded corners, draw=black!70, very thick, fill=green!22, text width=3.0cm, align=center, minimum height=0.95cm},
+    blockPart/.style={rectangle, rounded corners, draw=black!70, very thick, fill=yellow!28, text width=3.0cm, align=center, minimum height=0.95cm},
+    blockTodo/.style={rectangle, rounded corners, draw=black!70, very thick, dashed, fill=red!12, text width=3.0cm, align=center, minimum height=0.95cm},
+    pcb/.style={rectangle, rounded corners, draw=blue!70, very thick, fill=blue!10, text width=3.0cm, align=center, minimum height=0.95cm},
+    energy/.style={rectangle, rounded corners, draw=black!70, very thick, fill=orange!22, text width=3.0cm, align=center, minimum height=0.9cm},
+    mcu/.style={rectangle, rounded corners, draw=black, very thick, fill=blue!22, text width=3.6cm, align=center, minimum height=1.4cm, font=\small\bfseries},
+    busI2C/.style={->, >=stealth, thick, blue!70!black},
+    busSPI/.style={->, >=stealth, thick, violet!80!black},
+    adc/.style={->, >=stealth, thick, orange!85!black},
+    gpio/.style={->, >=stealth, thick, teal!70!black},
+    ble/.style={->, >=stealth, thick, dashed, blue!60},
+    pwr/.style={->, >=stealth, thick, red!70},
+    legend/.style={rectangle, draw=black!50, fill=white, inner sep=4pt}
+]
+% ============== ENERGÍA ==============
+\node[energy] (usbc)  {USB-C\\\textit{(prototipo)}};
+\node[energy, right=of usbc] (bms)   {BMS TP4056 + DW01A\\\textbf{100\%} (módulo)};
+\node[energy, right=of bms]  (lipo)  {Bater\'ia LiPo 3.7\,V\\\textbf{100\%} (502030)};
+\node[energy, below=of bms]  (ldo)   {LDO ME6211 3.3\,V\\\textbf{100\%} (módulo)};
+\node[blockOK, below=of lipo] (fuel) {MAX17048\\\textbf{100\%} (driver listo)};
+
+% ============== MCU ==============
+\node[mcu, right=2cm of fuel] (mcu) {ESP32-C3 SuperMini\\FreeRTOS + LVGL 8.4\\\textbf{Funcionando}};
+
+% ============== SENSORES I2C ==============
+\node[blockOK, above=of mcu, xshift=3.3cm] (max205) {MAX30205\\\textbf{100\%} \textit{(0x48)}};
+\node[blockOK, right=of max205]            (bmi)    {BMI160 IMU\\\textbf{100\%} \textit{(0x68)}};
+\node[blockOK, below=of bmi]               (max102) {MAX30102\\\textbf{95\%} HR/SpO\textsubscript{2}};
+
+% ============== ECG (analógico + DMA) ==============
+\node[blockOK, below=of max102] (ad8232) {AD8232 + DMA\\\textbf{90\%} \textit{(GPIO0)}};
+
+% ============== INTERFAZ LOCAL ==============
+\node[blockOK, left=2.0cm of mcu] (st7789) {ST7789 1.69" IPS\\\textbf{100\%} (LVGL)};
+\node[blockOK, above=of st7789]   (btns)   {3 botones GPIO\\\textbf{100\%} (debounce)};
+\node[blockPart, below=of st7789] (gui)    {GUI: Home/Bio/ECG/Menu\\\textbf{85\%} (4 pant.)};
+
+% ============== ECOSISTEMA ==============
+\node[blockOK, below=2.4cm of mcu, xshift=-0.4cm] (ble) {BLE NimBLE\\\textbf{100\%} (3 GATT chr.)};
+\node[blockPart, right=of ble]                     (cli) {Cliente PC testing\\\textbf{60\%} (\texttt{ble\_logger.py})};
+\node[blockOK, right=of cli]                       (fb)  {Firebase + Pan-Tompkins\\\textbf{100\%} (Cloud Fn)};
+\node[blockTodo, below=of fb]                      (ml)  {TinyML (CNN 1D)\\\textbf{0\%} (rec.\ datos)};
+\node[blockTodo, below=of cli]                     (pcb) {PCB SuperMini propia\\\textbf{30\%} (KiCad WIP)};
+\node[blockTodo, below=of ble]                     (app) {App m\'ovil (gateway)\\\textbf{0\%} (hito 60\%)};
+
+% ============== Conexiones de potencia ==============
+\draw[pwr] (usbc)  -- (bms);
+\draw[pwr] (bms)   -- (lipo);
+\draw[pwr] (bms)   -- (ldo);
+\draw[pwr] (lipo)  -- (fuel);
+\draw[pwr] (ldo.east)  -- ++(0.3,0) |- (mcu.west);
+
+% ============== Buses I2C ==============
+\draw[busI2C] (max205) -- node[above]{I2C 400\,kHz} (mcu);
+\draw[busI2C] (bmi)    -- (mcu);
+\draw[busI2C] (max102) -- (mcu);
+\draw[busI2C] (fuel)   -- (mcu);
+
+% ============== ECG analógico ==============
+\draw[adc] (ad8232) -- node[below, sloped]{ADC1 / DMA 20\,kHz} (mcu);
+
+% ============== SPI display + GPIO botones ==============
+\draw[busSPI] (mcu.west) -- node[above]{SPI 80\,MHz} (st7789.east);
+\draw[gpio]   (btns)   -- (mcu.north west);
+
+% ============== BLE / cloud ==============
+\draw[ble] (mcu)  -- (ble);
+\draw[ble] (ble)  -- node[above]{GATT 3 chr.} (cli);
+\draw[gpio, ->] (cli) -- node[above]{Wi-Fi/REST} (fb);
+\draw[ble, ->, dashed, gray!60] (ble) -- node[left]{futuro} (app);
+\draw[ble, ->, dashed, gray!60] (app) -| (fb);
+
+% ============== Leyenda ==============
+\node[legend, below=1.6cm of ble, xshift=4cm] (leg) {%
+\begin{tabular}{ll}
+\textcolor{green!50!black}{$\blacksquare$} Funcionando &
+\textcolor{orange!80!black}{$\blacksquare$} Parcial \\
+\textcolor{red!70!black}{$\blacksquare$} Pendiente / dependiente &
+\textcolor{red!70}{\textbf{$\rightarrow$}} Potencia \\
+\textcolor{blue!70!black}{$\rightarrow$} I2C 400\,kHz &
+\textcolor{violet!80!black}{$\rightarrow$} SPI 80\,MHz \\
+\textcolor{orange!85!black}{$\rightarrow$} ADC/DMA &
+\textcolor{blue!60}{$\dashrightarrow$} BLE / Wi-Fi \\
+\end{tabular}};
+\end{tikzpicture}

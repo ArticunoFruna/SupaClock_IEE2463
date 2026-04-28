@@ -202,13 +202,13 @@ uint8_t step_algo_update(step_algo_state_t *state, int16_t ax, int16_t ay,
     uint32_t diff = state->max_val - state->min_val;
 
     // Una diferencia asumiendo escala 2G (1G = 16384). Un paso razonable
-    // debería generar diff > 1000
-    if (diff > 300 && diff < 30000) {
+    // debería generar diff > 1500 mínimo (~0.1G de impacto).
+    if (diff > 1500 && diff < 30000) {
       state->threshold = state->min_val + (diff / 2);
     } else {
       // Movimiento muy ligero (estático o temblor), establecemos un umbral alto
-      // relativo al min para no gatillar pasos falsos
-      state->threshold = state->min_val + 300;
+      // relativo al min para no gatillar pasos falsos por ruido
+      state->threshold = state->min_val + 4000;
     }
 
     state->sample_count = 0;
@@ -224,7 +224,7 @@ uint8_t step_algo_update(step_algo_state_t *state, int16_t ax, int16_t ay,
     // probable que la aceleración venga de vibración externa translacional (Ej.
     // vehículo, tecleo brusco). Gyro threshold de ~25 dps (escala depende del
     // FSR del BMI160, asumiendo 16.4 LSB/dps -> 400).
-    if (state->max_gyro_val > 100) {
+    if (state->max_gyro_val > 400) {
       if (delta_t >= STEP_MIN_TIME_MS && delta_t <= STEP_MAX_TIME_MS) {
         state->consecutive_steps++;
         state->last_step_time_ms = current_time_ms;

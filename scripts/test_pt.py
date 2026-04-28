@@ -100,7 +100,7 @@ def pan_tompkins(raw_ecg: list[float], fs: float = 100.0) -> dict:
 
 # ============================================================================
 
-csv_path = "/home/articunot/Documents/PlatformIO/Projects/SupaClock/tools/supaclock_ecg_20260422_194036.csv"
+csv_path = "/home/articunot/Documents/PlatformIO/Projects/SupaClock/tools/supaclock_ecg_20260427_171730.csv"
 df = pd.read_csv(csv_path)
 df = df.sort_values('timestamp_ms').reset_index(drop=True)
 

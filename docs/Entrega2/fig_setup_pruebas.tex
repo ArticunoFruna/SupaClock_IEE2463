@@ -1,0 +1,42 @@
+\begin{tikzpicture}[
+    node distance=0.5cm and 0.8cm,
+    every node/.style={font=\scriptsize},
+    dut/.style={rectangle, rounded corners, draw=black, very thick, fill=blue!18, text width=2.4cm, align=center, minimum height=1.0cm},
+    inst/.style={rectangle, rounded corners, draw=black!70, very thick, fill=orange!22, text width=2.4cm, align=center, minimum height=0.85cm},
+    soft/.style={rectangle, rounded corners, draw=black!70, very thick, fill=green!18, text width=2.4cm, align=center, minimum height=0.85cm},
+    arrow/.style={->, >=stealth, thick}
+]
+% --- DUT central ---
+\node[dut] (dut) {SupaClock\\(prototipo en ESP32-C3 SuperMini\\+ módulos)};
+
+% --- Instruments / sources ---
+\node[inst, above=of dut, xshift=-3.6cm] (psu)  {DC PSU\\(emula bater\'ia LiPo)};
+\node[inst, above=of dut]                  (mm) {Mult\'imetro USB\\(corriente $I_{\text{avg}}$)};
+\node[inst, above=of dut, xshift=3.6cm]  (osc) {Osciloscopio\\(SPI / ADC ECG)};
+
+\node[inst, left=of dut]  (oxm)  {Oxímetro clínico\\(referencia HR/SpO\textsubscript{2})};
+\node[inst, right=of dut] (term) {Termómetro IR\\(referencia °C)};
+
+% --- Logger / Software ---
+\node[soft, below=of dut, xshift=-3.6cm] (csv) {ble\_logger\\$\to$ CSV};
+\node[soft, below=of dut]                  (mon) {supaclock\_monitor.py\\(plot tiempo real)};
+\node[soft, below=of dut, xshift=3.6cm]   (fb)  {Firebase\\(verifica BPM/HRV)};
+
+% --- Connections ---
+\draw[arrow] (psu)  -- node[left]{3.7\,V} (dut.north west);
+\draw[arrow] (mm)   -- node[left]{$I$} (dut);
+\draw[arrow] (dut.north east) -- node[right]{probe} (osc);
+\draw[arrow] (oxm)  -- node[above, sloped]{lado a lado} (dut);
+\draw[arrow] (term) -- node[above, sloped]{contacto piel} (dut);
+
+\draw[arrow, dashed, blue!60] (dut) -- node[right]{BLE} (mon);
+\draw[arrow] (mon) -- (csv);
+\draw[arrow, dashed, blue!60] (mon) -- (fb);
+
+% --- Boxing setup ---
+\begin{scope}[on background layer]
+\node[rectangle, draw=black!40, dashed, inner sep=0.6cm,
+      fit=(psu) (osc) (oxm) (term) (csv) (fb) (dut), fill=black!2] (lab) {};
+\node[anchor=north west, font=\scriptsize\bfseries] at (lab.north west) {Banco de pruebas (laboratorio Capstone)};
+\end{scope}
+\end{tikzpicture}

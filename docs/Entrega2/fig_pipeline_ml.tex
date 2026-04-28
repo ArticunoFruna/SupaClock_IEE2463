@@ -1,0 +1,42 @@
+\begin{tikzpicture}[
+    node distance=0.4cm and 1.0cm,
+    every node/.style={font=\scriptsize},
+    bus/.style={rectangle, rounded corners, draw=black!70, very thick, fill=blue!12, text width=2.4cm, align=center, minimum height=0.8cm},
+    proc/.style={rectangle, rounded corners, draw=black!70, very thick, fill=green!18, text width=2.4cm, align=center, minimum height=0.85cm},
+    outblk/.style={rectangle, rounded corners, draw=black!70, very thick, fill=orange!20, text width=2.6cm, align=center, minimum height=0.85cm},
+    arrow/.style={->, >=stealth, thick},
+    todo/.style={rectangle, rounded corners, dashed, draw=red!70, very thick, fill=red!7, text width=2.6cm, align=center, minimum height=0.85cm}
+]
+% --- Top row : sensor -> filters -> pasos ---
+\node[bus] (bmi) {BMI160 50\,Hz\\$a_x, a_y, a_z$\\$g_x, g_y, g_z$};
+\node[proc, right=of bmi] (mag) {$|a|=\sqrt{a_x^2+a_y^2+a_z^2}$};
+\node[proc, right=of mag] (mavg) {Media móvil\\$N=10$};
+\node[proc, right=of mavg] (umbral) {Umbral adaptativo\\$U=0{,}6\,(p_{\text{p--p}})$};
+\node[outblk, right=of umbral] (steps) {step counter SW\\(refractario 250\,ms)};
+\node[outblk, below=0.3cm of steps] (stepsHW) {step counter HW\\(BMI160 nativo)};
+
+\draw[arrow] (bmi) -- (mag);
+\draw[arrow] (mag) -- (mavg);
+\draw[arrow] (mavg) -- (umbral);
+\draw[arrow] (umbral) -- (steps);
+\draw[arrow, dashed] (bmi.south) |- (stepsHW);
+
+% --- Bottom row : ventana 2s -> CNN ---
+\node[bus, below=1.4cm of bmi] (window) {Ventana 2\,s\\(100\,muestras\\$\times$ 6 ejes)};
+\node[proc, right=of window] (norm) {Normalización\\$\mu, \sigma$};
+\node[todo, right=of norm] (cnn) {CNN 1D int8\\(2 conv + GAP + dense)};
+\node[todo, right=of cnn] (clase) {Reposo\\Caminar\\Correr\\Caída};
+
+\draw[arrow] (bmi) -- (window);
+\draw[arrow] (window) -- (norm);
+\draw[arrow] (norm) -- (cnn);
+\draw[arrow] (cnn) -- (clase);
+
+% --- Annotations ---
+\node[font=\scriptsize\itshape, above=0.05cm of mag, gray!60!black] {Magnitud};
+\node[font=\scriptsize\itshape, above=0.05cm of cnn, red!70!black] {Pendiente: TFLite Micro};
+
+% --- Section labels ---
+\node[anchor=north east, font=\scriptsize\bfseries, blue!50!black] at ([yshift=0.4cm] bmi.north east) {Pipeline 1: contador de pasos (entero, $\sim$1\,KB SRAM)};
+\node[anchor=north east, font=\scriptsize\bfseries, blue!50!black] at ([yshift=0.4cm] window.north east) {Pipeline 2: clasificador HAR};
+\end{tikzpicture}

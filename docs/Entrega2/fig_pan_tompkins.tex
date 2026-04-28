@@ -1,0 +1,56 @@
+\begin{tikzpicture}[
+    node distance=0.55cm and 0.7cm,
+    every node/.style={font=\scriptsize},
+    edge/.style={rectangle, rounded corners, draw=black!70, very thick, fill=green!18, text width=2.0cm, align=center, minimum height=0.8cm},
+    cloud/.style={rectangle, rounded corners, draw=black!70, very thick, fill=orange!22, text width=2.2cm, align=center, minimum height=0.8cm},
+    db/.style={cylinder, draw=black!70, fill=blue!12, aspect=0.3, shape border rotate=90, minimum height=1cm, minimum width=2cm, font=\scriptsize\bfseries},
+    arrow/.style={->, >=stealth, thick}
+]
+% --- Edge ---
+\node[edge] (ad)   {AD8232\\analog};
+\node[edge, right=of ad] (adc) {ADC1\\DMA};
+\node[edge, right=of adc] (down) {downsample\\500$\to$100\,Hz};
+\node[edge, right=of down] (ble) {BLE 0xFF03\\(int16, 10/pkt)};
+
+% --- Gateway de testing ---
+\node[edge, right=of ble, fill=cyan!18] (app) {Cliente PC\\\texttt{ble\_logger.py}};
+\node[db, right=of app] (fs) {Firestore};
+\node[cloud, below=0.6cm of fs] (fn) {on\_document\_created\\process\_ecg};
+% --- Pan-Tompkins pipeline ---
+\node[cloud, below=0.6cm of fn] (bp)   {Bandpass\\5--15\,Hz};
+\node[cloud, left=of bp] (deriv) {Derivativo\\5-puntos};
+\node[cloud, left=of deriv] (sq) {Cuadrado};
+\node[cloud, left=of sq] (mw) {MWI 150\,ms};
+\node[cloud, left=of mw] (peaks) {Detección\\R-peaks};
+\node[cloud, left=of peaks] (bpm) {BPM, HRV\\(SDNN)};
+
+% --- Connections edge -> cloud ---
+\draw[arrow] (ad) -- (adc);
+\draw[arrow] (adc) -- (down);
+\draw[arrow] (down) -- (ble);
+\draw[arrow] (ble) -- (app);
+\draw[arrow] (app) -- node[above, sloped]{Wi-Fi/REST}(fs);
+\draw[arrow] (fs)  -- (fn);
+\draw[arrow] (fn)  -- (bp);
+\draw[arrow] (bp)  -- (deriv);
+\draw[arrow] (deriv)  -- (sq);
+\draw[arrow] (sq)  -- (mw);
+\draw[arrow] (mw)  -- (peaks);
+\draw[arrow] (peaks) -- (bpm);
+\draw[arrow] (bpm) -- ++(0,1.2) -| (fs);
+
+% --- Section bands ---
+\begin{scope}[on background layer]
+\node[rectangle, draw=green!50!black, dashed, inner sep=0.4cm,
+      fit=(ad) (adc) (down) (ble), fill=green!4] (edgeBox) {};
+\node[anchor=north west, font=\scriptsize\bfseries, green!50!black] at (edgeBox.north west) {Edge (ESP32)};
+
+\node[rectangle, draw=cyan!60!black, dashed, inner sep=0.4cm,
+      fit=(app), fill=cyan!4] (appBox) {};
+\node[anchor=north, font=\scriptsize\bfseries, cyan!50!black] at (appBox.north) {Gateway};
+
+\node[rectangle, draw=orange!70!black, dashed, inner sep=0.4cm,
+      fit=(fn) (bp) (deriv) (sq) (mw) (peaks) (bpm) (fs), fill=orange!4] (cloudBox) {};
+\node[anchor=north east, font=\scriptsize\bfseries, orange!70!black] at (cloudBox.north east) {Firebase Cloud Functions (Python/NumPy)};
+\end{scope}
+\end{tikzpicture}

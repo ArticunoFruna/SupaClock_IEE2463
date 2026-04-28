@@ -1,5 +1,6 @@
 #include "st7789.h"
 #include "driver/gpio.h"
+#include "driver/ledc.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -71,6 +72,27 @@ esp_err_t st7789_init(void) {
                       .pull_down_en = GPIO_PULLDOWN_DISABLE,
                       .intr_type = GPIO_INTR_DISABLE};
   gpio_config(&gc);
+
+  // Configuración de LEDC (PWM) para el Backlight
+  ledc_timer_config_t ledc_timer = {
+      .speed_mode       = LEDC_LOW_SPEED_MODE,
+      .timer_num        = LEDC_TIMER_0,
+      .duty_resolution  = LEDC_TIMER_8_BIT,
+      .freq_hz          = 4000, // 4 kHz es buen balance para pantallas
+      .clk_cfg          = LEDC_AUTO_CLK
+  };
+  ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+
+  ledc_channel_config_t ledc_channel = {
+      .speed_mode     = LEDC_LOW_SPEED_MODE,
+      .channel        = LEDC_CHANNEL_0,
+      .timer_sel      = LEDC_TIMER_0,
+      .intr_type      = LEDC_INTR_DISABLE,
+      .gpio_num       = ST7789_BLK_PIN,
+      .duty           = 0, // Inicia apagado para evitar picos de corriente
+      .hpoint         = 0
+  };
+  ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
 
   // SPI Bus Config
   spi_bus_config_t buscfg = {.miso_io_num = -1, // No MISO
@@ -231,4 +253,12 @@ void st7789_fill_screen(uint16_t color) {
   }
 
   free(buffer);
+}
+
+void st7789_set_brightness(uint8_t percent) {
+  if (percent > 100) percent = 100;
+  uint32_t duty = (percent * 255) / 100;
+  // 8-bit limit means values are 0-255
+  ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
+  ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 }

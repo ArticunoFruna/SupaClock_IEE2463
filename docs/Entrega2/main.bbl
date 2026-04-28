@@ -1,0 +1,56 @@
+\begin{thebibliography}{10}
+
+\bibitem{ecma287}
+{ECMA International}, ``{ECMA-287: Safety of electronic equipment, 2nd ed.},'' 2002.
+\newblock Disponible en: \url{https://ecma-international.org/wp-content/uploads/ECMA-287_2nd_edition_december_2002.pdf}.
+
+\bibitem{encuesta_af}
+{CIPER Chile}, ``Resultados de la encuesta nacional de actividad física y deporte: una oportunidad para fortalecer el bienestar integral en chile,'' 2025.
+\newblock Disponible en: \url{https://www.ciperchile.cl/2025/05/24/resultados-de-la-encuesta-nacional-de-actividad-fisica-y-deporte/}.
+
+\bibitem{obesidad_chile}
+{UC Christus}, ``5 razones por las que chile es el país con más obesidad de latinoamérica,'' 2025.
+\newblock Disponible en: \url{https://www.ucchristus.cl/blog-salud-uc/articulos/2025/5-razones-por-las-que-chile-es-el-pais-con-mas-obesidad-de-latinoamerica}.
+
+\bibitem{minsalwearables}
+{Ministerio de Salud de Chile}, ``{Minsal: Encuesta Nacional de Salud (ENS) 2016--2017},'' 2017.
+\newblock Disponible en: \url{https://www.minsal.cl/wp-content/uploads/2017/11/ENS-2016-17_PRIMEROS-RESULTADOS.pdf}.
+
+\bibitem{Shin2019}
+G.~Shin, M.~Jarrahi, Y.~Fei, and A.~Karami, ``Wearable activity trackers, accuracy, adoption, acceptance and health impact,'' {\em Biomedical engineering letters}, vol.~9, no.~1, pp.~45--52, 2019.
+
+\bibitem{Kushlev2016}
+K.~Kushlev, J.~Proulx, and E.~W. Dunn, ``Silence your phones: Smartphone notifications increase inattention and hyperactivity symptoms,'' in {\em Proceedings of the 2016 CHI Conference on Human Factors in Computing Systems}, pp.~1011--1020, 2016.
+
+\bibitem{Pielot2014}
+M.~Pielot, K.~Church, and R.~de~Oliveira, ``An in-situ study of mobile phone notifications,'' in {\em 16th International Conference on Human-Computer Interaction with Mobile Devices \& Services}, pp.~233--242, 2014.
+
+\bibitem{rohs}
+{European Parliament and Council}, ``{Directive 2011/65/EU (RoHS 2): Restriction of the use of certain hazardous substances in electrical and electronic equipment},'' 2011.
+\newblock Diario Oficial L 174, 1 de julio de 2011.
+
+\bibitem{en62133}
+{International Electrotechnical Commission}, ``{IEC 62133-2: Secondary cells and batteries containing alkaline or other non-acid electrolytes - Safety requirements for portable lithium systems},'' 2017.
+\newblock Norma para celdas LiPo de uso portátil.
+
+\bibitem{ble_core_spec}
+{Bluetooth SIG}, ``{Bluetooth Core Specification v5.3},'' 2021.
+\newblock Disponible en: \url{https://www.bluetooth.com/specifications/specs/core-specification-5-3/}.
+
+\bibitem{ieee11073}
+{IEEE Standards Association}, ``{IEEE 11073-10406: Health informatics — Personal health device communication — Device specialization — Basic electrocardiograph (ECG)},'' 2011.
+\newblock Disponible en: \url{https://standards.ieee.org/ieee/11073-10406/4716/}.
+
+\bibitem{usbpd}
+{USB Implementers Forum}, ``{USB Type-C Cable and Connector Specification, Rev. 2.3},'' 2023.
+\newblock Disponible en: \url{https://www.usb.org/document-library/usb-type-cr-cable-and-connector-specification-release-23}.
+
+\bibitem{iec60601}
+{International Electrotechnical Commission}, ``{IEC 60601-1: Medical electrical equipment - Part 1: General requirements for basic safety and essential performance},'' 2020.
+\newblock Norma internacional, Ed.~3.2.
+
+\bibitem{esp32c3_ds}
+{Espressif Systems}, ``{ESP32-C3 Series Datasheet},'' 2024.
+\newblock Disponible en: \url{https://www.espressif.com/sites/default/files/documentation/esp32-c3_datasheet_en.pdf}.
+
+\end{thebibliography}

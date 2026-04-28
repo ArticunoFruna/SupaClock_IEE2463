@@ -1,0 +1,65 @@
+\begin{tikzpicture}[
+    node distance=0.55cm and 0.9cm,
+    every node/.style={font=\scriptsize},
+    hw/.style={rectangle, draw=black!70, very thick, top color=white, bottom color=gray!25, text width=2.6cm, align=center, minimum height=0.85cm},
+    task/.style={rectangle, rounded corners, draw=black, very thick, top color=white, bottom color=blue!18, text width=3.5cm, align=center, minimum height=1.1cm, font=\footnotesize},
+    queue/.style={rectangle, draw=black!70, fill=yellow!30, text width=2.6cm, align=center, minimum height=0.7cm, font=\scriptsize\ttfamily},
+    mutex/.style={circle, draw=black, fill=red!25, inner sep=1.5pt, font=\scriptsize\bfseries},
+    lvgl/.style={rectangle, rounded corners, draw=black!70, fill=cyan!18, text width=2.6cm, align=center, minimum height=0.85cm},
+    arrow/.style={->, >=stealth, thick},
+    isr/.style={->, >=stealth, thick, dashed, teal!70!black},
+    ble/.style={->, >=stealth, thick, blue!70}
+]
+% --- HW peripheral nodes (left column) ---
+\node[hw] (adc)  {ADC1 / DMA 20\,kHz\\(AD8232)};
+\node[hw, below=of adc]  (i2c)  {I2C 400\,kHz\\(MAX30102/205, BMI160, MAX17048)};
+\node[hw, below=of i2c]  (btns) {3 botones GPIO\\(SELECT/UP/DOWN)};
+
+\node[mutex, right=0.4cm of i2c] (mut) {M};
+
+% --- Tasks ---
+\node[task, right=1.4cm of adc, fill=red!8]   (t_ecg)  {\textbf{ecg\_task} (prio 7)\\Down-sample 500\,Hz\\$\to$ ble\_send\_ecg};
+\node[task, below=of t_ecg]                    (t_imu)  {\textbf{imu\_task} (prio 6)\\50\,Hz, BMI160\\$\to$ step\_algo};
+\node[task, below=of t_imu]                    (t_hrm)  {\textbf{hrm\_task} (prio 5)\\10\,Hz polling FIFO\\$\to$ HR/SpO\textsubscript{2}};
+\node[task, below=of t_hrm]                    (t_sens) {\textbf{sensor\_task} (prio 4)\\1\,Hz Temp/Bater\'ia\\$\to$ pasos HW};
+\node[task, below=of t_sens]                    (t_gui) {\textbf{gui\_task} (prio 5)\\30\,FPS LVGL\\+ poll botones};
+
+% --- BLE ---
+\node[task, right=1.6cm of t_imu, fill=green!8] (ble) {\textbf{NimBLE host}\\(framework)\\3 chr. UUID FF01/02/03};
+\node[hw, right=1.0cm of ble, top color=white, bottom color=cyan!18] (phone) {Cliente PC\\(\texttt{ble\_logger.py})};
+\node[lvgl, right=1.6cm of t_gui] (disp) {ST7789 SPI 80\,MHz\\(LVGL flush\_cb)};
+
+% --- Mutex/queues references ---
+\node[queue, below=0.45cm of t_sens, xshift=1.4cm] (mtx) {xSensorDataMutex};
+
+% --- HW connections ---
+\draw[arrow] (adc)  -- (t_ecg);
+\draw[arrow] (i2c)  -- (mut);
+\draw[arrow] (mut)  -- (t_imu.west);
+\draw[arrow] (mut)  -- (t_hrm.west);
+\draw[arrow] (mut)  -- (t_sens.west);
+\draw[isr]   (btns) -- node[above, sloped]{poll 30\,Hz} (t_gui.west);
+
+% --- Task to BLE ---
+\draw[ble] (t_ecg.east) -- ++(0.6,0) |- (ble.north);
+\draw[ble] (t_imu.east) -- ++(0.6,0) |- (ble.north west);
+\draw[ble] (t_sens.east) -- ++(0.6,0) |- (ble.south west);
+\draw[ble] (ble) -- node[above]{GATT NOTIFY} (phone);
+
+% --- GUI to display ---
+\draw[arrow] (t_gui) -- (disp);
+
+% --- Shared mutex visualization ---
+\draw[arrow, dashed, gray!70!black] (mtx) -- (t_imu.south west);
+\draw[arrow, dashed, gray!70!black] (mtx) -- (t_hrm.south west);
+\draw[arrow, dashed, gray!70!black] (mtx) -- (t_sens.south west);
+\draw[arrow, dashed, gray!70!black] (mtx) -- (t_gui.north west);
+
+% --- ESP32 envelope ---
+\begin{scope}[on background layer]
+    \node[rectangle, draw=black!50, dashed, inner sep=0.55cm,
+          fit=(adc) (i2c) (btns) (t_ecg) (t_gui) (ble) (mtx) (mut),
+          fill=black!2] (esp32) {};
+    \node[anchor=north west, font=\bfseries] at (esp32.north west) {ESP32-C3 (FreeRTOS)};
+\end{scope}
+\end{tikzpicture}

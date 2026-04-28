@@ -370,14 +370,42 @@ static void build_ui(void) {
     lv_scr_load(scr_obj[SCREEN_HOME]);
 }
 
+static int inactivity_counter = 0;
+static bool backlight_on = false; // INICIA APAGADO
+
 void gui_task(void *pvParameter) {
+    // Al bootear, esperamos 1.5 segundos para no superponer el pico
+    // de corriente de la pantalla con la inicialización del BLE
+    vTaskDelay(pdMS_TO_TICKS(1500));
+    st7789_set_brightness(100);
+    backlight_on = true;
+
     while (1) {
         if (pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
 
             /* 1) Procesar eventos de botones */
             btn_event_t ev;
+            bool action_taken = false;
             while ((ev = gpio_buttons_poll()) != BTN_EVENT_NONE) {
-                handle_button(ev);
+                action_taken = true;
+                inactivity_counter = 0;
+                if (!backlight_on) {
+                    st7789_set_brightness(100);
+                    backlight_on = true;
+                } else {
+                    handle_button(ev);
+                }
+            }
+
+            // Gesti\u00f3n del timer de inactividad (~10 segundos a 30 FPS)
+            if (action_taken) {
+                // Timer reset
+            } else {
+                inactivity_counter++;
+                if (inactivity_counter > (30 * 30) && backlight_on) {
+                    st7789_set_brightness(0);
+                    backlight_on = false;
+                }
             }
 
             /* 2) Auto-switch a pantalla ECG cuando el PC inicia modo ECG
@@ -619,7 +647,7 @@ void app_main(void) {
         ESP_LOGW(TAG, "AD8232 fallo / ausente");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(500)); // Delay más largo (0.5s) para estabilizar LDO
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Delay más largo (0.5s) para estabilizar LDO
 
     /*
      * ═══ FASE 2: Display (pico de corriente SPI + DMA, ~40mA) ═══
