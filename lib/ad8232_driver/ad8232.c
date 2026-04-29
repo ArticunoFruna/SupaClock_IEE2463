@@ -41,15 +41,21 @@ esp_err_t ad8232_init_dma(void) {
     gpio_config(&lo_conf);
   }
 
-  // 2. Inicializar ADC en modo continuo (DMA)
+  ESP_LOGI(TAG, "AD8232 inicializado (DMA handle se creara al iniciar)");
+  return ESP_OK;
+}
+
+esp_err_t ad8232_start_dma(void) {
+  if (adc_handle != NULL)
+    return ESP_ERR_INVALID_STATE;
+
   adc_continuous_handle_cfg_t adc_config = {
       .max_store_buf_size = 2048,
       .conv_frame_size = AD8232_READ_LEN,
   };
-  ret = adc_continuous_new_handle(&adc_config, &adc_handle);
+  esp_err_t ret = adc_continuous_new_handle(&adc_config, &adc_handle);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Error al crear handle ADC continuo: %s",
-             esp_err_to_name(ret));
+    ESP_LOGE(TAG, "Error al crear handle ADC continuo: %s", esp_err_to_name(ret));
     return ret;
   }
 
@@ -61,7 +67,7 @@ esp_err_t ad8232_init_dma(void) {
 
   adc_digi_pattern_config_t adc_pattern[1] = {0};
   dig_cfg.pattern_num = 1;
-  adc_pattern[0].atten = ADC_ATTEN_DB_12; // 0 - 2.5V (o 3.3V) aprox
+  adc_pattern[0].atten = ADC_ATTEN_DB_12;
   adc_pattern[0].channel = AD8232_ADC_CHANNEL;
   adc_pattern[0].unit = AD8232_ADC_UNIT;
   adc_pattern[0].bit_width = SOC_ADC_DIGI_MAX_BITWIDTH;
@@ -70,24 +76,22 @@ esp_err_t ad8232_init_dma(void) {
   ret = adc_continuous_config(adc_handle, &dig_cfg);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Error configurando ADC continuo: %s", esp_err_to_name(ret));
+    adc_continuous_deinit(adc_handle);
+    adc_handle = NULL;
     return ret;
   }
 
-  ESP_LOGI(TAG, "AD8232 inicializado con ADC continuo (DMA) a %d Hz",
-           AD8232_HW_SAMPLE_FREQ_HZ);
-  return ESP_OK;
-}
-
-esp_err_t ad8232_start_dma(void) {
-  if (adc_handle == NULL)
-    return ESP_ERR_INVALID_STATE;
   return adc_continuous_start(adc_handle);
 }
 
 esp_err_t ad8232_stop_dma(void) {
   if (adc_handle == NULL)
     return ESP_ERR_INVALID_STATE;
-  return adc_continuous_stop(adc_handle);
+  
+  esp_err_t ret = adc_continuous_stop(adc_handle);
+  adc_continuous_deinit(adc_handle);
+  adc_handle = NULL;
+  return ret;
 }
 
 void ad8232_power_down(void) {

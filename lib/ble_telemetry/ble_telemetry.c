@@ -142,6 +142,9 @@ static void ble_telemetry_advertise(void) {
     memset(&adv_params, 0, sizeof adv_params);
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
     adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
+    /* Reducir agresividad del advertising para permitir Light Sleep (1000 ms) */
+    adv_params.itvl_min = 1600; /* 1600 * 0.625ms = 1000ms */
+    adv_params.itvl_max = 1600;
 
     ble_gap_adv_start(BLE_OWN_ADDR_PUBLIC, NULL, BLE_HS_FOREVER, &adv_params,
                       ble_telemetry_gap_event, NULL);

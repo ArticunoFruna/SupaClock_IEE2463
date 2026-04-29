@@ -43,19 +43,24 @@
 \begin{frame}{Visi\'on del producto y agenda}
     \begin{columns}[T]
         \column{0.55\textwidth}
+        \footnotesize
         \textbf{SupaClock}: wearable de monitoreo biom\'etrico continuo con enfoque cl\'inico ``Cero distracciones'', orientado a personal m\'edico.
-        \vspace{0.2cm}
-        \begin{itemize}
+        \vspace{0.15cm}
+        \begin{itemize}\itemsep0pt
             \item ECG, frecuencia cardiaca, SpO\textsubscript{2}, temperatura corporal, podometr\'ia
             \item Telemetr\'ia BLE en vivo a equipo m\'edico
             \item Procesamiento on-device + clasificador de actividad por ML
         \end{itemize}
+        \vspace{0.4cm}
+        \textbf{Agenda} (10 min):
+        \begin{itemize}\itemsep0pt
+            \item Hardware e integraci\'on
+            \item Firmware y algoritmos
+            \item Comunicaci\'on, m\'etricas y futuro
+        \end{itemize}
         \column{0.45\textwidth}
-        \fbox{\parbox{0.95\linewidth}{\centering \scriptsize\textit{[Placeholder: hero\_render.png — render del producto]}\\\vspace{0.3cm}\includegraphics[width=\linewidth, keepaspectratio]{hero_render.png}}}
+        \includegraphics[width=\linewidth, keepaspectratio]{hero_render.png}
     \end{columns}
-    \vspace{0.3cm}
-    \footnotesize
-    \textbf{Agenda} (10 min): Hardware $\rightarrow$ Firmware y algoritmos $\rightarrow$ Comunicaci\'on, m\'etricas y futuro.
 \end{frame}
 
 % ═══════════════════════════════════════════════════════════════════
@@ -86,7 +91,9 @@
             \item ECG por DMA continuo (no compite por I\textsuperscript{2}C)
         \end{itemize}
         \column{0.58\textwidth}
-        \fbox{\parbox{0.95\linewidth}{\centering \scriptsize\textit{[Diagrama ecosistema reutilizado de Entrega1]}\\\vspace{0.2cm}\includegraphics[width=0.9\linewidth, keepaspectratio]{Entrega1/diag_ecosistema.pdf}}}
+        \includegraphics[width=\linewidth, keepaspectratio]{Entrega1/diag_ecosistema.pdf}
+        \vspace{0.05cm}
+        \scriptsize\textit{Diagrama del ecosistema (reutilizado del informe 10\,\%).}
     \end{columns}
 \end{frame}
 
@@ -104,9 +111,13 @@
             \scriptsize Reset por brownout al activar BLE concurrente con bursts del display. Pico medido $\sim$\textbf{110\,mA} en bater\'ia (probablemente subestimado por la respuesta del amper\'imetro).
         \end{alertblock}
         \column{0.45\textwidth}
-        \fbox{\parbox{0.95\linewidth}{\centering \scriptsize\textit{[Placeholder: foto de PCB no-SMD prototipo]}\\\vspace{1cm}foto pendiente\\\vspace{1cm}}}
+        \fcolorbox{black!30}{black!05}{\parbox{0.95\linewidth}{\centering
+            \vspace{1.5cm}
+            \scriptsize\textit{foto de PCB through-hole\\(pendiente)}
+            \vspace{1.5cm}
+        }}
         \vspace{0.2cm}
-        \scriptsize \textit{La PCB through-hole con C3 SuperMini est\'a en montaje; en paralelo se encarg\'o la siguiente revisi\'on con ESP32-S3 (slide 12).}
+        \scriptsize \textit{PCB through-hole con C3 SuperMini en montaje; en paralelo se encarg\'o la revisi\'on siguiente con ESP32-S3 (slide 12).}
     \end{columns}
 \end{frame}
 
@@ -155,30 +166,40 @@
         \begin{itemize}
             \item Selecci\'on manual desde men\'u; persistencia en NVS
             \item En NORMAL/SAVER, MAX30102 entra a SHDN ($\sim$0.7\,$\mu$A)
+            \item Toggle ``Tx IMU'' apaga radio sin perder podometr\'ia
+            \item Apagado total v\'ia \textit{deep sleep} con wake por bot\'on
         \end{itemize}
     \end{columns}
 \end{frame}
 
 % ─── Slide 6 — Pipeline HR/SpO2 ───
-\begin{frame}{Pipeline HR/SpO\textsubscript{2}: comparativa con Galaxy Watch}
+\begin{frame}{Pipeline HR/SpO\textsubscript{2}: bandpass IIR + mediana}
     \begin{columns}[T]
-        \column{0.50\textwidth}
-        \footnotesize
-        \textbf{Captura PPG}: Red + IR a 25\,Hz efectivos (100\,sps, \texttt{SMP\_AVE=4}).
-        \vspace{0.15cm}
+        \column{0.40\textwidth}
+        \scriptsize
+        \textbf{Captura}: Red + IR a 25\,Hz (\texttt{SMP\_AVE=4}).
+        \vspace{0.1cm}
+
         \textbf{Pipeline}:
         \begin{enumerate}\itemsep0pt
-            \item Tracker DC (EMA \(\alpha\)=0.05)
-            \item \textbf{Bandpass IIR Butterworth 0.5--4\,Hz} (cascada HPF + LPF)
-            \item Detector de picos con umbral adaptativo
-            \item \textbf{Mediana de 8 RR} con rechazo de outliers ($\Delta$RR$>$25\%)
-            \item SpO\textsubscript{2}: \textbf{mediana m\'ovil de 10 valores R}
-            \item \textbf{Motion gating}: jerk del IMU invalida muestras
+            \item Tracker DC (EMA $\alpha$=0.05)
+            \item Bandpass IIR Butterworth \textbf{0.5--4\,Hz} (HPF+LPF orden 2)
+            \item Detector picos umbral adaptativo
+            \item Mediana 8 RR + rechazo $\Delta$RR$>$25\%
+            \item SpO\textsubscript{2}: mediana 10 valores R
+            \item Motion gating con jerk del IMU
         \end{enumerate}
-        \vspace{0.15cm}
-        \textbf{Modo SPOT dedicado} (estilo Galaxy Watch): 12--30\,s con \textit{early-exit} cuando $\sigma$/$\mu$ de RR $<$ 8\% y $\sigma$/$\mu$ de R $<$ 5\%.
-        \column{0.50\textwidth}
-        \fbox{\parbox{0.95\linewidth}{\centering \scriptsize\textit{[Placeholder: comparativa antes/despu\'es del bandpass IIR -- generar con \texttt{tools/supaclock\_raw\_ppg.py} y env:test\_spo2]}\\\vspace{2.5cm}raw\_ppg\_*.png pendiente\\\vspace{2.5cm}}}
+        \vspace{0.05cm}
+
+        \textbf{SPOT dedicado}: 12--30\,s con early-exit por calidad ($\sigma/\mu$ RR$<$8\%, R$<$5\%).
+        \vspace{0.1cm}
+
+        \fcolorbox{accent}{accent!12}{\parbox{0.95\linewidth}{\scriptsize
+            \textbf{Validaci\'on 30\,s reposo:}\\
+            HR \textbf{81\,BPM} (33 picos) | SpO\textsubscript{2} \textbf{98.7\,\%}
+        }}
+        \column{0.60\textwidth}
+        \includegraphics[width=\linewidth, keepaspectratio]{raw_ppg_compare.png}
     \end{columns}
 \end{frame}
 
@@ -280,125 +301,165 @@
         \textbf{4 caracter\'isticas BLE} (GATT custom 0xFF00):
         \begin{itemize}\itemsep0pt
             \item \texttt{0xFF01} IMU 6-DOF (12 B/notify, 50\,Hz)
-            \item \texttt{0xFF02} Telemetr\'ia agregada \textbf{TLV} (HR, SpO\textsubscript{2}, temp, bat, eventos modo)
+            \item \texttt{0xFF02} Telemetr\'ia agregada \textbf{TLV} (HR, SpO\textsubscript{2}, temp, bat, modos)
             \item \texttt{0xFF03} ECG streaming (chunks 500\,Hz)
             \item \texttt{0xFF04} Comandos RX (host $\rightarrow$ reloj)
         \end{itemize}
         \vspace{0.1cm}
-        El protocolo TLV permite agrupar muestras heterog\'eneas con timestamp y reduce overhead BLE en SAVER (1 paquete/min vs 60).
+        El protocolo TLV permite agrupar muestras heterog\'eneas con timestamp, reduciendo el overhead BLE en SAVER.
         \column{0.50\textwidth}
-        \fbox{\parbox{0.95\linewidth}{\centering \scriptsize\textit{[Placeholder: screenshot supaclock\_monitor.py]}\\\vspace{0.5cm}herramienta PyQt6 +\\bleak + pyqtgraph + opengl\\\vspace{0.5cm}}}
-        \vspace{0.15cm}
+        \fcolorbox{black!30}{black!05}{\parbox{0.95\linewidth}{\centering
+            \vspace{0.4cm}
+            \scriptsize\textit{screenshot \texttt{supaclock\_monitor.py}\\(PyQt6 + bleak + pyqtgraph + OpenGL)\\(pendiente)}
+            \vspace{0.4cm}
+        }}
+        \vspace{0.1cm}
         \scriptsize
-        \textbf{supaclock\_monitor.py} muestra IMU/ECG/biom\'etricos en vivo y graba CSV.\\
-        \textbf{$\rightarrow$ Base de datos para entrenar el clasificador CNN 1D.}
+        \textbf{supaclock\_monitor.py} muestra biometr\'ia en vivo y graba CSV.\\
+        \textbf{$\rightarrow$ Base de datos para entrenar clasificador CNN 1D.}
     \end{columns}
 \end{frame}
 
-% ─── Slide 11 — Métricas reales ───
-\begin{frame}{M\'etricas reales: CPU, RAM y Pila por tarea}
+% ─── Slide 11 — Optimización energética: antes / después ───
+\begin{frame}{Optimizaci\'on energ\'etica: antes vs despu\'es}
     \begin{columns}[T]
         \column{0.50\textwidth}
-        \footnotesize
-        \textbf{CPU (\texttt{vTaskGetRunTimeStats})}
-        \vspace{-0.05cm}
+        \scriptsize
+        \textbf{Estados del SoC} (Power Manager)
         \begin{tikzpicture}
         \begin{axis}[
             xbar stacked,
-            width=\linewidth, height=3.6cm,
+            width=\linewidth, height=2.6cm,
             bar width=14pt,
             xmin=0, xmax=100,
-            ytick=\empty, axis y line=none,
-            xlabel={\scriptsize \% CPU},
-            xlabel style={font=\scriptsize},
-            tick label style={font=\scriptsize},
+            symbolic y coords={Despu\'es, Antes},
+            ytick=data,
+            tick label style={font=\tiny},
+            xlabel={\tiny \%\ tiempo},
+            xlabel style={font=\tiny},
             legend style={
-                at={(0.5,-0.30)}, anchor=north,
-                font=\tiny,
-                legend columns=4,
+                at={(0.5,-0.40)}, anchor=north,
+                font=\tiny, legend columns=3,
                 draw=none,
-                /tikz/every even column/.append style={column sep=0.2cm}
+                /tikz/every even column/.append style={column sep=0.15cm}
             },
-            nodes near coords align={center}
+            nodes near coords={\pgfmathprintnumber\pgfplotspointmeta\,\%},
+            every node near coord/.append style={font=\tiny}
         ]
-        \addplot+[fill=gray!50, draw=gray!70] coordinates {(49,0)};
-        \addplot+[fill=blue!50, draw=blue!70] coordinates {(47,0)};
-        \addplot+[fill=red!60, draw=red!70]   coordinates {(1,0)};
-        \addplot+[fill=green!60,draw=green!70] coordinates {(3,0)};
-        \legend{IDLE 49\%, gui 47\%, imu 1\%, otros $<$1\%}
+        \addplot+[fill=green!55, draw=green!70] coordinates {(75,Despu\'es) (0,Antes)};
+        \addplot+[fill=orange!60, draw=orange!80] coordinates {(15,Despu\'es) (92,Antes)};
+        \addplot+[fill=red!60, draw=red!80] coordinates {(9,Despu\'es) (8,Antes)};
+        \legend{SLEEP, APB\_MAX, CPU\_MAX}
         \end{axis}
         \end{tikzpicture}
 
-        \vspace{0.15cm}
-        \scriptsize \textit{IDLE 49\,\%}: holgura ajustada en C3 single-core 160\,MHz.
+        \vspace{0.4cm}
+        \textbf{Consumo en bater\'ia} (Tektronix TX3)
+        \begin{tikzpicture}
+        \begin{axis}[
+            xbar,
+            width=\linewidth, height=3.6cm,
+            bar width=10pt,
+            xmin=0, xmax=140,
+            enlarge y limits=0.25,
+            symbolic y coords={Pant. off,Pant. on,Pico inicio,Antes pico},
+            ytick=data,
+            tick label style={font=\tiny},
+            xlabel={\tiny mA},
+            xlabel style={font=\tiny},
+            nodes near coords={\pgfmathprintnumber\pgfplotspointmeta\,mA},
+            every node near coord/.append style={font=\tiny, anchor=west},
+        ]
+        \addplot+[draw=black!50, fill=blue!40] coordinates {
+            (110,Antes pico)
+            (60,Pico inicio)
+            (50,Pant. on)
+            (20,Pant. off)
+        };
+        \end{axis}
+        \end{tikzpicture}
+
+        \scriptsize \textit{TX3 marca $\sim$20\,mA AC con pant. off: esto por bursts del light-sleep.}
 
         \column{0.50\textwidth}
-        \footnotesize
-        \textbf{Memoria}
         \scriptsize
-        \begin{tabular}{l r}
-            \toprule
-            Heap libre actual    & 99\,104 B \\
-            Heap m\'inimo hist\'orico & 93\,972 B \\
-            Margen sobre 320\,KB SRAM & $\sim$30\,\% \\
-            \bottomrule
-        \end{tabular}
-        \vspace{0.15cm}
+        \textbf{Mitigaciones aplicadas}
+        \begin{itemize}\itemsep0pt
+            \item Driver ST7789 reescrito: \texttt{gui\_task} 47\,\%\,\(\to\)\,\textbf{1\,\%}
+            \item Handle ADC del ECG asignado din\'amicamente (libera lock \texttt{APB\_MAX})
+            \item Advertising BLE a 1000\,ms y Modem Sleep (light sleep con conexi\'on)
+            \item Toggle ``Tx IMU'' apaga radio manteniendo podometr\'ia local
+        \end{itemize}
+        \vspace{0.1cm}
+        \textbf{CPU por tarea (despu\'es)}\\[0.05cm]
+        \begin{tikzpicture}[scale=0.75, baseline=(current bounding box.center)]
+            % IDLE: 95% -> 342 deg (from 108 to 450)
+            \filldraw[fill=green!40!white, draw=white, thick] (0,0) -- (108:1.2) arc (108:450:1.2) -- cycle;
+            \node[font=\tiny, inner sep=1pt] at (279:0.6) {IDLE $\sim$95\,\%};
+            
+            % Otros: <1% -> let's map visually to 4 deg (104 to 108)
+            \filldraw[fill=blue!50!white, draw=white, thick] (0,0) -- (104:1.2) arc (104:108:1.2) -- cycle;
+            
+            % imu_task: 1% -> mapped visually to 5 deg (99 to 104)
+            \filldraw[fill=orange!50!white, draw=white, thick] (0,0) -- (99:1.2) arc (99:104:1.2) -- cycle;
+            
+            % gui_task: 1% -> mapped visually to 9 deg (90 to 99)
+            \filldraw[fill=red!50!white, draw=white, thick] (0,0) -- (90:1.2) arc (90:99:1.2) -- cycle;
 
-        \textbf{Pila por tarea (HWM, libre)}\\[-0.15cm]
-        \scriptsize
-        \begin{tabular}{l r r}
-            \toprule
-            Tarea & Stack & Libre HWM \\
-            \midrule
-            ecg\_task     & 4096 & 3416 B \\
-            system\_task  & 4096 & 3528 B \\
-            imu\_task     & 4096 & 2144 B \\
-            gui\_task     & 4096 & 2036 B \\
-            hrm\_task     & 4096 & 1872 B \\
-            ble\_tx\_task & \textbf{4096}\textsuperscript{\dag} & 960 B \\
-            \bottomrule
-        \end{tabular}
-        \vspace{0.05cm}
-        \scriptsize\textsuperscript{\dag}corregido tras detectar margen de 960 B en 3072 inicial.
+            % Leyenda
+            \node[font=\tiny, anchor=west, inner sep=1pt] at (1.3, 0.8) {\textcolor{red!50!white}{\rule{1.5mm}{1.5mm}} \texttt{gui\_task} \textbf{1\,\%}};
+            \node[font=\tiny, anchor=west, inner sep=1pt] at (1.3, 0.4) {\textcolor{orange!50!white}{\rule{1.5mm}{1.5mm}} \texttt{imu\_task} 1\,\%};
+            \node[font=\tiny, anchor=west, inner sep=1pt] at (1.3, 0.0) {\textcolor{blue!50!white}{\rule{1.5mm}{1.5mm}} Otros $<$1\,\%};
+        \end{tikzpicture}
+
+        \vspace{0.1cm}
+        \scriptsize\textit{Pico $\sim$5$\times$ menor ($110\to 20$\,mA reposo). CPU ya no satura: el bottleneck para ML pasa a ser \textbf{memoria}.}
     \end{columns}
 \end{frame}
 
-% ─── Slide 12 — Consumo y migración S3 ───
-\begin{frame}{Consumo medido y migraci\'on a ESP32-S3}
+% ─── Slide 12 — Migración a ESP32-S3 ───
+\begin{frame}{Migraci\'on al Seeed XIAO ESP32-S3 (encargada)}
+    \scriptsize
+    Tras eliminar a la CPU como bottleneck, hay 5 razones t\'ecnicas concretas para migrar la siguiente revisi\'on de PCB al ESP32-S3.
+    \vspace{0.15cm}
     \begin{columns}[T]
-        \column{0.50\textwidth}
-        \footnotesize
-        \textbf{Consumo en bater\'ia} (amper\'imetro en serie)
+        \column{0.55\textwidth}
         \scriptsize
-        \begin{tabular}{l r}
-            \toprule
-            Reposo, display off, BLE conectado & XX\,mA \\
-            \textbf{SPORT} (todo activo) -- pico & \textbf{$\sim$110\,mA} \\
-            \textbf{NORMAL} promedio              & XX\,mA \\
-            \textbf{SAVER} promedio               & XX\,mA \\
-            \bottomrule
-        \end{tabular}
+        \begin{enumerate}\itemsep0.05cm
+            \item \alert{\textbf{Brownout resuelto}}: Buck SGM6029 integrado ($\sim$800\,mA) reemplaza al LDO ME6211 ($\sim$300\,mA).
+            \item \textbf{Memoria para ML}: 512\,KB SRAM (vs 320 en C3) + PSRAM externa hasta 8\,MB.
+            \item \textbf{ESP-NN con SIMD}: inferencia CNN 1D int8 \textbf{5--20\,ms} (S3) vs 50--200\,ms (C3).
+            \item \textbf{Dual-core 240\,MHz}: separa ML del firmware sin contenci\'on con \texttt{ecg\_task} / \texttt{gui\_task}.
+            \item \textbf{BMS + fuel gauge integrados} en placa $\to$ menos componentes en PCB final.
+        \end{enumerate}
         \vspace{0.15cm}
-
-        \footnotesize
-        \begin{itemize}\itemsep0pt
-            \item LDO ME6211 del C3 SuperMini limitado a $\sim$300\,mA continuos
-            \item Picos transitorios de BLE+display+sensores activan brownout intermitente
-        \end{itemize}
-        \column{0.50\textwidth}
-        \footnotesize
-        \textbf{Soluci\'on: Seeed XIAO ESP32-S3} (encargada)
-        \begin{itemize}\itemsep0pt
-            \item \textbf{Buck SGM6029} integrado, 800\,mA $\rightarrow$ resuelve brownout
-            \item Dual-core 240\,MHz + SIMD vectorial
-            \item ESP-NN: inferencia CNN 1D 5--20\,ms vs 50--200\,ms en C3
-            \item M\'as tiempo en \textit{light sleep} $\rightarrow$ menor consumo promedio
-            \item BMS y monitor de carga en placa
-        \end{itemize}
-        \vspace{0.1cm}
+        \begin{block}{Heap actual vs CNN}
+            \scriptsize Heap libre en C3: $\sim$99\,KB. Modelo CNN 1D + scratch: 20--100\,KB. Margen ajustado $\to$ S3 abre la puerta a modelos grandes.
+        \end{block}
+        \column{0.45\textwidth}
         \scriptsize
-        \textit{Migraci\'on motivada por \textbf{datos}: el 49\,\% de IDLE deja poco margen para la CNN 1D del clasificador.}
+        \textbf{Memoria disponible}
+        \vspace{0.05cm}
+
+        % Gráfico de barras manual (escala lineal es ilegible por la magnitud)
+        \begin{tikzpicture}[xscale=0.85]
+            % Eje X
+            \draw[->] (0,0) -- (5.6,0) node[right, font=\tiny] {KB};
+            \draw (0,0) -- (0,-0.05) node[below, font=\tiny] {0};
+            \draw (5.0,0) -- (5.0,-0.05) node[below, font=\tiny] {8192};
+            % C3
+            \fill[red!55] (0,0.5) rectangle (0.196,0.85);
+            \node[font=\tiny, anchor=west] at (0.3,0.68) {C3 SRAM: \textbf{320\,KB}};
+            % S3
+            \fill[orange!70] (0,1.4) rectangle (0.313,1.75);
+            \node[font=\tiny, anchor=west] at (0.4,1.58) {S3 SRAM: \textbf{512\,KB}};
+            % S3+PSRAM
+            \fill[green!60] (0,2.3) rectangle (5.0,2.65);
+            \node[font=\tiny, anchor=west] at (0.4,2.95) {S3 + PSRAM: \textbf{8\,MB}};
+        \end{tikzpicture}
+        \vspace{0.1cm}
+
+        \scriptsize \textit{Escala lineal: la PSRAM externa del S3 abre $\sim$25$\times$ m\'as memoria que el C3.}
     \end{columns}
 \end{frame}
 

@@ -8,6 +8,7 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "esp_sleep.h"
+#include "esp_pm.h"
 #include "nvs_flash.h"
 #include "lvgl.h"
 #include "st7789.h"
@@ -50,6 +51,8 @@ typedef struct {
 
 static shared_sensor_data_t sensor_data = {0};
 
+static bool imu_ble_tx_enabled = true;
+
 static inline uint32_t now_ms(void) {
     return (uint32_t)(esp_timer_get_time() / 1000ULL);
 }
@@ -73,13 +76,14 @@ typedef enum {
 } ui_screen_t;
 #define SCREEN_CYCLE_COUNT 5  /* HOME..MENU ciclan */
 
-#define MENU_ITEM_COUNT 5
+#define MENU_ITEM_COUNT 6
 static const char *MENU_LABELS[MENU_ITEM_COUNT] = {
     "Modo Energia",
     "Auto-off Pant.",
     "Reiniciar Pasos",
     "Vincular BLE",
     "Apagar",
+    "Tx IMU: ON",
 };
 
 #define MODE_ITEM_COUNT 3
@@ -139,6 +143,28 @@ LV_FONT_DECLARE(lv_font_montserrat_14);
 LV_FONT_DECLARE(lv_font_montserrat_20);
 LV_FONT_DECLARE(lv_font_montserrat_40);
 
+/* ─────────────────── Utilities para optimizar LVGL CPU ─────────────────── */
+static void lv_label_set_text_safe(lv_obj_t *label, const char *text) {
+    if (!label || !text) return;
+    const char *current_text = lv_label_get_text(label);
+    if (strcmp(current_text ? current_text : "", text) != 0) {
+        lv_label_set_text(label, text);
+    }
+}
+
+static void lv_label_set_text_fmt_safe(lv_obj_t *label, const char *fmt, ...) {
+    if (!label || !fmt) return;
+    char buf[128];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    const char *current_text = lv_label_get_text(label);
+    if (strcmp(current_text ? current_text : "", buf) != 0) {
+        lv_label_set_text(label, buf);
+    }
+}
+
 static void display_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p) {
     uint16_t x = area->x1, y = area->y1;
     uint16_t w = area->x2 - area->x1 + 1;
@@ -158,7 +184,7 @@ static lv_obj_t *make_screen(const char *title, uint32_t title_color) {
     lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t *t = lv_label_create(scr);
-    lv_label_set_text(t, title);
+    lv_label_set_text_safe(t, title);
     lv_obj_set_style_text_color(t, lv_color_hex(title_color), LV_PART_MAIN);
     lv_obj_set_style_text_font(t, &lv_font_montserrat_14, LV_PART_MAIN);
     lv_obj_align(t, LV_ALIGN_TOP_MID, 0, 6);
@@ -169,7 +195,7 @@ static lv_obj_t *make_label(lv_obj_t *parent, const lv_font_t *font,
                             uint32_t color_hex, lv_align_t align,
                             int x_ofs, int y_ofs, const char *txt) {
     lv_obj_t *l = lv_label_create(parent);
-    lv_label_set_text(l, txt);
+    lv_label_set_text_safe(l, txt);
     lv_obj_set_style_text_color(l, lv_color_hex(color_hex), LV_PART_MAIN);
     lv_obj_set_style_text_font(l, font, LV_PART_MAIN);
     lv_obj_align(l, align, x_ofs, y_ofs);
@@ -256,11 +282,11 @@ static void build_menu(void) {
     for (int i = 0; i < MENU_ITEM_COUNT; i++) {
         menu_rows[i] = lv_label_create(s);
         lv_obj_set_style_text_font(menu_rows[i], &lv_font_montserrat_20, LV_PART_MAIN);
-        lv_label_set_text(menu_rows[i], MENU_LABELS[i]);
+        lv_label_set_text_safe(menu_rows[i], MENU_LABELS[i]);
         lv_obj_set_width(menu_rows[i], 220);
         lv_obj_set_style_pad_all(menu_rows[i], 6, LV_PART_MAIN);
         lv_obj_set_style_radius(menu_rows[i], 6, LV_PART_MAIN);
-        lv_obj_align(menu_rows[i], LV_ALIGN_TOP_MID, 0, 35 + i * 45);
+        lv_obj_align(menu_rows[i], LV_ALIGN_TOP_MID, 0, 35 + i * 40);
     }
 }
 
@@ -274,7 +300,7 @@ static void build_mode(void) {
     for (int i = 0; i < MODE_ITEM_COUNT; i++) {
         mode_rows[i] = lv_label_create(s);
         lv_obj_set_style_text_font(mode_rows[i], &lv_font_montserrat_20, LV_PART_MAIN);
-        lv_label_set_text(mode_rows[i], MODE_LABELS[i]);
+        lv_label_set_text_safe(mode_rows[i], MODE_LABELS[i]);
         lv_obj_set_width(mode_rows[i], 220);
         lv_obj_set_style_pad_all(mode_rows[i], 8, LV_PART_MAIN);
         lv_obj_set_style_radius(mode_rows[i], 6, LV_PART_MAIN);
@@ -320,35 +346,35 @@ static void render_list_selection(lv_obj_t **rows, int count, int sel) {
 static void render_settings_labels(void) {
     for (int i = 0; i < SETTINGS_ITEM_COUNT; i++) {
         uint16_t v = power_get_display_off_s((power_mode_t)i);
-        lv_label_set_text_fmt(settings_rows[i], "%s: %us", SETTINGS_LABELS[i], v);
+        lv_label_set_text_fmt_safe(settings_rows[i], "%s: %us", SETTINGS_LABELS[i], v);
     }
 }
 
 static void render_mode_active(void) {
     power_mode_t m = power_get_mode();
-    lv_label_set_text_fmt(mode_active_label, "Activo: %s", power_mode_name(m));
+    lv_label_set_text_fmt_safe(mode_active_label, "Activo: %s", power_mode_name(m));
 }
 
 /* ─────────────────── Actualizadores por pantalla ─────────────────── */
 
 static void update_home_screen(const shared_sensor_data_t *d) {
     uint32_t s = (uint32_t)(esp_timer_get_time() / 1000000ULL);
-    lv_label_set_text_fmt(home_clock, "%lu:%02lu",
+    lv_label_set_text_fmt_safe(home_clock, "%lu:%02lu",
                           (unsigned long)((s / 60) % 100),
                           (unsigned long)(s % 60));
 
-    lv_label_set_text_fmt(home_mode, "MODE: %s", power_mode_name(power_get_mode()));
-    lv_label_set_text_fmt(home_steps, "%lu", (unsigned long)d->steps_sw);
-    lv_label_set_text_fmt(home_bat, "%d%%", (int)d->battery_soc);
+    lv_label_set_text_fmt_safe(home_mode, "MODE: %s", power_mode_name(power_get_mode()));
+    lv_label_set_text_fmt_safe(home_steps, "%lu", (unsigned long)d->steps_sw);
+    lv_label_set_text_fmt_safe(home_bat, "%d%%", (int)d->battery_soc);
 
     if (d->finger_present && d->hr_bpm > 0) {
-        lv_label_set_text_fmt(home_hr, "%u bpm", d->hr_bpm);
+        lv_label_set_text_fmt_safe(home_hr, "%u bpm", d->hr_bpm);
     } else {
-        lv_label_set_text(home_hr, "-- bpm");
+        lv_label_set_text_safe(home_hr, "-- bpm");
     }
 
     int32_t amag = (int32_t)d->ax * d->ax + (int32_t)d->ay * d->ay + (int32_t)d->az * d->az;
-    lv_label_set_text(home_act, (amag > 300000000L) ? "Activo" : "Reposo");
+    lv_label_set_text_safe(home_act, (amag > 300000000L) ? "Activo" : "Reposo");
 }
 
 /* Devuelve "ahora" / "hace 12s" / "hace 5m" según la edad */
@@ -365,27 +391,27 @@ static void update_bio_screen(const shared_sensor_data_t *d) {
     char age[24];
 
     if (d->hr_bpm > 0) {
-        lv_label_set_text_fmt(bio_hr, "HR:   %u bpm", d->hr_bpm);
+        lv_label_set_text_fmt_safe(bio_hr, "HR:   %u bpm", d->hr_bpm);
         format_age(age, sizeof(age), d->hr_updated_ms);
-        lv_label_set_text(bio_age_hr, age);
+        lv_label_set_text_safe(bio_age_hr, age);
     } else {
-        lv_label_set_text(bio_hr, "HR:   -- bpm");
-        lv_label_set_text(bio_age_hr, "");
+        lv_label_set_text_safe(bio_hr, "HR:   -- bpm");
+        lv_label_set_text_safe(bio_age_hr, "");
     }
 
     if (d->spo2_pct > 0) {
-        lv_label_set_text_fmt(bio_spo2, "SpO2: %u%%", d->spo2_pct);
+        lv_label_set_text_fmt_safe(bio_spo2, "SpO2: %u%%", d->spo2_pct);
         format_age(age, sizeof(age), d->spo2_updated_ms);
-        lv_label_set_text(bio_age_spo2, age);
+        lv_label_set_text_safe(bio_age_spo2, age);
     } else {
-        lv_label_set_text(bio_spo2, "SpO2: --%");
-        lv_label_set_text(bio_age_spo2, "");
+        lv_label_set_text_safe(bio_spo2, "SpO2: --%");
+        lv_label_set_text_safe(bio_age_spo2, "");
     }
 
     int t_int  = (int)d->temperature_c;
     int t_frac = (int)((d->temperature_c - t_int) * 10);
     if (t_frac < 0) t_frac = -t_frac;
-    lv_label_set_text_fmt(bio_temp, "Temp: %d.%d C", t_int, t_frac);
+    lv_label_set_text_fmt_safe(bio_temp, "Temp: %d.%d C", t_int, t_frac);
 
     const char *st;
     uint32_t col;
@@ -393,8 +419,21 @@ static void update_bio_screen(const shared_sensor_data_t *d) {
     else if (d->hr_bpm > 100)      { st = "Estado: Alto";      col = 0xF0883E; }
     else if (d->hr_bpm > 0)        { st = "Estado: Normal";    col = 0x3FB950; }
     else                           { st = "Estado: Midiendo";  col = 0xF0C34E; }
-    lv_label_set_text(bio_status, st);
-    lv_obj_set_style_text_color(bio_status, lv_color_hex(col), LV_PART_MAIN);
+    
+    /* Evitar actualizar si el texto y color son iguales (optimización de memoria/CPU en LVGL) */
+    if (strcmp(lv_label_get_text(bio_status), st) != 0) {
+        lv_label_set_text_safe(bio_status, st);
+    }
+    
+    // LVGL no tiene un getter simple para el color principal de un label en V8, 
+    // pero podemos re-aplicar el color. A diferencia de crear estilos nuevos o strings, 
+    // esto es relativamente ligero, pero aún mejor es evitarlo si es posible.
+    // Usaremos local_col para trackear el estado y no spamear set_style.
+    static uint32_t last_col = 0;
+    if (last_col != col) {
+        lv_obj_set_style_text_color(bio_status, lv_color_hex(col), LV_PART_MAIN);
+        last_col = col;
+    }
 }
 
 static const char *quality_str(max30102_spot_quality_t q) {
@@ -413,39 +452,39 @@ static void update_hrspot_screen(void) {
     switch (st.state) {
         case SPOT_STATE_IDLE:
             lv_obj_clear_flag(hrspot_instr, LV_OBJ_FLAG_HIDDEN);
-            lv_label_set_text(hrspot_progress, "");
-            lv_label_set_text(hrspot_result, "");
-            lv_label_set_text(hrspot_quality, "");
+            lv_label_set_text_safe(hrspot_progress, "");
+            lv_label_set_text_safe(hrspot_result, "");
+            lv_label_set_text_safe(hrspot_quality, "");
             break;
         case SPOT_STATE_SETTLING:
             lv_obj_add_flag(hrspot_instr, LV_OBJ_FLAG_HIDDEN);
-            lv_label_set_text_fmt(hrspot_progress, "Estabilizando %u%%", st.progress_pct);
-            lv_label_set_text(hrspot_result, "");
-            lv_label_set_text(hrspot_quality, "");
+            lv_label_set_text_fmt_safe(hrspot_progress, "Estabilizando %u%%", st.progress_pct);
+            lv_label_set_text_safe(hrspot_result, "");
+            lv_label_set_text_safe(hrspot_quality, "");
             break;
         case SPOT_STATE_MEASURING:
             lv_obj_add_flag(hrspot_instr, LV_OBJ_FLAG_HIDDEN);
-            lv_label_set_text_fmt(hrspot_progress, "Midiendo %u%%", st.progress_pct);
-            lv_label_set_text(hrspot_result, "");
-            lv_label_set_text(hrspot_quality, "Quédese quieto");
+            lv_label_set_text_fmt_safe(hrspot_progress, "Midiendo %u%%", st.progress_pct);
+            lv_label_set_text_safe(hrspot_result, "");
+            lv_label_set_text_safe(hrspot_quality, "Quédese quieto");
             break;
         case SPOT_STATE_DONE:
             lv_obj_add_flag(hrspot_instr, LV_OBJ_FLAG_HIDDEN);
-            lv_label_set_text_fmt(hrspot_progress, "%.1fs", st.duration_ms / 1000.0f);
-            lv_label_set_text_fmt(hrspot_result, "%u bpm  %u%%", st.bpm, st.spo2);
-            lv_label_set_text(hrspot_quality, quality_str(st.quality));
+            lv_label_set_text_fmt_safe(hrspot_progress, "%.1fs", st.duration_ms / 1000.0f);
+            lv_label_set_text_fmt_safe(hrspot_result, "%u bpm  %u%%", st.bpm, st.spo2);
+            lv_label_set_text_safe(hrspot_quality, quality_str(st.quality));
             break;
         case SPOT_STATE_FAILED:
             lv_obj_add_flag(hrspot_instr, LV_OBJ_FLAG_HIDDEN);
-            lv_label_set_text(hrspot_progress, "Sin senal usable");
-            lv_label_set_text(hrspot_result, "");
-            lv_label_set_text(hrspot_quality, "Apoye bien el dedo");
+            lv_label_set_text_safe(hrspot_progress, "Sin senal usable");
+            lv_label_set_text_safe(hrspot_result, "");
+            lv_label_set_text_safe(hrspot_quality, "Apoye bien el dedo");
             break;
         case SPOT_STATE_ABORTED:
             lv_obj_add_flag(hrspot_instr, LV_OBJ_FLAG_HIDDEN);
-            lv_label_set_text(hrspot_progress, "Cancelado");
-            lv_label_set_text(hrspot_result, "");
-            lv_label_set_text(hrspot_quality, "");
+            lv_label_set_text_safe(hrspot_progress, "Cancelado");
+            lv_label_set_text_safe(hrspot_result, "");
+            lv_label_set_text_safe(hrspot_quality, "");
             break;
     }
 }
@@ -455,7 +494,7 @@ static void update_ecg_screen(void) {
     if (rec) {
         if (ecg_start_us == 0) ecg_start_us = esp_timer_get_time();
         uint32_t secs = (uint32_t)((esp_timer_get_time() - ecg_start_us) / 1000000ULL);
-        lv_label_set_text_fmt(ecg_timer, "%lu:%02lu",
+        lv_label_set_text_fmt_safe(ecg_timer, "%lu:%02lu",
                               (unsigned long)(secs / 60), (unsigned long)(secs % 60));
         lv_obj_add_flag(ecg_instr, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(ecg_timer, LV_OBJ_FLAG_HIDDEN);
@@ -535,6 +574,11 @@ static void menu_execute_selected(void) {
             esp_deep_sleep_enable_gpio_wakeup((1ULL << BTN_SELECT_PIN),
                                               ESP_GPIO_WAKEUP_GPIO_LOW);
             esp_deep_sleep_start();
+            break;
+        case 5: /* Tx IMU BLE */
+            imu_ble_tx_enabled = !imu_ble_tx_enabled;
+            lv_label_set_text_safe(menu_rows[5], imu_ble_tx_enabled ? "Tx IMU: ON" : "Tx IMU: OFF");
+            ESP_LOGI(TAG, "Menu: Tx IMU BLE = %s", imu_ble_tx_enabled ? "ON" : "OFF");
             break;
     }
 }
@@ -654,26 +698,34 @@ void gui_task(void *pvParameter) {
                 switch_to(SCREEN_ECG);
             }
 
-            if (xSemaphoreTake(xSensorDataMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
-                shared_sensor_data_t snap = sensor_data;
-                xSemaphoreGive(xSensorDataMutex);
+            /* Si la pantalla está apagada, no gastamos CPU actualizando la interfaz */
+            if (backlight_on) {
+                if (xSemaphoreTake(xSensorDataMutex, pdMS_TO_TICKS(20)) == pdTRUE) {
+                    shared_sensor_data_t snap = sensor_data;
+                    xSemaphoreGive(xSensorDataMutex);
 
-                switch (current_screen) {
-                    case SCREEN_HOME:     update_home_screen(&snap); break;
-                    case SCREEN_BIO:      update_bio_screen(&snap);  break;
-                    case SCREEN_HRSPOT:   update_hrspot_screen();    break;
-                    case SCREEN_ECG:      update_ecg_screen();       break;
-                    case SCREEN_MENU:     break;
-                    case SCREEN_MODE:     render_mode_active();      break;
-                    case SCREEN_SETTINGS: break;
-                    default: break;
+                    switch (current_screen) {
+                        case SCREEN_HOME:     update_home_screen(&snap); break;
+                        case SCREEN_BIO:      update_bio_screen(&snap);  break;
+                        case SCREEN_HRSPOT:   update_hrspot_screen();    break;
+                        case SCREEN_ECG:      update_ecg_screen();       break;
+                        case SCREEN_MENU:     break;
+                        case SCREEN_MODE:     render_mode_active();      break;
+                        case SCREEN_SETTINGS: break;
+                        default: break;
+                    }
                 }
-            }
 
-            lv_timer_handler();
+                lv_timer_handler();
+            }
             xSemaphoreGive(xGuiSemaphore);
         }
-        vTaskDelay(pdMS_TO_TICKS(33));
+        
+        /* 
+         * Si la pantalla está apagada, reducimos el frame-rate a 10 Hz (100ms) 
+         * Dejamos 30 Hz (33ms) cuando está encendida para mantener los menús fluidos.
+         */
+        vTaskDelay(pdMS_TO_TICKS(backlight_on ? 33 : 100));
     }
 }
 
@@ -689,13 +741,22 @@ void ecg_task(void *pvParameter) {
     int chunk_idx = 0;
     uint32_t sum = 0;
     int count = 0;
+    bool is_dma_running = false;
 
     while (1) {
         if (!ble_telemetry_is_ecg_mode_active()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
+            if (is_dma_running) {
+                ad8232_stop_dma();
+                is_dma_running = false;
+            }
+            vTaskDelay(pdMS_TO_TICKS(500)); /* Si no hay ECG, dormir profundamente este hilo */
             chunk_idx = 0; sum = 0; count = 0;
             continue;
+        } else if (!is_dma_running) {
+            ad8232_start_dma();
+            is_dma_running = true;
         }
+
         esp_err_t ret = adc_continuous_read(ad8232_get_adc_handle(), dma_buf,
                                             AD8232_READ_LEN, &ret_num, 10);
         if (ret == ESP_OK) {
@@ -752,7 +813,9 @@ void imu_task(void *pvParameter) {
                 imu_raw[3], imu_raw[4], imu_raw[5], now);
 
             /* Envío IMU directo (no agregado): SPORT 50Hz, NORMAL 25Hz, SAVER 12.5Hz */
-            ble_telemetry_send_imu(imu_raw, sizeof(imu_raw));
+            if (imu_ble_tx_enabled) {
+                ble_telemetry_send_imu(imu_raw, sizeof(imu_raw));
+            }
 
             if (xSemaphoreTake(xSensorDataMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
                 sensor_data.ax = imu_raw[0]; sensor_data.ay = imu_raw[1]; sensor_data.az = imu_raw[2];
@@ -999,6 +1062,11 @@ void perf_monitor_task(void *pvParameter) {
         vTaskGetRunTimeStats(runtime_buffer);
         ESP_LOGI("PERF", "=== Uso de CPU ===\n%s", runtime_buffer);
 #endif
+
+#if CONFIG_PM_PROFILING
+        ESP_LOGI("PERF", "=== Power Manager Locks ===");
+        esp_pm_dump_locks(stdout);   
+#endif
         
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
@@ -1006,6 +1074,18 @@ void perf_monitor_task(void *pvParameter) {
 
 void app_main(void) {
     ESP_LOGI(TAG, "=== INICIANDO ENTORNO TEST GENERAL ===");
+
+    /* Inicializar Power Management (Light Sleep Dinámico) */
+#if CONFIG_PM_ENABLE
+    esp_pm_config_esp32c3_t pm_config = {
+        .max_freq_mhz = 160,
+        .min_freq_mhz = 10,   /* Opcional, baja la velocidad si está ocioso pero no durmiendo */
+        .light_sleep_enable = true
+    };
+    if (esp_pm_configure(&pm_config) == ESP_OK) {
+        ESP_LOGI(TAG, "Power Management: Automático Light Sleep HABILIADO!");
+    }
+#endif
 
     /* Bajar verbosidad del stack BLE (tags más comunes) */
     esp_log_level_set("NimBLE",     ESP_LOG_WARN);
@@ -1041,8 +1121,7 @@ void app_main(void) {
     if (max30102_init_hrm() != ESP_OK) ESP_LOGW(TAG, "MAX30102 ausente");
 
     if (ad8232_init_dma() == ESP_OK) {
-        ad8232_start_dma();
-        ESP_LOGI(TAG, "AD8232 DMA OK");
+        ESP_LOGI(TAG, "AD8232 DMA configurado (No iniciado, modo bajo consumo activo)");
     } else {
         ESP_LOGW(TAG, "AD8232 ausente");
     }
