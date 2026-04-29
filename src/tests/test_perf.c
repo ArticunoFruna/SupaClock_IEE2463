@@ -1,4 +1,4 @@
-#ifdef ENV_TEST_GENERAL
+#ifdef ENV_TEST_PERF
 
 #include <stdio.h>
 #include <string.h>
@@ -807,6 +807,13 @@ void hrm_task(void *pvParameter) {
         const power_profile_t *p = power_get_profile();
         bool continuous = (p->hrm_auto_period_ms == 0);
 
+        // Si nunca ha medido, tomamos una medición rápida
+        static bool has_measured_once = false;
+        if (!continuous && !has_measured_once) {
+            has_measured_once = true;
+            s_last_auto_spot_ms = now_ms() - p->hrm_auto_period_ms; // Forzar que arranque la primera vez
+        }
+
         max30102_spot_status_t spot_st;
         max30102_spot_get_status(&spot_st);
         bool spot_active = (spot_st.state == SPOT_STATE_SETTLING ||
@@ -977,6 +984,22 @@ void ble_tx_task(void *pvParameter) {
  *  app_main
  * ═══════════════════════════════════════════════════════════════════ */
 
+void perf_monitor_task(void *pvParameter) {
+    while(1) {
+        ESP_LOGI("PERF", "--- Rendimiento ---");
+        ESP_LOGI("PERF", "Heap Libre: %lu bytes", (unsigned long)esp_get_free_heap_size());
+        ESP_LOGI("PERF", "Heap Min Libre: %lu bytes", (unsigned long)esp_get_minimum_free_heap_size());
+        
+#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
+        char stats_buffer[512];
+        vTaskList(stats_buffer);
+        ESP_LOGI("PERF", "=== Lista de Tareas ===\n%s", stats_buffer);
+#endif
+        
+        vTaskDelay(pdMS_TO_TICKS(10000));
+    }
+}
+
 void app_main(void) {
     ESP_LOGI(TAG, "=== INICIANDO ENTORNO TEST GENERAL ===");
 
@@ -1042,6 +1065,7 @@ void app_main(void) {
     xTaskCreate(system_task, "system_task", 4096, NULL, 3, NULL);
     xTaskCreate(ble_tx_task, "ble_tx_task", 3072, NULL, 4, NULL);
     xTaskCreate(ecg_task,    "ecg_task",    4096, NULL, 7, NULL);
+    xTaskCreate(perf_monitor_task, "perf_task", 4096, NULL, 2, NULL);
 
     ESP_LOGI(TAG, "=== SISTEMA INICIADO ===");
 }

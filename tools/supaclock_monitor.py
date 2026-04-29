@@ -50,7 +50,7 @@ CMD_CHR_UUID   = "0000FF04-0000-1000-8000-00805F9B34FB"
 class BleWorker(QObject):
     """Runs Bleak in a daemon thread, emits Qt signals on data arrival."""
     imu_received    = pyqtSignal(tuple)
-    sensor_received = pyqtSignal(tuple)
+    sensor_received = pyqtSignal(dict)
     ecg_received    = pyqtSignal(tuple)
     status_changed  = pyqtSignal(str)
 
@@ -109,13 +109,55 @@ class BleWorker(QObject):
             self.imu_received.emit(struct.unpack('<hhhhhh', data))
 
     def _on_sensor(self, _sender, data):
-        if len(data) == 13:
-            self.sensor_received.emit(struct.unpack('<hHIHBBB', data))
-        elif len(data) == 11:
-            # Compatibilidad con firmware anterior (sin HR/SpO2)
-            t, hw, sw, mv, soc = struct.unpack('<hHIHB', data)
-            self.sensor_received.emit((t, hw, sw, mv, soc, 0, 0))
+        # El paquete ahora usa TLV
+        # Header: u32 boot_ts_ms (4 bytes), u8 power_mode (1 byte), u8 payload_len (1 byte) = 6 bytes
+        if len(data) < 6:
+            return
             
+        boot_ts_ms, power_mode, payload_len = struct.unpack('<IBB', data[:6])
+        offset = 6
+        
+        updates = {}
+
+        # Parsear records TLV
+        while offset + 2 <= len(data) and offset + 2 <= 6 + payload_len:
+            tlv_type = data[offset]
+            tlv_len  = data[offset + 1]
+            offset += 2
+            
+            if offset + tlv_len > len(data):
+                break
+                
+            payload = data[offset : offset + tlv_len]
+            offset += tlv_len
+            
+            if tlv_type == 0x01 and tlv_len == 4:     # BLE_TLV_TYPE_HR
+                delta_ms, hr_bpm, quality = struct.unpack('<HBB', payload)
+                updates['hr_bpm'] = hr_bpm
+            elif tlv_type == 0x02 and tlv_len == 4:   # BLE_TLV_TYPE_SPO2
+                delta_ms, spo2_pct, quality = struct.unpack('<HBB', payload)
+                updates['spo2_pct'] = spo2_pct
+            elif tlv_type == 0x03 and tlv_len == 4:   # BLE_TLV_TYPE_TEMP
+                delta_ms, temp_x100 = struct.unpack('<Hh', payload)
+                updates['temp_c'] = temp_x100 / 100.0
+            elif tlv_type == 0x04 and tlv_len == 5:   # BLE_TLV_TYPE_BAT
+                delta_ms, bat_mv, bat_soc = struct.unpack('<HHB', payload)
+                updates['bat_mv'] = bat_mv
+                updates['bat_soc'] = bat_soc
+            elif tlv_type == 0x05 and tlv_len == 4:   # BLE_TLV_TYPE_STEPS
+                total_steps = struct.unpack('<I', payload)[0]
+                updates['steps_sw'] = total_steps
+            elif tlv_type == 0x06 and tlv_len == 1:   # BLE_TLV_TYPE_MODE_EVT
+                pass # ignorado
+            elif tlv_type == 0x07 and tlv_len == 6:   # BLE_TLV_TYPE_SPOT_RESULT
+                bpm, spo2, dur_ms, quality, aborted = struct.unpack('<BBHBB', payload)
+                if not aborted:
+                    updates['hr_bpm'] = bpm
+                    updates['spo2_pct'] = spo2
+
+        if updates:
+            self.sensor_received.emit(updates)
+
     def _on_ecg(self, _sender, data):
         # 10 samples of 16-bit int = 20 bytes
         if len(data) == 20:
@@ -415,19 +457,16 @@ class SupaClockMonitor(QMainWindow):
             ])
 
     def _on_sensor(self, vals):
-        temp_x100, steps_hw, steps_sw, bat_mv, bat_soc, hr_bpm, spo2_pct = vals
-        temp_c = temp_x100 / 100.0
+        self.sensor_cache.update(vals)
+        
+        s = self.sensor_cache
+        
+        self.card_temp[1].setText(f"{s.get('temp_c', 0):.2f} °C")
+        self.card_bat[1].setText(f"{s.get('bat_mv', 0) / 1000.0:.2f} V / {s.get('bat_soc', 0)}%")
+        self.card_steps[1].setText(f"SW {s.get('steps_sw', 0)}  |  HW {s.get('steps_hw', 0)}")
 
-        self.sensor_cache.update({
-            'temp_c': temp_c, 'steps_hw': steps_hw,
-            'steps_sw': steps_sw, 'bat_mv': bat_mv, 'bat_soc': bat_soc,
-            'hr_bpm': hr_bpm, 'spo2_pct': spo2_pct
-        })
-
-        self.card_temp[1].setText(f"{temp_c:.2f} °C")
-        self.card_bat[1].setText(f"{bat_mv / 1000.0:.2f} V / {bat_soc}%")
-        self.card_steps[1].setText(f"SW {steps_sw}  |  HW {steps_hw}")
-
+        hr_bpm = s.get('hr_bpm', 0)
+        spo2_pct = s.get('spo2_pct', 0)
         hr_str = f"{hr_bpm} bpm" if hr_bpm > 0 else "-- bpm"
         sp_str = f"{spo2_pct}%"  if spo2_pct > 0 else "--%"
         self.card_hrm[1].setText(f"{hr_str}  |  {sp_str}")
