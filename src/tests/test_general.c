@@ -807,6 +807,13 @@ void hrm_task(void *pvParameter) {
         const power_profile_t *p = power_get_profile();
         bool continuous = (p->hrm_auto_period_ms == 0);
 
+        // Si nunca ha medido, tomamos una medición rápida
+        static bool has_measured_once = false;
+        if (!continuous && !has_measured_once) {
+            has_measured_once = true;
+            s_last_auto_spot_ms = now_ms() - p->hrm_auto_period_ms; // Forzar que arranque la primera vez
+        }
+
         max30102_spot_status_t spot_st;
         max30102_spot_get_status(&spot_st);
         bool spot_active = (spot_st.state == SPOT_STATE_SETTLING ||
@@ -977,8 +984,36 @@ void ble_tx_task(void *pvParameter) {
  *  app_main
  * ═══════════════════════════════════════════════════════════════════ */
 
+void perf_monitor_task(void *pvParameter) {
+    while(1) {
+        ESP_LOGI("PERF", "--- Rendimiento ---");
+        ESP_LOGI("PERF", "Heap Libre: %lu bytes", (unsigned long)esp_get_free_heap_size());
+        ESP_LOGI("PERF", "Heap Min Libre: %lu bytes", (unsigned long)esp_get_minimum_free_heap_size());
+        
+#if 1
+        char stats_buffer[1024];
+        vTaskList(stats_buffer);
+        ESP_LOGI("PERF", "=== Lista de Tareas (Estado, Prioridad, Pila (Libre), Task_Num) ===\n%s", stats_buffer);
+        
+        char runtime_buffer[1024];
+        vTaskGetRunTimeStats(runtime_buffer);
+        ESP_LOGI("PERF", "=== Uso de CPU ===\n%s", runtime_buffer);
+#endif
+        
+        vTaskDelay(pdMS_TO_TICKS(10000));
+    }
+}
+
 void app_main(void) {
     ESP_LOGI(TAG, "=== INICIANDO ENTORNO TEST GENERAL ===");
+
+    /* Bajar verbosidad del stack BLE (tags más comunes) */
+    esp_log_level_set("NimBLE",     ESP_LOG_WARN);
+    esp_log_level_set("NimBLE_GAP", ESP_LOG_WARN);
+    esp_log_level_set("BLE_GAP",    ESP_LOG_WARN);
+    esp_log_level_set("BLE_GATT",   ESP_LOG_WARN);
+    esp_log_level_set("BTDM_INIT",  ESP_LOG_WARN);
+    esp_log_level_set("phy_init",   ESP_LOG_WARN);
 
     /* NVS para persistir modo y settings */
     esp_err_t err = nvs_flash_init();
@@ -1040,8 +1075,9 @@ void app_main(void) {
     xTaskCreate(imu_task,    "imu_task",    4096, NULL, 6, NULL);
     xTaskCreate(hrm_task,    "hrm_task",    4096, NULL, 5, NULL);
     xTaskCreate(system_task, "system_task", 4096, NULL, 3, NULL);
-    xTaskCreate(ble_tx_task, "ble_tx_task", 3072, NULL, 4, NULL);
+    xTaskCreate(ble_tx_task, "ble_tx_task", 4096, NULL, 4, NULL);  /* +1024: el HWM medido era 960 B */
     xTaskCreate(ecg_task,    "ecg_task",    4096, NULL, 7, NULL);
+    xTaskCreate(perf_monitor_task, "perf_task", 6144, NULL, 2, NULL); /* vTaskList+RunTimeStats consumen ~3.8 KB */
 
     ESP_LOGI(TAG, "=== SISTEMA INICIADO ===");
 }
