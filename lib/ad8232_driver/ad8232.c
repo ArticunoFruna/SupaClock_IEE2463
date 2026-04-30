@@ -50,7 +50,7 @@ esp_err_t ad8232_start_dma(void) {
     return ESP_ERR_INVALID_STATE;
 
   adc_continuous_handle_cfg_t adc_config = {
-      .max_store_buf_size = 2048,
+      .max_store_buf_size = 4096,
       .conv_frame_size = AD8232_READ_LEN,
   };
   esp_err_t ret = adc_continuous_new_handle(&adc_config, &adc_handle);

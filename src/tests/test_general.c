@@ -76,14 +76,15 @@ typedef enum {
 } ui_screen_t;
 #define SCREEN_CYCLE_COUNT 5  /* HOME..MENU ciclan */
 
-#define MENU_ITEM_COUNT 6
+#define MENU_ITEM_COUNT 7
 static const char *MENU_LABELS[MENU_ITEM_COUNT] = {
-    "Modo Energia",
-    "Auto-off Pant.",
-    "Reiniciar Pasos",
-    "Vincular BLE",
-    "Apagar",
-    "Tx IMU: ON",
+    LV_SYMBOL_SETTINGS " Modo Energia",
+    LV_SYMBOL_EYE_CLOSE " Auto-off Pant.",
+    LV_SYMBOL_REFRESH " Reiniciar Pasos",
+    LV_SYMBOL_BLUETOOTH " Vincular BLE",
+    LV_SYMBOL_POWER " Apagar",
+    LV_SYMBOL_WIFI " Tx IMU: ON",
+    LV_SYMBOL_CHARGE " Reset Bateria",
 };
 
 #define MODE_ITEM_COUNT 3
@@ -115,7 +116,7 @@ static int64_t ecg_start_us = 0;
 static lv_obj_t *scr_obj[SCREEN_COUNT];
 
 /* Labels Home */
-static lv_obj_t *home_clock, *home_steps, *home_bat, *home_hr, *home_act, *home_mode;
+static lv_obj_t *home_clock, *home_steps, *home_bat, *home_bat_arc, *home_hr, *home_act, *home_mode;
 /* Labels Bio */
 static lv_obj_t *bio_hr, *bio_spo2, *bio_temp, *bio_status, *bio_age_hr, *bio_age_spo2;
 /* Labels HRSpot */
@@ -175,6 +176,19 @@ static void display_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_
 
 /* ─────────────────── Helpers de construcción ─────────────────── */
 
+static lv_obj_t * create_card(lv_obj_t * parent, int x, int y, int w, int h) {
+    lv_obj_t * card = lv_obj_create(parent);
+    lv_obj_set_size(card, w, h);
+    lv_obj_align(card, LV_ALIGN_TOP_LEFT, x, y);
+    lv_obj_set_style_bg_color(card, lv_color_hex(0x1a1a1a), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(card, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_radius(card, 10, LV_PART_MAIN);
+    lv_obj_set_style_border_width(card, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(card, 0, LV_PART_MAIN);
+    lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
+    return card;
+}
+
 static lv_obj_t *make_screen(const char *title, uint32_t title_color) {
     lv_obj_t *scr = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(scr, lv_color_hex(0x000000), LV_PART_MAIN);
@@ -209,33 +223,61 @@ static void build_home(void) {
     lv_obj_t *s = scr_obj[SCREEN_HOME];
 
     home_clock = make_label(s, &lv_font_montserrat_40, 0xFFFFFF,
-                            LV_ALIGN_TOP_MID, 0, 35, "--:--");
+                            LV_ALIGN_TOP_MID, 0, 30, "--:--");
+    lv_label_set_recolor(home_clock, true);
 
     home_mode  = make_label(s, &lv_font_montserrat_14, 0x8B949E,
-                            LV_ALIGN_TOP_MID, 0, 90, "MODE: SPORT");
+                            LV_ALIGN_TOP_MID, 0, 80, "MODE: SPORT");
 
-    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_LEFT,  15, 120, "STEPS");
-    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_RIGHT,-15, 120, "BATTERY");
-    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_LEFT,  15, 190, "HR");
-    make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_RIGHT,-15, 190, "ACTIVITY");
+    int card_w = 100;
+    int card_h = 70;
+    int pad_x = 15;
+    int pad_y = 110;
+    int gap = 10;
 
-    home_steps = make_label(s, &lv_font_montserrat_20, 0x3FB950, LV_ALIGN_TOP_LEFT, 15, 140, "0");
-    home_bat   = make_label(s, &lv_font_montserrat_20, 0xF0C34E, LV_ALIGN_TOP_RIGHT,-15, 140, "--%");
-    home_hr    = make_label(s, &lv_font_montserrat_20, 0xFF3B6E, LV_ALIGN_TOP_LEFT, 15, 210, "-- bpm");
-    home_act   = make_label(s, &lv_font_montserrat_20, 0x3F9BFF, LV_ALIGN_TOP_RIGHT,-15, 210, "Reposo");
+    lv_obj_t * card_steps = create_card(s, pad_x, pad_y, card_w, card_h);
+    lv_obj_t * card_bat   = create_card(s, pad_x + card_w + gap, pad_y, card_w, card_h);
+    lv_obj_t * card_hr    = create_card(s, pad_x, pad_y + card_h + gap, card_w, card_h);
+    lv_obj_t * card_act   = create_card(s, pad_x + card_w + gap, pad_y + card_h + gap, card_w, card_h);
+
+    home_steps = make_label(card_steps, &lv_font_montserrat_20, 0x3FB950, LV_ALIGN_CENTER, 0, 0, "#ffffff " LV_SYMBOL_LIST "# 0");
+    lv_label_set_recolor(home_steps, true);
+
+    home_bat_arc = lv_arc_create(card_bat);
+    lv_obj_set_size(home_bat_arc, 60, 60);
+    lv_obj_align(home_bat_arc, LV_ALIGN_CENTER, 0, 0);
+    lv_arc_set_rotation(home_bat_arc, 270);
+    lv_arc_set_bg_angles(home_bat_arc, 0, 360);
+    lv_obj_remove_style(home_bat_arc, NULL, LV_PART_KNOB); // No knob
+    lv_obj_clear_flag(home_bat_arc, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_arc_width(home_bat_arc, 6, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(home_bat_arc, 6, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_color(home_bat_arc, lv_color_hex(0x333333), LV_PART_MAIN);
+    lv_obj_set_style_arc_color(home_bat_arc, lv_color_hex(0x3FB950), LV_PART_INDICATOR);
+    
+    home_bat = make_label(home_bat_arc, &lv_font_montserrat_14, 0xFFFFFF, LV_ALIGN_CENTER, 0, 0, "--%");
+
+    home_hr = make_label(card_hr, &lv_font_montserrat_20, 0xFF3B6E, LV_ALIGN_CENTER, 0, 0, "#ffffff " LV_SYMBOL_TINT "# --");
+    lv_label_set_recolor(home_hr, true);
+
+    home_act = make_label(card_act, &lv_font_montserrat_14, 0x3F9BFF, LV_ALIGN_CENTER, 0, 0, "#ffffff " LV_SYMBOL_CHARGE "# --");
+    lv_label_set_recolor(home_act, true);
 }
 
 static void build_bio(void) {
     scr_obj[SCREEN_BIO] = make_screen("BIOMETRIA", 0x00D2FF);
     lv_obj_t *s = scr_obj[SCREEN_BIO];
 
-    bio_hr     = make_label(s, &lv_font_montserrat_20, 0xFF3B6E, LV_ALIGN_TOP_LEFT, 20, 50,  "HR:   -- bpm");
+    bio_hr     = make_label(s, &lv_font_montserrat_20, 0xFF3B6E, LV_ALIGN_TOP_LEFT, 20, 50,  "#ffffff " LV_SYMBOL_TINT "# -- bpm");
+    lv_label_set_recolor(bio_hr, true);
     bio_age_hr = make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_LEFT, 20, 78, "");
 
-    bio_spo2     = make_label(s, &lv_font_montserrat_20, 0x3F9BFF, LV_ALIGN_TOP_LEFT, 20, 105, "SpO2: --%");
+    bio_spo2     = make_label(s, &lv_font_montserrat_20, 0x3F9BFF, LV_ALIGN_TOP_LEFT, 20, 105, "#ffffff " LV_SYMBOL_TINT "# --%");
+    lv_label_set_recolor(bio_spo2, true);
     bio_age_spo2 = make_label(s, &lv_font_montserrat_14, 0x8B949E, LV_ALIGN_TOP_LEFT, 20, 133, "");
 
-    bio_temp   = make_label(s, &lv_font_montserrat_20, 0xF0883E, LV_ALIGN_TOP_LEFT, 20, 160, "Temp: --.- C");
+    bio_temp   = make_label(s, &lv_font_montserrat_20, 0xF0883E, LV_ALIGN_TOP_LEFT, 20, 160, "#ffffff " LV_SYMBOL_WARNING "# --.- C");
+    lv_label_set_recolor(bio_temp, true);
     bio_status = make_label(s, &lv_font_montserrat_20, 0x3FB950, LV_ALIGN_TOP_LEFT, 20, 210, "Estado: --");
 }
 
@@ -330,8 +372,15 @@ static void build_settings(void) {
 
 /* ─────────────────── Render de selección ─────────────────── */
 
-static void render_list_selection(lv_obj_t **rows, int count, int sel) {
+static void render_list_selection(lv_obj_t **rows, int count, int sel, int y_base, int y_step, int max_vis) {
+    int offset = 0;
+    if (sel >= max_vis) {
+        offset = (sel - max_vis + 1) * y_step;
+    }
     for (int i = 0; i < count; i++) {
+        if (y_step > 0) {
+            lv_obj_align(rows[i], LV_ALIGN_TOP_MID, 0, y_base + i * y_step - offset);
+        }
         if (i == sel) {
             lv_obj_set_style_bg_color(rows[i], lv_color_hex(0x1F6FEB), LV_PART_MAIN);
             lv_obj_set_style_bg_opa(rows[i], LV_OPA_COVER, LV_PART_MAIN);
@@ -359,22 +408,33 @@ static void render_mode_active(void) {
 
 static void update_home_screen(const shared_sensor_data_t *d) {
     uint32_t s = (uint32_t)(esp_timer_get_time() / 1000000ULL);
-    lv_label_set_text_fmt_safe(home_clock, "%lu:%02lu",
+    lv_label_set_text_fmt_safe(home_clock, "#ffffff %lu#:#00d2ff %02lu#",
                           (unsigned long)((s / 60) % 100),
                           (unsigned long)(s % 60));
 
     lv_label_set_text_fmt_safe(home_mode, "MODE: %s", power_mode_name(power_get_mode()));
-    lv_label_set_text_fmt_safe(home_steps, "%lu", (unsigned long)d->steps_sw);
-    lv_label_set_text_fmt_safe(home_bat, "%d%%", (int)d->battery_soc);
+    lv_label_set_text_fmt_safe(home_steps, "#ffffff " LV_SYMBOL_LIST "# %lu", (unsigned long)d->steps_sw);
+    
+    int bat_pct = (int)d->battery_soc;
+    if (bat_pct < 0) bat_pct = 0;
+    if (bat_pct > 100) bat_pct = 100;
+    lv_arc_set_value(home_bat_arc, bat_pct);
+    lv_label_set_text_fmt_safe(home_bat, "%d%%", bat_pct);
+    uint32_t bat_color = (bat_pct > 20) ? 0x3FB950 : 0xFF0000;
+    lv_obj_set_style_arc_color(home_bat_arc, lv_color_hex(bat_color), LV_PART_INDICATOR);
 
     if (d->finger_present && d->hr_bpm > 0) {
-        lv_label_set_text_fmt_safe(home_hr, "%u bpm", d->hr_bpm);
+        lv_label_set_text_fmt_safe(home_hr, "#ffffff " LV_SYMBOL_TINT "# %u", d->hr_bpm);
     } else {
-        lv_label_set_text_safe(home_hr, "-- bpm");
+        lv_label_set_text_safe(home_hr, "#ffffff " LV_SYMBOL_TINT "# --");
     }
 
     int32_t amag = (int32_t)d->ax * d->ax + (int32_t)d->ay * d->ay + (int32_t)d->az * d->az;
-    lv_label_set_text_safe(home_act, (amag > 300000000L) ? "Activo" : "Reposo");
+    if (amag > 300000000L) {
+        lv_label_set_text_safe(home_act, "#ffffff " LV_SYMBOL_CHARGE "# Activo");
+    } else {
+        lv_label_set_text_safe(home_act, "#ffffff " LV_SYMBOL_CHARGE "# Reposo");
+    }
 }
 
 /* Devuelve "ahora" / "hace 12s" / "hace 5m" según la edad */
@@ -391,27 +451,27 @@ static void update_bio_screen(const shared_sensor_data_t *d) {
     char age[24];
 
     if (d->hr_bpm > 0) {
-        lv_label_set_text_fmt_safe(bio_hr, "HR:   %u bpm", d->hr_bpm);
+        lv_label_set_text_fmt_safe(bio_hr, "#ffffff " LV_SYMBOL_TINT "# %u bpm", d->hr_bpm);
         format_age(age, sizeof(age), d->hr_updated_ms);
         lv_label_set_text_safe(bio_age_hr, age);
     } else {
-        lv_label_set_text_safe(bio_hr, "HR:   -- bpm");
+        lv_label_set_text_safe(bio_hr, "#ffffff " LV_SYMBOL_TINT "# -- bpm");
         lv_label_set_text_safe(bio_age_hr, "");
     }
 
     if (d->spo2_pct > 0) {
-        lv_label_set_text_fmt_safe(bio_spo2, "SpO2: %u%%", d->spo2_pct);
+        lv_label_set_text_fmt_safe(bio_spo2, "#ffffff " LV_SYMBOL_TINT "# %u%%", d->spo2_pct);
         format_age(age, sizeof(age), d->spo2_updated_ms);
         lv_label_set_text_safe(bio_age_spo2, age);
     } else {
-        lv_label_set_text_safe(bio_spo2, "SpO2: --%");
+        lv_label_set_text_safe(bio_spo2, "#ffffff " LV_SYMBOL_TINT "# --%");
         lv_label_set_text_safe(bio_age_spo2, "");
     }
 
     int t_int  = (int)d->temperature_c;
     int t_frac = (int)((d->temperature_c - t_int) * 10);
     if (t_frac < 0) t_frac = -t_frac;
-    lv_label_set_text_fmt_safe(bio_temp, "Temp: %d.%d C", t_int, t_frac);
+    lv_label_set_text_fmt_safe(bio_temp, "#ffffff " LV_SYMBOL_WARNING "# %d.%d C", t_int, t_frac);
 
     const char *st;
     uint32_t col;
@@ -512,9 +572,9 @@ static void update_ecg_screen(void) {
 static void switch_to(ui_screen_t s) {
     current_screen = s;
     lv_scr_load(scr_obj[s]);
-    if (s == SCREEN_MENU)     render_list_selection(menu_rows,     MENU_ITEM_COUNT,     menu_selection);
-    if (s == SCREEN_MODE)     { render_mode_active(); render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection); }
-    if (s == SCREEN_SETTINGS) { render_settings_labels(); render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection); }
+    if (s == SCREEN_MENU)     render_list_selection(menu_rows,     MENU_ITEM_COUNT,     menu_selection, 35, 40, 5);
+    if (s == SCREEN_MODE)     { render_mode_active(); render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 60, 55, 4); }
+    if (s == SCREEN_SETTINGS) { render_settings_labels(); render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4); }
     /* Al salir del HRSPOT en estado IDLE, asegúrate de cancelar */
     if (s != SCREEN_HRSPOT) {
         max30102_spot_status_t st;
@@ -545,7 +605,7 @@ static void cycle_settings_value(void) {
     idx = (idx + 1) % AUTO_OFF_VALUES_COUNT;
     power_set_display_off_s((power_mode_t)settings_selection, AUTO_OFF_VALUES[idx]);
     render_settings_labels();
-    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection);
+    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4);
 }
 
 static void menu_execute_selected(void) {
@@ -580,6 +640,11 @@ static void menu_execute_selected(void) {
             lv_label_set_text_safe(menu_rows[5], imu_ble_tx_enabled ? "Tx IMU: ON" : "Tx IMU: OFF");
             ESP_LOGI(TAG, "Menu: Tx IMU BLE = %s", imu_ble_tx_enabled ? "ON" : "OFF");
             break;
+        case 6: /* Reset Bateria */
+            max17048_reset();
+            ESP_LOGI(TAG, "Menu: Bateria reseteada (POR + Quick Start)");
+            switch_to(SCREEN_HOME);
+            break;
     }
 }
 
@@ -591,18 +656,18 @@ static void handle_button(btn_event_t ev) {
             if (current_screen == SCREEN_MENU) {
                 if (menu_selection + 1 >= MENU_ITEM_COUNT) {
                     menu_selection = 0;
-                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection);
+                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 35, 40, 5);
                     switch_to(SCREEN_HOME);
                 } else {
                     menu_selection++;
-                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection);
+                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 35, 40, 5);
                 }
             } else if (current_screen == SCREEN_MODE) {
                 mode_selection = (mode_selection + 1) % MODE_ITEM_COUNT;
-                render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection);
+                render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 60, 55, 4);
             } else if (current_screen == SCREEN_SETTINGS) {
                 settings_selection = (settings_selection + 1) % SETTINGS_ITEM_COUNT;
-                render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection);
+                render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4);
             } else {
                 switch_to((current_screen + 1) % SCREEN_CYCLE_COUNT);
             }
@@ -648,9 +713,9 @@ static void build_ui(void) {
     build_menu();
     build_mode();
     build_settings();
-    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection);
-    render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection);
-    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection);
+    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 35, 40, 5);
+    render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 60, 55, 4);
+    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4);
     render_settings_labels();
     render_mode_active();
     lv_scr_load(scr_obj[SCREEN_HOME]);
@@ -758,7 +823,7 @@ void ecg_task(void *pvParameter) {
         }
 
         esp_err_t ret = adc_continuous_read(ad8232_get_adc_handle(), dma_buf,
-                                            AD8232_READ_LEN, &ret_num, 10);
+                                            AD8232_READ_LEN, &ret_num, pdMS_TO_TICKS(100));
         if (ret == ESP_OK) {
             for (int i = 0; i < ret_num; i += sizeof(adc_digi_output_data_t)) {
                 adc_digi_output_data_t *p = (adc_digi_output_data_t*)&dma_buf[i];
@@ -774,7 +839,6 @@ void ecg_task(void *pvParameter) {
                 }
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(1));
     }
 }
 
@@ -982,13 +1046,23 @@ void system_task(void *pvParameter) {
 
         if (now - last_bat_ms >= p->bat_period_ms) {
             uint16_t bat_mv = 0;
-            float bat_soc = 0.0f;
+            float bat_soc_raw = 0.0f;
             max17048_get_voltage(&bat_mv);
-            max17048_get_soc(&bat_soc);
+            esp_err_t err_soc = max17048_get_soc(&bat_soc_raw);
+
+            // Filtro EMA para SOC
+            static float bat_soc_filtered = -1.0f;
+            if (err_soc == ESP_OK) {
+                if (bat_soc_filtered < 0.0f) {
+                    bat_soc_filtered = bat_soc_raw;
+                } else {
+                    bat_soc_filtered = 0.1f * bat_soc_raw + 0.9f * bat_soc_filtered;
+                }
+            }
 
             if (xSemaphoreTake(xSensorDataMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
                 sensor_data.battery_mv     = bat_mv;
-                sensor_data.battery_soc    = bat_soc;
+                sensor_data.battery_soc    = (bat_soc_filtered >= 0.0f) ? bat_soc_filtered : 0.0f;
                 sensor_data.bat_updated_ms = now;
                 xSemaphoreGive(xSensorDataMutex);
             }
@@ -996,7 +1070,7 @@ void system_task(void *pvParameter) {
             uint8_t rec[5] = {0};
             /* delta_ms relativo al header (pongo 0; el header trae el ts base) */
             memcpy(&rec[2], &bat_mv, 2);
-            rec[4] = (uint8_t)bat_soc;
+            rec[4] = (uint8_t)((bat_soc_filtered >= 0.0f) ? bat_soc_filtered : 0.0f);
             ble_tx_push(BLE_TLV_TYPE_BAT, rec, sizeof(rec), 0xFF);
             last_bat_ms = now;
         }

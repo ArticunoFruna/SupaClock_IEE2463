@@ -54,6 +54,17 @@ void fuelgauge_task(void *arg) {
     while (1) {
         err = max17048_get_voltage(&volt_mv);
         esp_err_t err_soc = max17048_get_soc(&soc_percent);
+
+        // Filtro EMA para SOC
+        static float soc_filtered = -1.0f;
+        if (err_soc == ESP_OK) {
+            if (soc_filtered < 0.0f) {
+                soc_filtered = soc_percent;
+            } else {
+                soc_filtered = 0.1f * soc_percent + 0.9f * soc_filtered;
+            }
+            soc_percent = soc_filtered;
+        }
         
         if (pdTRUE == xSemaphoreTake(xGuiSemaphore, portMAX_DELAY)) {
             if (err == ESP_OK && err_soc == ESP_OK) {

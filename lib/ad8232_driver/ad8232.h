@@ -25,7 +25,7 @@
 #define AD8232_TARGET_FREQ_HZ 500
 
 // Tamaño del frame de DMA (en bytes) que recibiremos en cada interrupción
-#define AD8232_READ_LEN 256
+#define AD8232_READ_LEN 1024
 
 /**
  * @brief Inicializa el módulo AD8232. Configura los GPIOs (SDN, LO+, LO-)
