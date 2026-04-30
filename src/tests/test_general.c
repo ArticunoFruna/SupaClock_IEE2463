@@ -112,6 +112,13 @@ static uint8_t mode_selection = 0;
 static uint8_t settings_selection = 0;
 static int64_t ecg_start_us = 0;
 
+/* PM lock para ECG: bloquea light sleep mientras el ADC continuo está activo,
+ * evita que el reloj del APB se reconfigure entre frames del DMA y produzca
+ * los escalones cuadrados sobre la traza. */
+#if CONFIG_PM_ENABLE
+static esp_pm_lock_handle_t s_ecg_pm_lock = NULL;
+#endif
+
 /* Screens */
 static lv_obj_t *scr_obj[SCREEN_COUNT];
 
@@ -813,11 +820,17 @@ void ecg_task(void *pvParameter) {
             if (is_dma_running) {
                 ad8232_stop_dma();
                 is_dma_running = false;
+#if CONFIG_PM_ENABLE
+                if (s_ecg_pm_lock) esp_pm_lock_release(s_ecg_pm_lock);
+#endif
             }
             vTaskDelay(pdMS_TO_TICKS(500)); /* Si no hay ECG, dormir profundamente este hilo */
             chunk_idx = 0; sum = 0; count = 0;
             continue;
         } else if (!is_dma_running) {
+#if CONFIG_PM_ENABLE
+            if (s_ecg_pm_lock) esp_pm_lock_acquire(s_ecg_pm_lock);
+#endif
             ad8232_start_dma();
             is_dma_running = true;
         }
@@ -1158,6 +1171,10 @@ void app_main(void) {
     };
     if (esp_pm_configure(&pm_config) == ESP_OK) {
         ESP_LOGI(TAG, "Power Management: Automático Light Sleep HABILIADO!");
+    }
+    if (esp_pm_lock_create(ESP_PM_NO_LIGHT_SLEEP, 0, "ecg", &s_ecg_pm_lock) != ESP_OK) {
+        ESP_LOGW(TAG, "ECG PM lock no se pudo crear — light sleep podría meter ruido al ECG");
+        s_ecg_pm_lock = NULL;
     }
 #endif
 

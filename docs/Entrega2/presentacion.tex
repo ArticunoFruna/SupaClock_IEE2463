@@ -128,7 +128,7 @@
         \begin{itemize}
             \item \textbf{BMS}: TP4056 (carga LiPo) + DW01A (protecci\'on sobre/sub-tensi\'on)
             \item \textbf{Fuel gauge}: MAX17048 reporta voltaje y SoC por I\textsuperscript{2}C
-            \item \textbf{Regulador (C3 SuperMini)}: LDO ME6211 \alert{\textbf{insuficiente}} para picos de radio + sensores
+            \item \textbf{Regulador (C3 SuperMini)}: LDO LLV8 \alert{\textbf{insuficiente}} para picos de radio + sensores
         \end{itemize}
         \vspace{0.2cm}
         \begin{alertblock}{Problema detectado}
@@ -278,6 +278,15 @@
     \end{columns}
 \end{frame}
 
+% ─── Slide 8.5 — ECG Pan-Tompkins Resultados ───
+\begin{frame}{Resultados de ECG Pan-Tompkins}
+    \begin{center}
+        \includegraphics[width=0.65\linewidth, keepaspectratio]{pan_tompkins_results_140907.png}
+        \vspace{0.2cm}\newline
+        \scriptsize\textit{An\'alisis Pan-Tompkins aplicado a los datos recolectados.}
+    \end{center}
+\end{frame}
+
 % ─── Slide 9 — Podómetro tiempo vs frecuencia ───
 \begin{frame}{Pod\'ometro: del dominio del tiempo al de la frecuencia}
     \begin{columns}[T]
@@ -344,7 +353,7 @@
 % ─── Slide 11 — BLE + monitor + base ML ───
 \begin{frame}{Stack BLE y herramienta de validaci\'on}
     \begin{columns}[T]
-        \column{0.50\textwidth}
+        \column{0.40\textwidth}
         \footnotesize
         \textbf{4 caracter\'isticas BLE} (GATT custom 0xFF00):
         \begin{itemize}\itemsep0pt
@@ -355,12 +364,8 @@
         \end{itemize}
         \vspace{0.1cm}
         El protocolo TLV permite agrupar muestras heterog\'eneas con timestamp, reduciendo el overhead BLE en SAVER.
-        \column{0.50\textwidth}
-        \fcolorbox{black!30}{black!05}{\parbox{0.95\linewidth}{\centering
-            \vspace{0.4cm}
-            \scriptsize\textit{screenshot \texttt{supaclock\_monitor.py}\\(PyQt6 + bleak + pyqtgraph + OpenGL)\\(pendiente)}
-            \vspace{0.4cm}
-        }}
+        \column{0.60\textwidth}
+        \includegraphics[width=0.92\linewidth]{supaclock_monitor.png} 
         \vspace{0.1cm}
         \scriptsize
         \textbf{Figura 9}: \textit{\textbf{supaclock\_monitor.py} muestra biometría en vivo y graba CSV para entrenar clasificador CNN 1D.}
@@ -406,11 +411,11 @@
         \begin{tikzpicture}
         \begin{axis}[
             xbar,
-            width=\linewidth, height=3.6cm,
+            width=\linewidth, height=4.0cm,
             bar width=10pt,
             xmin=0, xmax=140,
             enlarge y limits=0.25,
-            symbolic y coords={Pant. off,Pant. on,Pico inicio,Antes pico},
+            symbolic y coords={Te\'orico,Pant. off,Pant. on,Pico inicio,Antes pico},
             ytick=data,
             tick label style={font=\tiny},
             xlabel={\tiny mA},
@@ -423,6 +428,7 @@
             (60,Pico inicio)
             (50,Pant. on)
             (20,Pant. off)
+            (15,Te\'orico)
         };
         \end{axis}
         \end{tikzpicture}
@@ -493,7 +499,7 @@
         \column{0.55\textwidth}
         \scriptsize
         \begin{enumerate}\itemsep0.05cm
-            \item \alert{\textbf{Brownout resuelto}}: Buck SGM6029 integrado ($\sim$800\,mA) reemplaza al LDO ME6211 ($\sim$300\,mA).
+            \item \alert{\textbf{Brownout resuelto}}: Buck SGM6029 integrado ($\sim$800\,mA) reemplaza al LDO LLV8 ($\sim$300\,mA).
             \item \textbf{Memoria para ML}: 512\,KB SRAM (vs 320 en C3) + PSRAM externa hasta 8\,MB.
             \item \textbf{ESP-NN con SIMD}: inferencia CNN 1D int8 \textbf{5--20\,ms} (S3) vs 50--200\,ms (C3).
             \item \textbf{Dual-core 240\,MHz}: separa ML del firmware sin contenci\'on con \texttt{ecg\_task} / \texttt{gui\_task}.
@@ -538,7 +544,7 @@
         \begin{itemize}\itemsep0pt
             \item \textbf{Entrada}: ventana 3\,s del IMU \(\rightarrow\) 6 canales \(\times\) 150 muestras
             \item \textbf{Arquitectura}: 2--3 capas Conv1D + GAP + Dense
-            \item \textbf{Salida}: 4--5 clases (reposo / caminar / correr / agitar mano / dormir)
+            \item \textbf{Salida}: 4 clases (correr / caminar / reposo / ca\'ida)
             \item Entrenamiento offline con CSV recolectados v\'ia \texttt{supaclock\_monitor.py}
             \item Despliegue en S3 v\'ia ESP-NN cuantizada int8
         \end{itemize}

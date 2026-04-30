@@ -41,24 +41,55 @@ def moving_window_integration(signal: np.ndarray, window_size: int = 15) -> np.n
         integrated[i] = (cumsum[i] - cumsum[i - window_size]) / window_size
     return integrated
 
-def detect_r_peaks(integrated: np.ndarray, original: np.ndarray, fs: float = 100.0) -> list[int]:
-    spki = np.max(integrated[:int(2 * fs)]) * 0.25
-    npki = np.mean(integrated[:int(2 * fs)]) * 0.5
-    threshold1 = npki + 0.25 * (spki - npki)
+def detect_r_peaks(integrated: np.ndarray, original: np.ndarray, raw_ecg: np.ndarray, fs: float = 100.0) -> list[int]:
+    # Use 95th percentile over the first 5 seconds to avoid single artifact spikes dominating spki
+    initial_window = min(len(integrated), int(5 * fs))
+    spki = np.percentile(integrated[:initial_window], 95) * 0.3
+    npki = np.mean(integrated[:initial_window]) * 0.5
+    
+    # Lower the threshold slightly to increase sensitivity
+    threshold1 = npki + 0.15 * (spki - npki)
 
     r_peaks = []
-    refractory_period = int(0.2 * fs)
-    last_peak = -refractory_period
+    # Increase refractory period to 250ms (typical for human heart rate up to 240 BPM)
+    refractory_period = int(0.25 * fs)
+    last_peak_aligned = -refractory_period
+    last_peak_integrated = -refractory_period
+    
+    # The integration window and filters introduce a delay. We search backwards 
+    # in the raw ECG to find the true peak.
+    search_window = int(0.15 * fs)
 
     for i in range(1, len(integrated) - 1):
         if integrated[i] > integrated[i - 1] and integrated[i] > integrated[i + 1]:
-            if integrated[i] > threshold1 and (i - last_peak) > refractory_period:
-                spki = 0.125 * integrated[i] + 0.875 * spki
-                r_peaks.append(i)
-                last_peak = i
+            # Peak in integrated signal found
+            if integrated[i] > threshold1 and (i - last_peak_integrated) > refractory_period:
+                # Align peak with raw signal
+                start_idx = max(0, i - search_window)
+                end_idx = min(len(raw_ecg), i + int(0.05 * fs))
+                
+                if end_idx > start_idx:
+                    local_max_idx = start_idx + np.argmax(raw_ecg[start_idx:end_idx])
+                else:
+                    local_max_idx = i
+                
+                # Check refractory period against the ACTUAL ALIGNED PEAK
+                if (local_max_idx - last_peak_aligned) > refractory_period:
+                    r_peaks.append(local_max_idx)
+                    last_peak_aligned = local_max_idx
+                    last_peak_integrated = i
+                    # Update SPKI based on integrated signal, but cap it so a massive artifact doesn't destroy sensitivity
+                    peak_val = min(integrated[i], 2.0 * spki)
+                    spki = 0.125 * peak_val + 0.875 * spki
+                else:
+                    # It was a false positive very close to the last one
+                    noise_val = min(integrated[i], 2.0 * npki)
+                    npki = 0.125 * noise_val + 0.875 * npki
             else:
-                npki = 0.125 * integrated[i] + 0.875 * npki
-            threshold1 = npki + 0.25 * (spki - npki)
+                noise_val = min(integrated[i], 2.0 * npki)
+                npki = 0.125 * noise_val + 0.875 * npki
+                
+            threshold1 = npki + 0.15 * (spki - npki)
 
     return r_peaks
 
@@ -71,7 +102,7 @@ def pan_tompkins(raw_ecg: list[float], fs: float = 100.0) -> dict:
     squared = squaring(derived)
     integrated = moving_window_integration(squared, window_size=int(0.15 * fs))
 
-    r_peaks = detect_r_peaks(integrated, filtered, fs)
+    r_peaks = detect_r_peaks(integrated, filtered, raw_ecg, fs)
 
     if len(r_peaks) < 2:
         return {"bpm": 0, "hrv": 0, "r_peaks": r_peaks, "rr_intervals": []}
@@ -100,49 +131,54 @@ def pan_tompkins(raw_ecg: list[float], fs: float = 100.0) -> dict:
 
 # ============================================================================
 
-csv_path = "/home/articunot/Documents/PlatformIO/Projects/SupaClock/tools/supaclock_ecg_20260427_171730.csv"
-df = pd.read_csv(csv_path)
-df = df.sort_values('timestamp_ms').reset_index(drop=True)
-
-raw_ecg = df['ecg_raw'].tolist()
-times = df['timestamp_ms'].values
-
-print(f"Cargadas {len(raw_ecg)} muestras del archivo CSV.")
-
-# Firmware is sending data at 500 Hz
-fs = 500.0
-
-# Process
-results = pan_tompkins(raw_ecg, fs=fs)
-
-print("Resultados del Algoritmo Pan-Tompkins:")
-print(f"  BPM: {results['bpm']}")
-print(f"  HRV (SDNN): {results['hrv']} ms")
-print(f"  Picos R detectados: {len(results['r_peaks'])}")
-
-plt.figure(figsize=(15, 10))
-
-plt.subplot(3, 1, 1)
-plt.plot(times, raw_ecg, label="Señal Original", color="#3fb950")
-if len(results['r_peaks']) > 0:
-    peak_times = [times[i] for i in results['r_peaks']]
-    peak_vals = [raw_ecg[i] for i in results['r_peaks']]
-    plt.plot(peak_times, peak_vals, "ro", markersize=8, label="Picos R")
-plt.title(f"ECG Raw - {results['bpm']} BPM")
-plt.legend()
-
-plt.subplot(3, 1, 2)
-plt.plot(times, results['filtered'], label="Bandpass Filtered", color="#f0883e")
-plt.title("Bandpass Filtered (5-15 Hz)")
-plt.legend()
-
-plt.subplot(3, 1, 3)
-plt.plot(times, results['integrated'], label="Moving Window Integration", color="#a371f7")
-plt.title("Integrated Signal (Thresholding)")
-plt.legend()
-
-plt.tight_layout()
-
-out_path = "/home/articunot/Documents/PlatformIO/Projects/SupaClock/tools/pan_tompkins_results.png"
-plt.savefig(out_path)
-print(f"Gráfico guardado en: {out_path}")
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print("Uso: python test_pt.py <input_csv> <output_png>")
+        sys.exit(1)
+    csv_path = sys.argv[1]
+    out_path = sys.argv[2]
+    
+    df = pd.read_csv(csv_path)
+    df = df.sort_values('timestamp_ms').reset_index(drop=True)
+    
+    raw_ecg = df['ecg_raw'].tolist()
+    times = df['timestamp_ms'].values
+    
+    print(f"Cargadas {len(raw_ecg)} muestras del archivo CSV: {csv_path}")
+    
+    # Firmware is sending data at 500 Hz
+    fs = 500.0
+    
+    # Process
+    results = pan_tompkins(raw_ecg, fs=fs)
+    
+    print("Resultados del Algoritmo Pan-Tompkins:")
+    print(f"  BPM: {results['bpm']}")
+    print(f"  HRV (SDNN): {results['hrv']} ms")
+    print(f"  Picos R detectados: {len(results['r_peaks'])}")
+    
+    plt.figure(figsize=(15, 10))
+    
+    plt.subplot(3, 1, 1)
+    plt.plot(times, raw_ecg, label="Señal Original", color="#3fb950")
+    if len(results['r_peaks']) > 0:
+        peak_times = [times[i] for i in results['r_peaks']]
+        peak_vals = [raw_ecg[i] for i in results['r_peaks']]
+        plt.plot(peak_times, peak_vals, "ro", markersize=8, label="Picos R")
+    plt.title(f"ECG Raw ({csv_path.split('/')[-1]}) - {results['bpm']} BPM")
+    plt.legend()
+    
+    plt.subplot(3, 1, 2)
+    plt.plot(times, results['filtered'], label="Bandpass Filtered", color="#f0883e")
+    plt.title("Bandpass Filtered (5-15 Hz)")
+    plt.legend()
+    
+    plt.subplot(3, 1, 3)
+    plt.plot(times, results['integrated'], label="Moving Window Integration", color="#a371f7")
+    plt.title("Integrated Signal (Thresholding)")
+    plt.legend()
+    
+    plt.tight_layout()
+    
+    plt.savefig(out_path)
+    print(f"Gráfico guardado en: {out_path}")
