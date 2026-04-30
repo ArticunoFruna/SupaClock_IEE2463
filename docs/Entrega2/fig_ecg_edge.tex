@@ -1,0 +1,35 @@
+\begin{tikzpicture}[
+    node distance=0.5cm and 0.6cm,
+    every node/.style={font=\scriptsize},
+    edge/.style={rectangle, rounded corners, draw=black!70, very thick, fill=green!18, text width=2.0cm, align=center, minimum height=0.8cm},
+    db/.style={cylinder, draw=black!70, fill=blue!12, aspect=0.3, shape border rotate=90, minimum height=0.9cm, minimum width=1.6cm, font=\scriptsize\bfseries},
+    arrow/.style={->, >=stealth, thick}
+]
+% --- Edge Row 1 ---
+\node[edge] (ad)   {AD8232\\analog};
+\node[edge, right=of ad] (adc) {ADC1\\DMA};
+\node[edge, right=of adc] (down) {downsample\\500$\to$100\,Hz};
+
+% --- Edge Row 2 ---
+\node[edge, below=0.6cm of down] (ble) {BLE 0xFF03\\(10 / pkt)};
+\node[edge, left=of ble, fill=cyan!18] (app) {Cliente PC\\\texttt{ble\_logger.py}};
+\node[db, left=of app] (fs) {Firestore};
+
+% --- Connections ---
+\draw[arrow] (ad) -- (adc);
+\draw[arrow] (adc) -- (down);
+\draw[arrow] (down) -- (ble);
+\draw[arrow] (ble) -- (app);
+\draw[arrow] (app) -- node[above, font=\tiny]{Wi-Fi}(fs);
+
+% --- Background ---
+\begin{scope}[on background layer]
+\node[rectangle, draw=green!50!black, dashed, inner sep=0.3cm,
+      fit=(ad) (adc) (down) (ble), fill=green!4] (edgeBox) {};
+\node[anchor=south west, font=\tiny\bfseries, green!50!black] at (edgeBox.north west) {Edge (ESP32)};
+
+\node[rectangle, draw=cyan!60!black, dashed, inner sep=0.3cm,
+      fit=(app), fill=cyan!4] (appBox) {};
+\node[anchor=south, font=\tiny\bfseries, cyan!50!black] at (appBox.north) {Gateway};
+\end{scope}
+\end{tikzpicture}

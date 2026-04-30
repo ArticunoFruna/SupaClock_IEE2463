@@ -1,0 +1,36 @@
+\begin{tikzpicture}[
+    node distance=0.5cm and 0.6cm,
+    every node/.style={font=\scriptsize},
+    cloud/.style={rectangle, rounded corners, draw=black!70, very thick, fill=orange!22, text width=2.0cm, align=center, minimum height=0.8cm},
+    db/.style={cylinder, draw=black!70, fill=blue!12, aspect=0.3, shape border rotate=90, minimum height=0.9cm, minimum width=1.6cm, font=\scriptsize\bfseries},
+    arrow/.style={->, >=stealth, thick}
+]
+% --- Cloud Row 1 ---
+\node[db] (fs) {Firestore};
+\node[cloud, right=of fs] (fn) {Cloud Fn\\process\_ecg};
+\node[cloud, right=of fn] (bp)   {Bandpass\\5--15\,Hz};
+\node[cloud, right=of bp] (deriv) {Derivativo\\5-puntos};
+
+% --- Cloud Row 2 ---
+\node[cloud, below=0.6cm of deriv] (sq) {Cuadrado};
+\node[cloud, left=of sq] (mw) {MWI 150\,ms};
+\node[cloud, left=of mw] (peaks) {Detecci\'on\\R-peaks};
+\node[cloud, left=of peaks] (bpm) {BPM, HRV\\(SDNN)};
+
+% --- Connections ---
+\draw[arrow] (fs)  -- (fn);
+\draw[arrow] (fn)  -- (bp);
+\draw[arrow] (bp)  -- (deriv);
+\draw[arrow] (deriv)  -- (sq);
+\draw[arrow] (sq)  -- (mw);
+\draw[arrow] (mw)  -- (peaks);
+\draw[arrow] (peaks) -- (bpm);
+\draw[arrow] (bpm) -- ++(0,-0.8) -| (fs); % Vuelve a firestore por abajo
+
+% --- Background ---
+\begin{scope}[on background layer]
+\node[rectangle, draw=orange!70!black, dashed, inner sep=0.3cm,
+      fit=(fn) (bp) (deriv) (sq) (mw) (peaks) (bpm) (fs), fill=orange!4] (cloudBox) {};
+\node[anchor=south east, font=\tiny\bfseries, orange!70!black] at (cloudBox.north east) {Firebase Cloud (Python/NumPy)};
+\end{scope}
+\end{tikzpicture}

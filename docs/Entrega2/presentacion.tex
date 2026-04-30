@@ -1,11 +1,13 @@
 \documentclass[aspectratio=169, 10pt]{beamer}
 
-% Focus Theme - Estética puramente minimalista
+% Theme reusado de la versión anterior (assets en ../)
 \usetheme{focus}
 
-% Paleta de Colores Personalizada (SupaClock )
-\definecolor{main}{RGB}{57, 110, 184} %  #396eb8ff
-\definecolor{background}{RGB}{255, 255, 255} % Fondo estéril blanco
+% Paleta SupaClock
+\definecolor{main}{RGB}{57, 110, 184}
+\definecolor{background}{RGB}{255, 255, 255}
+\definecolor{accent}{RGB}{63, 185, 80}      % verde algoritmo
+\definecolor{warn}{RGB}{218, 54, 51}        % rojo problema
 
 \setbeamercolor{alerted text}{fg=red!80!black}
 
@@ -14,159 +16,508 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc, babel}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, babel, patterns}
 
-% Reducimos un poco la fuente de itemize para ajustar más información
 \setbeamerfont{itemize/enumerate body}{size=\small}
 \setbeamerfont{itemize/enumerate subbody}{size=\footnotesize}
 
-% Info de portada
+% Recursos compartidos con la versión anterior
+\graphicspath{{../}{../../}{../../../tools/}{presentacion_v2/}}
+
 \title{Wearable ``SupaClock''}
-\subtitle{Reporte de Avance 25\% | Validación de Subsistemas}
+\subtitle{Reporte de Avance 25\% \textbar{} Validaci\'on de Subsistemas}
 \date{\today}
 \author{Grupo 10}
-\institute{Ingeniería Eléctrica}
+\institute{Ingenier\'ia El\'ectrica}
 \titlegraphic{\hfill\includegraphics[height=1.8cm]{logo.pdf}}
 
 \begin{document}
 
+% ═══════════════════════════════════════════════════════════════════
 \maketitle
+% ═══════════════════════════════════════════════════════════════════
 
-\begin{frame}{Índice}
-    \tableofcontents
+% ─── Slide 2 — Visión + agenda ───
+\begin{frame}{Visi\'on del producto y agenda}
+    \begin{columns}[T]
+        \column{0.55\textwidth}
+        \footnotesize
+        \textbf{SupaClock}: wearable de monitoreo biom\'etrico continuo con enfoque cl\'inico ``Cero distracciones'', orientado a personal m\'edico.
+        \vspace{0.15cm}
+        \begin{itemize}\itemsep0pt
+            \item ECG, frecuencia cardiaca, SpO\textsubscript{2}, temperatura corporal, podometr\'ia
+            \item Telemetr\'ia BLE en vivo a equipo m\'edico
+            \item Procesamiento on-device + clasificador de actividad por ML
+        \end{itemize}
+        \vspace{0.4cm}
+        \textbf{Agenda} (10 min):
+        \begin{itemize}\itemsep0pt
+            \item Hardware e integraci\'on
+            \item Firmware y algoritmos
+            \item Comunicaci\'on, m\'etricas y futuro
+        \end{itemize}
+        \column{0.45\textwidth}
+        \includegraphics[width=\linewidth, keepaspectratio]{hero_render.png}
+        \vspace{0.1cm}\newline
+        \centerline{\scriptsize\textbf{Figura 1}: \textit{Renderizado 3D de SupaClock.}}
+    \end{columns}
 \end{frame}
 
-\section{Avances del Hito 25\%}
+% ═══════════════════════════════════════════════════════════════════
+\section{Hardware e Integraci\'on}
+% ═══════════════════════════════════════════════════════════════════
 
-\begin{frame}{Introducción y Avances del Hito 25\%}
-    El objetivo principal de esta etapa ha sido demostrar la funcionalidad de nuestro diseño propuesto, integrando todos los componentes del wearable de manera armónica.
-    \vspace{0.3cm}
-    \begin{itemize}
-        \item \textbf{Validación de Hardware}: Todos los módulos base (sensores, microcontrolador, pantalla y batería) han sido operados con éxito.
-        \item \textbf{Procesamiento de Biometría}: Implementamos y probamos los algoritmos de adquisición inercial y biométrica para nuestro enfoque clínico de ``Cero distracciones''.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Integración y Manejo de Tareas (FreeRTOS)}
-    El firmware principal se articula mediante tareas concurrentes de \textbf{FreeRTOS} gestionadas en \texttt{test\_general.c}:
-    \vspace{0.2cm}
-    \begin{itemize}
-        \item \textbf{\texttt{gui\_task}}: Actualiza la pantalla LVGL a $\sim$30 FPS, procesa eventos de botones y controla el auto-apagado.
-        \item \textbf{\texttt{imu\_task}}: Ejecutada dinámicamente según el modo de energía; lee el BMI160, ejecuta el podómetro por software y envía telemetría inercial.
-        \item \textbf{\texttt{ecg\_task}}: Monitorea continuamente la FIFO de DMA del convertidor ADC, reduce la frecuencia de los datos mediante \textit{downsampling} y encola los paquetes.
-        \item \textbf{\texttt{hrm\_task}}: Máquina de estados para medir las pulsaciones y SpO$_2$ en el MAX30102.
-        \item \textbf{Sincronización}: Se hace uso de \textit{mutexes} (como \texttt{xSensorDataMutex}) para evitar colisiones en el bus I2C cuando es accedido concurrentemente por múltiples tareas.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Algoritmos de Adquisición y Filtrado de Señales}
-    Hemos diseñado pipelines específicos para cada sensor, buscando señales limpias antes de su interpretación:
-    \vspace{0.2cm}
-    \begin{itemize}
-        \item \textbf{Acelerómetro (BMI160)}: Opera a un máximo de \textbf{50 Hz}. La señal inercial pasa por un \textbf{filtro pasabajos de media móvil} (ventana de 10 muestras) para atenuar ruidos y vibraciones de alta frecuencia.
-        \item \textbf{Fotopletismografía - PPG (MAX30102)}: Configurado a \textbf{100 Hz} con promediado por hardware (Navg = 4). Para calcular la frecuencia cardíaca, se aplica un \textbf{filtro pasabanda digital} que mitiga la interferencia ambiental y aísla la componente pulsátil de la sangre.
-        \item \textbf{Temperatura Corporal (MAX30205)}: Muestreado vía I2C mediante polling a \textbf{1 Hz}, garantizando lecturas con resolución clínica de 16-bits.
-        \item \textbf{Electrocardiograma (AD8232)}: La lectura analógica entra por un \textbf{ADC continuo con DMA a 20 kHz}. Se aplica un \textbf{diezmado (down-sampling) por un factor de 40}, logrando una señal enviada por BLE de 500 Hz.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Implementación de Modos de Energía}
-    Se ha desarrollado un gestor de energía local (\texttt{power\_modes.c}) que regula dinámicamente los intervalos de \textit{polling} de cada tarea:
-    \vspace{0.3cm}
-    \begin{table}[]
-        \centering
-        \small
-        \begin{tabular}{l c c c}
+% ─── Slide 3 — Ecosistema HW ───
+\begin{frame}{Ecosistema de Hardware: 6 sensores integrados}
+    \begin{columns}[T]
+        \column{0.42\textwidth}
+        \scriptsize
+        \begin{tabular}{l l}
             \toprule
-            \textbf{Sensor / Parámetro} & \textbf{Modo SPORT} & \textbf{Modo NORMAL} & \textbf{Modo SAVER} \\
+            \textbf{Componente} & \textbf{Bus} \\
             \midrule
-            \textbf{IMU (BMI160)} & 50 Hz & 25 Hz & 12.5 Hz \\
-            \textbf{HR (MAX30102)} & Continuo & Cada 10 min & Cada 30 min \\
-            \textbf{SpO$_2$ (MAX30102)} & Cada 5 min & Cada 30 min & Manual \\
-            \textbf{Temperatura} & Cada 30 s & Cada 5 min & Cada 15 min \\
-            \textbf{Batería} & Cada 30 s & Cada 30 s & Cada 30 s \\
-            \textbf{Auto-Off Pantalla}& 30 s & 15 s & 8 s \\
+            BMI160 (IMU 6-DOF)        & I\textsuperscript{2}C 0x68 \\
+            MAX30102 (PPG/HR/SpO\textsubscript{2}) & I\textsuperscript{2}C 0x57 \\
+            MAX30205 (Temp corporal)  & I\textsuperscript{2}C 0x48 \\
+            MAX17048 (Fuel gauge)     & I\textsuperscript{2}C 0x36 \\
+            AD8232 (ECG)              & ADC1 + DMA \\
+            ST7789 (Display 240\(\times\)280) & SPI 80\,MHz \\
             \bottomrule
         \end{tabular}
-    \end{table}
+        \vspace{0.3cm}
+        \begin{itemize}
+            \item Bus I\textsuperscript{2}C compartido a \textbf{400 kHz}
+            \item Mutex global protege accesos concurrentes
+            \item ECG por DMA continuo (no compite por I\textsuperscript{2}C)
+        \end{itemize}
+        \column{0.58\textwidth}
+        \vspace{-0.3cm}
+        \begin{flushright}
+            \resizebox{1.02\linewidth}{!}{\input{fig_bloques_lownivel.tex}}
+            \vspace{0.1cm}\newline
+            \scriptsize\textbf{Figura 2}: \textit{Diagrama de bloques de hardware.}
+        \end{flushright}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Subsistema de Energía}
-    En la sección de manejo de potencia, hemos ensamblado lo siguiente:
-    \vspace{0.3cm}
-    \begin{itemize}
-        \item \textbf{Módulo BMS y Fuel Gauge}: Contamos con el circuito de carga y protección (TP4056 + DW01A) operando con éxito. Para la telemetría, se agregó el monitor de batería MAX17048.
-    \end{itemize}
-    \vspace{0.4cm}
-    \begin{alertblock}{Consideración del Porcentaje de Batería}
-        Cabe destacar que el monitoreo porcentual exacto de la batería aún no ha sido optimizado. Nuestro esfuerzo principal en este hito se ha centrado en asegurar el funcionamiento ininterrumpido de los sensores biométricos.
-    \end{alertblock}
+% ─── Slide 4 — Subsistema energía + LDO + PCB ───
+\begin{frame}{Subsistema de Energ\'ia y PCB Prototipo}
+    \begin{columns}[T]
+        \column{0.55\textwidth}
+        \begin{itemize}
+            \item \textbf{BMS}: TP4056 (carga LiPo) + DW01A (protecci\'on sobre/sub-tensi\'on)
+            \item \textbf{Fuel gauge}: MAX17048 reporta voltaje y SoC por I\textsuperscript{2}C
+            \item \textbf{Regulador (C3 SuperMini)}: LDO ME6211 \alert{\textbf{insuficiente}} para picos de radio + sensores
+        \end{itemize}
+        \vspace{0.2cm}
+        \begin{alertblock}{Problema detectado}
+            \scriptsize Reset por brownout al activar BLE concurrente con bursts del display. Pico medido $\sim$\textbf{110\,mA} en bater\'ia (probablemente subestimado por la respuesta del amper\'imetro).
+        \end{alertblock}
+        \column{0.45\textwidth}
+        \centering
+        \includegraphics[height=2.5cm, keepaspectratio]{foto_pcb_frontal.jpeg}
+        \hspace{0.2cm}
+        \includegraphics[height=2.5cm, keepaspectratio]{foto_pcb_trasera.jpeg}
+        \vspace{0.2cm}
+        \vspace{0.2cm}
+        \scriptsize \textbf{Figura 3}: \textit{PCB through-hole con C3 SuperMini en montaje; en paralelo se encarg\'o la revisi\'on siguiente con ESP32-S3 (slide 12).}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Algoritmo Contador de Pasos}
-    Desarrollado y optimizado de forma local en lenguaje C (\texttt{step\_algorithm.c}):
-    \vspace{0.3cm}
-    \begin{enumerate}
-        \item \textbf{Cálculo de magnitud}: Computa la magnitud 3D del vector de aceleración, lo que permite detectar el impacto del paso independientemente de la orientación de la muñeca.
-        \item \textbf{Filtrado}: Se suaviza la señal para evitar el conteo de temblores rápidos mediante la media móvil de 10 muestras (filtro pasabajos).
-        \item \textbf{Detección de cruce}: Se emplea un \textbf{detector de picos con umbral adaptativo}. Este umbral se ajusta automáticamente cada 5 segundos evaluando la amplitud de la actividad previa.
-    \end{enumerate}
+% ═══════════════════════════════════════════════════════════════════
+\section{Firmware y Algoritmos}
+% ═══════════════════════════════════════════════════════════════════
+
+% ─── Slide 5 — Arquitectura SW + tasks + modos ───
+\begin{frame}{Arquitectura de Software: 6 tareas FreeRTOS + Modos de Energ\'ia}
+    \begin{columns}[T]
+        \column{0.46\textwidth}
+        \scriptsize
+        \begin{tabular}{l c c}
+            \toprule
+            \textbf{Tarea} & \textbf{Prio} & \textbf{Cadencia} \\
+            \midrule
+            \texttt{ecg\_task}     & 7 & DMA continuo \\
+            \texttt{imu\_task}     & 6 & 50/25/12.5\,Hz\textsuperscript{*}\\
+            \texttt{hrm\_task}     & 5 & SM (modo) \\
+            \texttt{gui\_task}     & 5 & 30\,FPS \\
+            \texttt{ble\_tx\_task} & 4 & flush peri\'odico \\
+            \texttt{system\_task}  & 3 & 30\,s / 5\,min \\
+            \bottomrule
+        \end{tabular}
+        \vspace{0.15cm}
+        \scriptsize\textit{\textsuperscript{*}según modo de energía activo.}
+        \vspace{0.2cm}
+        
+        \textbf{Sincronización}: \texttt{xSensorDataMutex} y\\ mutex global del bus I\textsuperscript{2}C.
+
+        \column{0.54\textwidth}
+        \scriptsize
+        \begin{tabular}{l c c c}
+            \toprule
+             & \textbf{SPORT} & \textbf{NORMAL} & \textbf{SAVER} \\
+            \midrule
+            HR (MAX30102)    & continuo & cada 10\,min & cada 30\,min \\
+            SpO\textsubscript{2}      & cada 5\,min & cada 30\,min & manual \\
+            IMU              & 50\,Hz & 25\,Hz & 12.5\,Hz \\
+            Temp             & 30\,s & 5\,min & 15\,min \\
+            Bater\'ia        & 30\,s & 30\,s & 30\,s \\
+            BLE flush        & 1\,s & 10\,s & 60\,s \\
+            Auto-off         & 30\,s & 15\,s & 8\,s \\
+            \bottomrule
+        \end{tabular}
+        \vspace{0.2cm}
+        \begin{itemize}
+            \item Selecci\'on manual desde men\'u; persistencia en NVS
+            \item En NORMAL/SAVER, MAX30102 entra a SHDN ($\sim$0.7\,$\mu$A)
+            \item Toggle ``Tx IMU'' apaga radio sin perder podometr\'ia
+            \item Apagado total v\'ia \textit{deep sleep} con wake por bot\'on
+        \end{itemize}
+    \end{columns}
 \end{frame}
 
-\section{Problemáticas y Soluciones Técnicas}
+% ─── Slide 6 — Flujo FreeRTOS (TikZ) ───
+\begin{frame}{Flujo de Tareas y Sensores concurrentes en FreeRTOS}
+    \begin{center}
+        \resizebox{0.80\linewidth}{!}{\input{fig_freertos_actual.tex}}
+        \vspace{0.1cm}\newline
+        \scriptsize\textbf{Figura 4}: \textit{Flujo de tareas y sensores en FreeRTOS.}
+    \end{center}
+\end{frame}
 
-\begin{frame}{Problemáticas Enfrentadas: Reinicios por LDO}
-    \textbf{1. Reinicios Constantes de la ESP32 (Brownout Reset)}
+% ─── Slide 7 — Pipeline HR/SpO2 ───
+\begin{frame}{Pipeline HR/SpO\textsubscript{2}: bandpass IIR + mediana}
+    \begin{columns}[T]
+        \column{0.40\textwidth}
+        \scriptsize
+        \textbf{Captura}: Red + IR a 25\,Hz (\texttt{SMP\_AVE=4}).
+        \vspace{0.1cm}
+
+        \textbf{Pipeline}:
+        \begin{enumerate}\itemsep0pt
+            \item Tracker DC (EMA $\alpha$=0.05)
+            \item Bandpass IIR Butterworth \textbf{0.5--4\,Hz} (HPF+LPF orden 2)
+            \item Detector picos umbral adaptativo
+            \item Mediana 8 RR + rechazo $\Delta$RR$>$25\%
+            \item SpO\textsubscript{2}: mediana 10 valores R
+            \item Motion gating con jerk del IMU
+        \end{enumerate}
+        \vspace{0.05cm}
+
+        \textbf{SPOT dedicado}: 12--30\,s con early-exit por calidad ($\sigma/\mu$ RR$<$8\%, R$<$5\%).
+        \vspace{0.1cm}
+
+        \fcolorbox{accent}{accent!12}{\parbox{0.95\linewidth}{\scriptsize
+            \textbf{Validaci\'on 30\,s reposo:}\\
+            HR \textbf{81\,BPM} (33 picos) | SpO\textsubscript{2} \textbf{98.7\,\%}
+        }}
+        \column{0.60\textwidth}
+        \includegraphics[width=\linewidth, keepaspectratio]{raw_ppg_compare.png}
+        \vspace{0.1cm}\newline
+        \centerline{\scriptsize\textbf{Figura 5}: \textit{Algoritmo PPG para HR y SpO\textsubscript{2}.}}
+    \end{columns}
+\end{frame}
+
+% ─── Slide 8 — ECG Pan-Tompkins ───
+\begin{frame}{ECG: Adquisici\'on y Pan-Tompkins}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \footnotesize
+        \textbf{Adquisici\'on}:
+        \begin{itemize}\itemsep0pt
+            \item AD8232 + ADC continuo con DMA a \textbf{20\,kHz}
+            \item Diezmado por factor \(\times\)40 $\rightarrow$ stream BLE a \textbf{500\,Hz}
+            \item Caracter\'istica BLE 0xFF03 dedicada
+        \end{itemize}
+        \vspace{0.15cm}
+        \textbf{Pan-Tompkins} (offline en host):
+        \begin{enumerate}\itemsep0pt
+            \item Bandpass 5--15\,Hz (banda QRS)
+            \item Derivada (resalta pendientes)
+            \item Cuadratura
+            \item Integraci\'on en ventana m\'ovil
+            \item Detecci\'on de picos R con umbral adaptativo
+        \end{enumerate}
+        \column{0.52\textwidth}
+        \vspace{-0.3cm}
+        \resizebox{0.95\linewidth}{!}{\input{fig_ecg_edge.tex}}
+        \vspace{0.1cm}\newline
+        \scriptsize\textbf{Figura 6}: \textit{Adquisición de ECG (Edge).}
+        \vspace{0.2cm}
+        
+        \resizebox{0.95\linewidth}{!}{\input{fig_ecg_cloud.tex}}
+        \vspace{0.1cm}\newline
+        \scriptsize\textbf{Figura 7}: \textit{Procesamiento Pan-Tompkins (Cloud).}
+    \end{columns}
+\end{frame}
+
+% ─── Slide 9 — Podómetro tiempo vs frecuencia ───
+\begin{frame}{Pod\'ometro: del dominio del tiempo al de la frecuencia}
+    \begin{columns}[T]
+        \column{0.42\textwidth}
+        \footnotesize
+        \textbf{Implementaci\'on actual} (dominio tiempo):
+        \begin{enumerate}\itemsep0pt
+            \item Magnitud 3D del acelerador
+            \item Filtro media m\'ovil (10 muestras)
+            \item Detector de picos con umbral adaptativo (re-evaluaci\'on cada 5\,s)
+        \end{enumerate}
+        \vspace{0.15cm}
+        \alert{\textbf{Limitaci\'on detectada}}: agitar la mano emula picos $\rightarrow$ falsos positivos.
+        \vspace{0.2cm}
+        \textbf{Soluci\'on planificada} (dominio frecuencia):
+        \begin{itemize}\itemsep0pt
+            \item FFT sobre ventana de 3\,s
+            \item Validar cadencia r\'itmica (1--3\,Hz)
+            \item Requiere DSP vectorial $\rightarrow$ ESP32-S3
+        \end{itemize}
+        \column{0.58\textwidth}
+        \includegraphics[width=\linewidth, keepaspectratio]{sim_pasos.png}
+        \vspace{-0.1cm}\newline
+        \centerline{\scriptsize\textbf{Figura 8}: \textit{Algoritmo en el dominio del tiempo.}}
+    \end{columns}
+\end{frame}
+
+% ─── Slide 10 — Validación tests modulares ───
+\begin{frame}{Validaci\'on por subsistemas: 9 environments PlatformIO}
+    \footnotesize
+    Cada sensor / m\'odulo cuenta con su propio firmware de prueba aislado, m\'as un firmware integrador (\texttt{test\_general}).
     \vspace{0.2cm}
-    \begin{itemize}
-        \item Diagnosticamos que los problemas de energización están asociados al regulador lineal (\textbf{LDO}) incluido en la placa de desarrollo ESP32-C3 SuperMini.
-        \item Posee un umbral de suministro de corriente transitoria demasiado bajo para nuestras necesidades de red.
-        \item Cuando el sistema enciende la radio Wi-Fi/BLE y ejecuta tareas sensóricas, los picos de consumo generan caídas dramáticas de voltaje (\textit{voltage sag}), activando la protección "brownout" y reiniciando el dispositivo intermitentemente.
-    \end{itemize}
+    \begin{columns}[T]
+        \column{0.45\textwidth}
+        \begin{tabular}{l l}
+            \toprule
+            \textbf{Env} & \textbf{Subsistema} \\
+            \midrule
+            \texttt{test\_temp}        & MAX30205 \\
+            \texttt{test\_imu}         & BMI160 + step\_algo \\
+            \texttt{test\_spo2}        & MAX30102 raw + BLE \\
+            \texttt{test\_ecg}         & AD8232 ADC/DMA \\
+            \texttt{test\_display}     & ST7789 + LVGL \\
+            \texttt{test\_ble}         & NimBLE GATT \\
+            \texttt{test\_fuel\_gauge} & MAX17048 \\
+            \texttt{test\_gui}         & Navegaci\'on GUI \\
+            \texttt{test\_general}     & \textbf{Integrador} \\
+            \bottomrule
+        \end{tabular}
+        \column{0.55\textwidth}
+        \begin{itemize}\itemsep0pt
+            \item Cada \texttt{test\_*} se compila y flashea independiente
+            \item Permite aislar fallas de driver vs integraci\'on
+            \item \texttt{test\_general} ejecuta los 6 sensores + GUI + BLE simult\'aneamente $\rightarrow$ valida concurrencia, mutex, modos de energ\'ia
+            \item Demo en vivo se hace con \texttt{test\_general}
+        \end{itemize}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Problemáticas Enfrentadas: Mediciones del ECG}
-    \textbf{2. Mediciones erráticas del ECG}
-    
-    \begin{itemize}
-        \item Las mediciones se realizaron de forma directa utilizando los \textbf{electrodos implementados en el módulo} comercial, sin utilizar pernos metálicos adicionales.
-        \item Las lecturas han resultado ser erráticas y con niveles de ruido elevados.
-        \item Concluimos que este problema se debe a la falta de adherencia firme y a \textbf{dónde y cómo se posicionan los electrodos} en el cuerpo, dificultando establecer un circuito bioeléctrico cerrado.
-    \end{itemize}
+% ═══════════════════════════════════════════════════════════════════
+\section{Comunicaci\'on, M\'etricas y Futuro}
+% ═══════════════════════════════════════════════════════════════════
+
+% ─── Slide 11 — BLE + monitor + base ML ───
+\begin{frame}{Stack BLE y herramienta de validaci\'on}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{4 caracter\'isticas BLE} (GATT custom 0xFF00):
+        \begin{itemize}\itemsep0pt
+            \item \texttt{0xFF01} IMU 6-DOF (12 B/notify, 50\,Hz)
+            \item \texttt{0xFF02} Telemetr\'ia agregada \textbf{TLV} (HR, SpO\textsubscript{2}, temp, bat, modos)
+            \item \texttt{0xFF03} ECG streaming (chunks 500\,Hz)
+            \item \texttt{0xFF04} Comandos RX (host $\rightarrow$ reloj)
+        \end{itemize}
+        \vspace{0.1cm}
+        El protocolo TLV permite agrupar muestras heterog\'eneas con timestamp, reduciendo el overhead BLE en SAVER.
+        \column{0.50\textwidth}
+        \fcolorbox{black!30}{black!05}{\parbox{0.95\linewidth}{\centering
+            \vspace{0.4cm}
+            \scriptsize\textit{screenshot \texttt{supaclock\_monitor.py}\\(PyQt6 + bleak + pyqtgraph + OpenGL)\\(pendiente)}
+            \vspace{0.4cm}
+        }}
+        \vspace{0.1cm}
+        \scriptsize
+        \textbf{Figura 9}: \textit{\textbf{supaclock\_monitor.py} muestra biometría en vivo y graba CSV para entrenar clasificador CNN 1D.}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Problemáticas Enfrentadas: Falsos Pasos}
-    \textbf{3. Falsos positivos en el podómetro}
-    \vspace{0.2cm}
-    \begin{itemize}
-        \item El algoritmo de pasos actual, basado únicamente en la amplitud de la magnitud y un umbral adaptativo, es suceptible a ciertos engaños.
-        \item Si el usuario agita la mano emulando el movimiento de caminata mientras se encuentra físicamente detenido, el sensor de aceleración cruza los picos, registrando mediciones falsas de pasos.
-    \end{itemize}
+% ─── Slide 12 — Optimización energética: antes / después ───
+\begin{frame}{Optimizaci\'on energ\'etica: antes vs despu\'es}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \scriptsize
+        \textbf{Estados del SoC} (Power Manager)
+        \begin{tikzpicture}
+        \begin{axis}[
+            xbar stacked,
+            width=\linewidth, height=2.6cm,
+            bar width=14pt,
+            xmin=0, xmax=100,
+            symbolic y coords={Despu\'es, Antes},
+            ytick=data,
+            tick label style={font=\tiny},
+            xlabel={\tiny \%\ tiempo},
+            xlabel style={font=\tiny},
+            legend style={
+                at={(0.5,-0.40)}, anchor=north,
+                font=\tiny, legend columns=3,
+                draw=none,
+                /tikz/every even column/.append style={column sep=0.15cm}
+            },
+            nodes near coords={\pgfmathprintnumber\pgfplotspointmeta\,\%},
+            every node near coord/.append style={font=\tiny}
+        ]
+        \addplot+[fill=green!55, draw=green!70] coordinates {(75,Despu\'es) (0,Antes)};
+        \addplot+[fill=orange!60, draw=orange!80] coordinates {(15,Despu\'es) (92,Antes)};
+        \addplot+[fill=red!60, draw=red!80] coordinates {(9,Despu\'es) (8,Antes)};
+        \legend{SLEEP, APB\_MAX, CPU\_MAX}
+        \end{axis}
+        \end{tikzpicture}
+        \vspace{-0.1cm}\newline\centerline{\scriptsize\textbf{Figura 10}: \textit{Estados de energía del SoC.}}
+
+        \vspace{0.2cm}
+        \textbf{Consumo en bater\'ia} (Tektronix TX3)
+        \begin{tikzpicture}
+        \begin{axis}[
+            xbar,
+            width=\linewidth, height=3.6cm,
+            bar width=10pt,
+            xmin=0, xmax=140,
+            enlarge y limits=0.25,
+            symbolic y coords={Pant. off,Pant. on,Pico inicio,Antes pico},
+            ytick=data,
+            tick label style={font=\tiny},
+            xlabel={\tiny mA},
+            xlabel style={font=\tiny},
+            nodes near coords={\pgfmathprintnumber\pgfplotspointmeta\,mA},
+            every node near coord/.append style={font=\tiny, anchor=west},
+        ]
+        \addplot+[draw=black!50, fill=blue!40] coordinates {
+            (110,Antes pico)
+            (60,Pico inicio)
+            (50,Pant. on)
+            (20,Pant. off)
+        };
+        \end{axis}
+        \end{tikzpicture}
+        \vspace{-0.1cm}\newline\centerline{\scriptsize\textbf{Figura 11}: \textit{Picos de consumo en batería.}}
+
+        \column{0.50\textwidth}
+        \scriptsize
+        \textbf{Mitigaciones aplicadas}
+        \begin{itemize}\itemsep0pt
+            \item Driver ST7789 reescrito: \texttt{gui\_task} 47\,\%\,\(\to\)\,\textbf{1\,\%}
+            \item Handle ADC del ECG asignado din\'amicamente (libera lock \texttt{APB\_MAX})
+            \item Advertising BLE a 1000\,ms y Modem Sleep (light sleep con conexi\'on)
+            \item Toggle ``Tx IMU'' apaga radio manteniendo podometr\'ia local
+        \end{itemize}
+        \vspace{0.1cm}
+        \textbf{CPU por tarea (despu\'es)}\\[0.05cm]
+        \begin{tikzpicture}[scale=0.75, baseline=(current bounding box.center)]
+            % IDLE: 95% -> 342 deg (from 108 to 450)
+            \filldraw[fill=green!40!white, draw=white, thick] (0,0) -- (108:1.2) arc (108:450:1.2) -- cycle;
+            \node[font=\tiny, inner sep=1pt] at (279:0.6) {IDLE $\sim$95\,\%};
+            
+            % Otros: <1% -> let's map visually to 4 deg (104 to 108)
+            \filldraw[fill=blue!50!white, draw=white, thick] (0,0) -- (104:1.2) arc (104:108:1.2) -- cycle;
+            
+            % imu_task: 1% -> mapped visually to 5 deg (99 to 104)
+            \filldraw[fill=orange!50!white, draw=white, thick] (0,0) -- (99:1.2) arc (99:104:1.2) -- cycle;
+            
+            % gui_task: 1% -> mapped visually to 9 deg (90 to 99)
+            \filldraw[fill=red!50!white, draw=white, thick] (0,0) -- (90:1.2) arc (90:99:1.2) -- cycle;
+
+            % Leyenda
+            \node[font=\tiny, anchor=west, inner sep=1pt] at (1.3, 0.8) {\textcolor{red!50!white}{\rule{1.5mm}{1.5mm}} \texttt{gui\_task} \textbf{1\,\%}};
+            \node[font=\tiny, anchor=west, inner sep=1pt] at (1.3, 0.4) {\textcolor{orange!50!white}{\rule{1.5mm}{1.5mm}} \texttt{imu\_task} 1\,\%};
+            \node[font=\tiny, anchor=west, inner sep=1pt] at (1.3, 0.0) {\textcolor{blue!50!white}{\rule{1.5mm}{1.5mm}} Otros $<$1\,\%};
+        \end{tikzpicture}
+        \vspace{0.1cm}\newline
+        \scriptsize\textbf{Figura 12}: \textit{CPU ya no satura; el cuello de botella pasa a ser memoria.}
+    \end{columns}
 \end{frame}
 
-\begin{frame}{Soluciones Propuestas: Migración a ESP32-S3}
-    Para solventar estos bloqueos de desarrollo, decidimos migrar a la plataforma \textbf{Seeed Studio XIAO ESP32-S3}.
-    \vspace{0.3cm}
-    \begin{itemize}
-        \item \textbf{Regulador Buck SGM6029}: A diferencia del LDO de la C3, esta placa incorpora un regulador conmutado sumamente eficiente, capaz de entregar los picos de corriente requeridos sin propiciar una caída de voltaje crítica, resolviendo los reinicios.
-        \item \textbf{Procesamiento con FFT}: Para mitigar los falsos positivos del acelerómetro, migraremos el algoritmo de pasos hacia un análisis de frecuencias mediante la \textbf{Transformada Rápida de Fourier (FFT)}. Así, filtraremos la cadencia rítmica real de una marcha (1 a 3 Hz). La arquitectura \textit{Dual-Core} y sus instrucciones vectoriales calculan esta FFT en tiempo real.
-    \end{itemize}
+% ─── Slide 13 — Migración a ESP32-S3 ───
+\begin{frame}{Migraci\'on al Seeed XIAO ESP32-S3 (encargada)}
+    \scriptsize
+    Tras eliminar a la CPU como bottleneck, hay 5 razones t\'ecnicas concretas para migrar la siguiente revisi\'on de PCB al ESP32-S3.
+    \vspace{0.15cm}
+    \begin{columns}[T]
+        \column{0.55\textwidth}
+        \scriptsize
+        \begin{enumerate}\itemsep0.05cm
+            \item \alert{\textbf{Brownout resuelto}}: Buck SGM6029 integrado ($\sim$800\,mA) reemplaza al LDO ME6211 ($\sim$300\,mA).
+            \item \textbf{Memoria para ML}: 512\,KB SRAM (vs 320 en C3) + PSRAM externa hasta 8\,MB.
+            \item \textbf{ESP-NN con SIMD}: inferencia CNN 1D int8 \textbf{5--20\,ms} (S3) vs 50--200\,ms (C3).
+            \item \textbf{Dual-core 240\,MHz}: separa ML del firmware sin contenci\'on con \texttt{ecg\_task} / \texttt{gui\_task}.
+            \item \textbf{BMS + fuel gauge integrados} en placa $\to$ menos componentes en PCB final.
+        \end{enumerate}
+        \vspace{0.15cm}
+        \begin{block}{Heap actual vs CNN}
+            \scriptsize Heap libre en C3: $\sim$99\,KB. Modelo CNN 1D + scratch: 20--100\,KB. Margen ajustado $\to$ S3 abre la puerta a modelos grandes.
+        \end{block}
+        \column{0.45\textwidth}
+        \scriptsize
+        \textbf{Memoria disponible}
+        \vspace{0.05cm}
+
+        % Gráfico de barras manual (escala lineal es ilegible por la magnitud)
+        \begin{tikzpicture}[xscale=0.85]
+            % Eje X
+            \draw[->] (0,0) -- (5.6,0) node[right, font=\tiny] {KB};
+            \draw (0,0) -- (0,-0.05) node[below, font=\tiny] {0};
+            \draw (5.0,0) -- (5.0,-0.05) node[below, font=\tiny] {8192};
+            % C3
+            \fill[red!55] (0,0.5) rectangle (0.196,0.85);
+            \node[font=\tiny, anchor=west] at (0.3,0.68) {C3 SRAM: \textbf{320\,KB}};
+            % S3
+            \fill[orange!70] (0,1.4) rectangle (0.313,1.75);
+            \node[font=\tiny, anchor=west] at (0.4,1.58) {S3 SRAM: \textbf{512\,KB}};
+            % S3+PSRAM
+            \fill[green!60] (0,2.3) rectangle (5.0,2.65);
+            \node[font=\tiny, anchor=west] at (0.4,2.95) {S3 + PSRAM: \textbf{8\,MB}};
+        \end{tikzpicture}
+        \vspace{0.1cm}\newline
+        \scriptsize\textbf{Figura 13}: \textit{Escala lineal: la PSRAM externa del S3 abre $\sim$25$\times$ m\'as memoria que el C3.}
+    \end{columns}
 \end{frame}
 
-\section{Conclusiones y Próximos Pasos}
+% ─── Slide 14 — CNN 1D + próximos pasos ───
+\begin{frame}{Pr\'oximos pasos y modelo de Machine Learning}
+    \begin{columns}[T]
+        \column{0.55\textwidth}
+        \footnotesize
+        \textbf{Clasificador de actividad — CNN 1D}
+        \begin{itemize}\itemsep0pt
+            \item \textbf{Entrada}: ventana 3\,s del IMU \(\rightarrow\) 6 canales \(\times\) 150 muestras
+            \item \textbf{Arquitectura}: 2--3 capas Conv1D + GAP + Dense
+            \item \textbf{Salida}: 4--5 clases (reposo / caminar / correr / agitar mano / dormir)
+            \item Entrenamiento offline con CSV recolectados v\'ia \texttt{supaclock\_monitor.py}
+            \item Despliegue en S3 v\'ia ESP-NN cuantizada int8
+        \end{itemize}
+        \column{0.45\textwidth}
+        \footnotesize
+        \textbf{Hito 50\,\%}
+        \begin{enumerate}\itemsep0pt
+            \item Validaci\'on de la S3 con todos los drivers actuales
+            \item Migraci\'on del pod\'ometro a FFT (ESP-DSP)
+            \item Recolecci\'on dataset de actividades reales
+            \item Entrenamiento + cuantizaci\'on CNN 1D
+            \item PCB SMD con S3 + sensores integrados
+        \end{enumerate}
+    \end{columns}
+\end{frame}
 
-\begin{frame}{Conclusiones y Próximos Pasos}
-    \begin{itemize}
-        \item En este 25\% se demostró un ruteo exitoso de todas las capas lógicas y físicas del wearable. Múltiples buses, interfaces y comunicaciones inalámbricas conviven gracias al gestor de FreeRTOS.
-        \item El diagnóstico temprano de la inestabilidad de la ESP32-C3 nos ha permitido pivotar hacia una solución de grado industrial de manera oportuna.
-    \end{itemize}
-    \vspace{0.3cm}
-    \textbf{Futuro Inmediato (Hito 60\%)}:
-    \begin{enumerate}
-        \item Integrar el algoritmo de la FFT en el nuevo microcontrolador.
-        \item Comenzar la captura de datos (Data Logging) con usuarios reales para entrenar el modelo clasificador \textbf{CNN 1D} por Machine Learning.
-        \item Consolidar el esquemático de KiCad para fabricar nuestra primera PCB SMD personalizada, superando las inestabilidades de contacto de los sensores actuales.
-    \end{enumerate}
+% ═══════════════════════════════════════════════════════════════════
+\begin{frame}[plain]
+    \centering
+    \vspace{1.5cm}
+    {\Huge \color{main} \textbf{Demostraci\'on en vivo}}\\[0.6cm]
+    {\Large 5\,min}\\[0.4cm]
+    \footnotesize
+    Navegaci\'on UI \textbar{} HR continuo \textbar{} SPOT dedicado \textbar{} cambio de modo \textbar{} ECG streaming\\
+    Telemetr\'ia BLE en \texttt{supaclock\_monitor.py}
 \end{frame}
 
 \end{document}
