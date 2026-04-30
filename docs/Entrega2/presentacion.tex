@@ -39,30 +39,49 @@
 \maketitle
 % ═══════════════════════════════════════════════════════════════════
 
-% ─── Slide 2 — Visión + agenda ───
-\begin{frame}{Visi\'on del producto y agenda}
+% ─── Slide 2 — Contexto y Solución ───
+\begin{frame}{Contexto, Requisitos y Soluci\'on}
     \begin{columns}[T]
-        \column{0.55\textwidth}
+        \column{0.5\textwidth}
         \footnotesize
-        \textbf{SupaClock}: wearable de monitoreo biom\'etrico continuo con enfoque cl\'inico ``Cero distracciones'', orientado a personal m\'edico.
-        \vspace{0.15cm}
+        \textbf{Problem\'atica}:
         \begin{itemize}\itemsep0pt
-            \item ECG, frecuencia cardiaca, SpO\textsubscript{2}, temperatura corporal, podometr\'ia
-            \item Telemetr\'ia BLE en vivo a equipo m\'edico
-            \item Procesamiento on-device + clasificador de actividad por ML
+            \item Alta tasa de sedentarismo y sobrepeso (42\,\% de la poblaci\'on).
+            \item Necesidad de fomentar h\'abitos saludables mediante monitoreo preventivo y accesible.
         \end{itemize}
-        \vspace{0.4cm}
-        \textbf{Agenda} (10 min):
+        \vspace{0.2cm}
+        \textbf{Requisitos de Dise\~no}:
         \begin{itemize}\itemsep0pt
-            \item Hardware e integraci\'on
-            \item Firmware y algoritmos
-            \item Comunicaci\'on, m\'etricas y futuro
+            \item \textbf{Factor de forma}: \textit{Smartwatch} compacto ($<$80$\times$50$\times$30\,mm) y aut\'onomo ($>$12\,h).
+            \item \textbf{Biometr\'ia 5-en-1}: SpO\textsubscript{2}, Ritmo Card\'iaco, Temperatura, Pod\'ometro, ECG monocanal.
+            \item \textbf{Procesamiento Edge}: Inteligencia Artificial local para clasificar actividad.
         \end{itemize}
-        \column{0.45\textwidth}
-        \includegraphics[width=\linewidth, keepaspectratio]{hero_render.png}
-        \vspace{0.1cm}\newline
-        \centerline{\scriptsize\textbf{Figura 1}: \textit{Renderizado 3D de SupaClock.}}
+        \column{0.5\textwidth}
+        \footnotesize
+        \textbf{Soluci\'on Propuesta: \textit{SupaClock}}
+        \begin{itemize}\itemsep0pt
+            \item Wearable de monitoreo continuo con enfoque cl\'inico (``Cero distracciones'').
+            \item \textbf{Hardware}: ESP32 (C3/S3), 6 sensores I\textsuperscript{2}C/ADC y pantalla LCD a color (SPI).
+            \item \textbf{Ecosistema}: Telemetr\'ia BLE en vivo hacia App y procesamiento (Pan-Tompkins) en la nube.
+        \end{itemize}
+        \vspace{0.2cm}
+        \centering
+        \includegraphics[height=2.7cm, keepaspectratio]{hero_render.png}
+        \vspace{0.05cm}\newline
+        \scriptsize\textbf{Figura 1}: \textit{Renderizado 3D del concepto SupaClock.}
     \end{columns}
+\end{frame}
+
+% ─── Slide 3 — Agenda ───
+\begin{frame}{Agenda de la presentaci\'on}
+    \Large
+    \centering
+    \vspace{0.8cm}
+    \begin{enumerate}\itemsep0.4cm
+        \item \textbf{Hardware e integraci\'on}
+        \item \textbf{Firmware y algoritmos}
+        \item \textbf{Comunicaci\'on, m\'etricas y futuro}
+    \end{enumerate}
 \end{frame}
 
 % ═══════════════════════════════════════════════════════════════════
@@ -117,9 +136,15 @@
         \end{alertblock}
         \column{0.45\textwidth}
         \centering
-        \includegraphics[height=2.5cm, keepaspectratio]{foto_pcb_frontal.jpeg}
-        \hspace{0.2cm}
-        \includegraphics[height=2.5cm, keepaspectratio]{foto_pcb_trasera.jpeg}
+        \begin{minipage}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{foto_pcb_frontal.jpeg}
+        \end{minipage}%
+        \hfill%
+        \begin{minipage}{0.48\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{foto_pcb_trasera.jpeg}
+        \end{minipage}
         \vspace{0.2cm}
         \vspace{0.2cm}
         \scriptsize \textbf{Figura 3}: \textit{PCB through-hole con C3 SuperMini en montaje; en paralelo se encarg\'o la revisi\'on siguiente con ESP32-S3 (slide 12).}
@@ -146,9 +171,8 @@
             \texttt{ble\_tx\_task} & 4 & flush peri\'odico \\
             \texttt{system\_task}  & 3 & 30\,s / 5\,min \\
             \bottomrule
+            \multicolumn{3}{l}{\scriptsize\textit{\textsuperscript{*}seg\'un modo de energ\'ia activo.}} \\
         \end{tabular}
-        \vspace{0.15cm}
-        \scriptsize\textit{\textsuperscript{*}según modo de energía activo.}
         \vspace{0.2cm}
         
         \textbf{Sincronización}: \texttt{xSensorDataMutex} y\\ mutex global del bus I\textsuperscript{2}C.
@@ -214,9 +238,10 @@
             HR \textbf{81\,BPM} (33 picos) | SpO\textsubscript{2} \textbf{98.7\,\%}
         }}
         \column{0.60\textwidth}
-        \includegraphics[width=\linewidth, keepaspectratio]{raw_ppg_compare.png}
+        \centering
+        \includegraphics[width=0.85\linewidth, keepaspectratio]{raw_ppg_compare.png}
         \vspace{0.1cm}\newline
-        \centerline{\scriptsize\textbf{Figura 5}: \textit{Algoritmo PPG para HR y SpO\textsubscript{2}.}}
+        \scriptsize\textbf{Figura 5}: \textit{Algoritmo PPG para HR y SpO\textsubscript{2}.}
     \end{columns}
 \end{frame}
 
@@ -436,6 +461,27 @@
         \vspace{0.1cm}\newline
         \scriptsize\textbf{Figura 12}: \textit{CPU ya no satura; el cuello de botella pasa a ser memoria.}
     \end{columns}
+\end{frame}
+
+% ─── Slide 13 — Problemáticas y Limitaciones ───
+\begin{frame}{Problem\'aticas y Limitaciones del Prototipo Actual}
+    \vspace{-0.2cm}
+    \footnotesize
+    Durante la integraci\'on de biosensores con el \textbf{ESP32-C3}, se identificaron barreras t\'ecnicas cr\'iticas:
+    \vspace{0.15cm}
+    \begin{itemize}\itemsep0.15cm
+        \item \alert{\textbf{Inestabilidad de Potencia (Brownouts)}}: El LDO actual ($\sim$300\,mA) no soporta picos concurrentes de transmisi\'on BLE y la retroiluminaci\'on LCD, causando reinicios s\'ubitos.
+        \item \alert{\textbf{Techo de Memoria (SRAM)}}: Tras inicializar Bluetooth y FreeRTOS, restan solo $\sim$99\,KB de RAM. Esto asfixia el despliegue del modelo de IA (\textit{TinyML}) para clasificar actividad.
+        \item \alert{\textbf{D\'eficit de Hardware Vectorial}}: El procesador \textit{single-core} carece de aceleraci\'on SIMD nativa, provocando que la inferencia de \textit{Machine Learning} demore hasta 10 veces m\'as ($\sim$200\,ms).
+        \item \alert{\textbf{Baja Precisi\'on en Podometr\'ia}}: El algoritmo actual de detecci\'on de pasos por umbral simple (magnitud IMU) es impreciso y genera falsos positivos con movimientos cotidianos.
+    \end{itemize}
+    \vspace{0.25cm}
+    \centering
+    \begin{minipage}{0.9\textwidth}
+        \begin{alertblock}{Impacto en el Proyecto}
+            \scriptsize El firmware y la concurrencia son estables, pero el \textbf{hardware del ESP32-C3} es un cuello de botella f\'isico para lograr la autonom\'ia de IA local.
+        \end{alertblock}
+    \end{minipage}
 \end{frame}
 
 % ─── Slide 13 — Migración a ESP32-S3 ───

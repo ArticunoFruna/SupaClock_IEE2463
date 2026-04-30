@@ -53,7 +53,7 @@
 \draw[arrow, dashed, gray!70!black] (mtx.east) -- ++(0.6,0) |- (t_gui.185);
 
 % --- Ruteo de Botones ---
-\draw[isr] (btns.east) -- ++(0.3,0) |- node[above, sloped, near start]{poll 30\,Hz} (t_gui.175);
+\draw[isr] (btns.east) -- node[above]{poll 30\,Hz} (t_gui.175);
 
 % --- Ruteo de Tareas a BLE (Bus ortogonal azul) ---
 \draw[ble] (t_ecg.east) -- ++(0.6,0) |- ([yshift=0.4cm]ble.west);

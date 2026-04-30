@@ -25,7 +25,7 @@
 \draw[arrow] (sq)  -- (mw);
 \draw[arrow] (mw)  -- (peaks);
 \draw[arrow] (peaks) -- (bpm);
-\draw[arrow] (bpm) -- ++(0,-0.8) -| (fs); % Vuelve a firestore por abajo
+\draw[arrow] (bpm.west) -- ++(-0.6,0) |- ([yshift=0.6cm]fs.north) -- (fs.north); % Vuelve a firestore por arriba
 
 % --- Background ---
 \begin{scope}[on background layer]

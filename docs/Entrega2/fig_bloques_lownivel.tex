@@ -60,11 +60,11 @@
 \draw[busI2C] (max102.west) -- ++(-0.6,0) |- ([yshift=-0.2cm]mcu.east);
 
 % ============== Conexiones ADC ==============
-\draw[adc] (ad8232.west) -- ++(-0.6,0) |- node[below, sloped, near start, xshift=-0.3cm, yshift=-0.1cm]{ADC1 20\,kHz} ([yshift=-0.55cm]mcu.east);
+\draw[adc] (ad8232.west) -- ++(-0.6,0) |- node[below, pos=0.75, font=\tiny]{ADC1 20\,kHz} ([yshift=-0.55cm]mcu.east);
 
 % ============== Conexiones SPI/GPIO ==============
 \draw[busSPI] (mcu.west) -- node[above]{SPI 80\,MHz} (st7789.east);
-\draw[gpio] (btns.east) -- ++(0.4,0) |- node[left, pos=0.25, font=\tiny]{GPIO} ([yshift=0.4cm]mcu.west);
+\draw[gpio] (btns.east) -- ++(0.4,0) |- node[above, pos=0.8, font=\tiny]{GPIO} ([yshift=0.4cm]mcu.west);
 
 % ============== Conexiones Ecosistema ==============
 \draw[ble] (mcu) -- (ble);
