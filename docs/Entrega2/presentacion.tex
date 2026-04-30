@@ -415,7 +415,7 @@
             bar width=10pt,
             xmin=0, xmax=140,
             enlarge y limits=0.25,
-            symbolic y coords={Te\'orico,Pant. off,Pant. on,Pico inicio,Antes pico},
+            symbolic y coords={Pant. off ECO,Te\'orico,Pant. off Sport,Pant. on,Pico inicio,Antes pico},
             ytick=data,
             tick label style={font=\tiny},
             xlabel={\tiny mA},
@@ -425,10 +425,11 @@
         ]
         \addplot+[draw=black!50, fill=blue!40] coordinates {
             (110,Antes pico)
-            (60,Pico inicio)
-            (50,Pant. on)
-            (20,Pant. off)
-            (15,Te\'orico)
+            (70,Pico inicio)
+            (63,Pant. on)
+            (27,Pant. off Sport)
+            (22,Te\'orico)
+            (17,Pant. off ECO)
         };
         \end{axis}
         \end{tikzpicture}
