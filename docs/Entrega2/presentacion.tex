@@ -27,7 +27,7 @@
 \graphicspath{{../}{../../}{../../../tools/}{presentacion_v2/}}
 
 \title{Wearable ``SupaClock''}
-\subtitle{Reporte de Avance 25\% \textbar{} Validaci\'on de Subsistemas}
+\subtitle{Reporte de Avance 33\% \textbar{} Validaci\'on de Subsistemas}
 \date{\today}
 \author{Grupo 10}
 \institute{Ingenier\'ia El\'ectrica}
@@ -53,7 +53,7 @@
         \textbf{Requisitos de Dise\~no}:
         \begin{itemize}\itemsep0pt
             \item \textbf{Factor de forma}: \textit{Smartwatch} compacto ($<$80$\times$50$\times$30\,mm) y aut\'onomo ($>$12\,h).
-            \item \textbf{Biometr\'ia 5-en-1}: SpO\textsubscript{2}, Ritmo Card\'iaco, Temperatura, Pod\'ometro, ECG monocanal.
+            \item \textbf{Biometr\'ia 5-en-1}: SpO\textsubscript{2}, Ritmo Card\'iaco, Temperatura, Pod\'ometro, ECG monocanal (en reposo).
             \item \textbf{Procesamiento Edge}: Inteligencia Artificial local para clasificar actividad.
         \end{itemize}
         \column{0.5\textwidth}
@@ -66,9 +66,9 @@
         \end{itemize}
         \vspace{0.2cm}
         \centering
-        \includegraphics[height=2.7cm, keepaspectratio]{hero_render.png}
+        \includegraphics[height=2.7cm]{supaclock_logo.png}
         \vspace{0.05cm}\newline
-        \scriptsize\textbf{Figura 1}: \textit{Renderizado 3D del concepto SupaClock.}
+        \scriptsize\textbf{Figura 1}: \textit{Logo SupaClock.}
     \end{columns}
 \end{frame}
 
@@ -128,7 +128,7 @@
         \begin{itemize}
             \item \textbf{BMS}: TP4056 (carga LiPo) + DW01A (protecci\'on sobre/sub-tensi\'on)
             \item \textbf{Fuel gauge}: MAX17048 reporta voltaje y SoC por I\textsuperscript{2}C
-            \item \textbf{Regulador (C3 SuperMini)}: LDO LLV8 \alert{\textbf{insuficiente}} para picos de radio + sensores
+            \item \textbf{Regulador (C3 SuperMini)}: LDO LLV8 \alert{\textbf{insuficiente}} para peaks de radio + sensores
         \end{itemize}
         \vspace{0.2cm}
         \begin{alertblock}{Problema detectado}
@@ -202,6 +202,43 @@
     \end{columns}
 \end{frame}
 
+% ─── Slide 5.5 — Navegación GUI ───
+\begin{frame}{Navegaci\'on de la Interfaz Gr\'afica (LVGL)}
+    \begin{columns}[T]
+        \column{0.45\textwidth}
+        \footnotesize
+        \textbf{Estructura de la GUI}:
+        \begin{itemize}\itemsep0.2cm
+            \item \textbf{Home}: Reloj principal, resumen de pasos, bater\'ia y estado de conexi\'on.
+            \item \textbf{Biometr\'ia}: Vista de sensores en tiempo real (HR, SpO\textsubscript{2}, Temp).
+            \item \textbf{HR}: Captura puntual (Spot) de HR y SpO\textsubscript{2}.
+            \item \textbf{ECG}: Vista dedicada para iniciar/detener la captura de grado m\'edico.
+            \item \textbf{Men\'u}: Ajustes de modos de energ\'ia y control de telemetr\'ia.
+        \end{itemize}
+        \vspace{0.4cm}
+        \textit{La navegaci\'on fluida est\'a garantizada por la \texttt{gui\_task} operando a 30\,FPS.}
+        \column{0.55\textwidth}
+        \centering
+        \begin{tikzpicture}[
+            screen/.style={inner sep=1pt, draw=main, thick, rounded corners=2pt}
+        ]
+            \node[screen] (home) at (90:2.5cm) {\includegraphics[width=1.6cm, keepaspectratio]{supaclock_home.png}};
+            \node[screen] (bio) at (18:2.5cm) {\includegraphics[width=1.6cm, keepaspectratio]{supaclock_bio.png}};
+            \node[screen] (hr) at (-54:2.5cm) {\includegraphics[width=1.6cm, keepaspectratio]{supaclock_hr.png}};
+            \node[screen] (ecg) at (-126:2.5cm) {\includegraphics[width=1.6cm, keepaspectratio]{supaclock_ecg.png}};
+            \node[screen] (menu) at (162:2.5cm) {\includegraphics[width=1.6cm, keepaspectratio]{supaclock_menu.png}};
+            
+            \draw[->, thick, color=gray!80, bend left=15] (home) to (bio);
+            \draw[->, thick, color=gray!80, bend left=15] (bio) to (hr);
+            \draw[->, thick, color=gray!80, bend left=15] (hr) to (ecg);
+            \draw[->, thick, color=gray!80, bend left=15] (ecg) to (menu);
+            \draw[->, thick, color=gray!80, bend left=15] (menu) to (home);
+        \end{tikzpicture}
+        \vspace{0.2cm}\newline
+        \scriptsize\textbf{Navegaci\'on}: \textit{Diagrama de flujo entre las pantallas principales.}
+    \end{columns}
+\end{frame}
+
 % ─── Slide 6 — Flujo FreeRTOS (TikZ) ───
 \begin{frame}{Flujo de Tareas y Sensores concurrentes en FreeRTOS}
     \begin{center}
@@ -223,7 +260,7 @@
         \begin{enumerate}\itemsep0pt
             \item Tracker DC (EMA $\alpha$=0.05)
             \item Bandpass IIR Butterworth \textbf{0.5--4\,Hz} (HPF+LPF orden 2)
-            \item Detector picos umbral adaptativo
+            \item Detector peaks umbral adaptativo
             \item Mediana 8 RR + rechazo $\Delta$RR$>$25\%
             \item SpO\textsubscript{2}: mediana 10 valores R
             \item Motion gating con jerk del IMU
@@ -235,7 +272,7 @@
 
         \fcolorbox{accent}{accent!12}{\parbox{0.95\linewidth}{\scriptsize
             \textbf{Validaci\'on 30\,s reposo:}\\
-            HR \textbf{81\,BPM} (33 picos) | SpO\textsubscript{2} \textbf{98.7\,\%}
+            HR \textbf{81\,BPM} (33 peaks) | SpO\textsubscript{2} \textbf{98.7\,\%}
         }}
         \column{0.60\textwidth}
         \centering
@@ -263,7 +300,7 @@
             \item Derivada (resalta pendientes)
             \item Cuadratura
             \item Integraci\'on en ventana m\'ovil
-            \item Detecci\'on de picos R con umbral adaptativo
+            \item Detecci\'on de peaks R con umbral adaptativo
         \end{enumerate}
         \column{0.52\textwidth}
         \vspace{-0.3cm}
@@ -281,7 +318,7 @@
 % ─── Slide 8.5 — ECG Pan-Tompkins Resultados ───
 \begin{frame}{Resultados de ECG Pan-Tompkins}
     \begin{center}
-        \includegraphics[width=0.65\linewidth, keepaspectratio]{pan_tompkins_results_140907.png}
+        \includegraphics[width=0.65\linewidth, keepaspectratio]{pan_tompkins_results_140819.png}
         \vspace{0.2cm}\newline
         \scriptsize\textit{An\'alisis Pan-Tompkins aplicado a los datos recolectados.}
     \end{center}
@@ -296,10 +333,10 @@
         \begin{enumerate}\itemsep0pt
             \item Magnitud 3D del acelerador
             \item Filtro media m\'ovil (10 muestras)
-            \item Detector de picos con umbral adaptativo (re-evaluaci\'on cada 5\,s)
+            \item Detector de peaks con umbral adaptativo (re-evaluaci\'on cada 5\,s)
         \end{enumerate}
         \vspace{0.15cm}
-        \alert{\textbf{Limitaci\'on detectada}}: agitar la mano emula picos $\rightarrow$ falsos positivos.
+        \alert{\textbf{Limitaci\'on detectada}}: agitar la mano emula peaks $\rightarrow$ falsos positivos.
         \vspace{0.2cm}
         \textbf{Soluci\'on planificada} (dominio frecuencia):
         \begin{itemize}\itemsep0pt
@@ -433,7 +470,7 @@
         };
         \end{axis}
         \end{tikzpicture}
-        \vspace{-0.1cm}\newline\centerline{\scriptsize\textbf{Figura 11}: \textit{Picos de consumo en batería.}}
+        \vspace{-0.1cm}\newline\centerline{\scriptsize\textbf{Figura 11}: \textit{peaks de consumo en batería.}}
 
         \column{0.50\textwidth}
         \scriptsize
@@ -477,7 +514,7 @@
     Durante la integraci\'on de biosensores con el \textbf{ESP32-C3}, se identificaron barreras t\'ecnicas cr\'iticas:
     \vspace{0.15cm}
     \begin{itemize}\itemsep0.15cm
-        \item \alert{\textbf{Inestabilidad de Potencia (Brownouts)}}: El LDO actual ($\sim$300\,mA) no soporta picos concurrentes de transmisi\'on BLE y la retroiluminaci\'on LCD, causando reinicios s\'ubitos.
+        \item \alert{\textbf{Inestabilidad de Potencia (Brownouts)}}: El LDO actual no soporta peaks concurrentes de transmisi\'on BLE y la retroiluminaci\'on LCD, causando reinicios s\'ubitos.
         \item \alert{\textbf{Techo de Memoria (SRAM)}}: Tras inicializar Bluetooth y FreeRTOS, restan solo $\sim$99\,KB de RAM. Esto asfixia el despliegue del modelo de IA (\textit{TinyML}) para clasificar actividad.
         \item \alert{\textbf{D\'eficit de Hardware Vectorial}}: El procesador \textit{single-core} carece de aceleraci\'on SIMD nativa, provocando que la inferencia de \textit{Machine Learning} demore hasta 10 veces m\'as ($\sim$200\,ms).
         \item \alert{\textbf{Baja Precisi\'on en Podometr\'ia}}: El algoritmo actual de detecci\'on de pasos por umbral simple (magnitud IMU) es impreciso y genera falsos positivos con movimientos cotidianos.
