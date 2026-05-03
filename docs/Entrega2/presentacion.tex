@@ -427,7 +427,7 @@
             xlabel={\tiny \%\ tiempo},
             xlabel style={font=\tiny},
             legend style={
-                at={(0.5,-0.40)}, anchor=north,
+                at={(0.5,-0.50)}, anchor=north,
                 font=\tiny, legend columns=3,
                 draw=none,
                 /tikz/every even column/.append style={column sep=0.15cm}
@@ -441,7 +441,7 @@
         \legend{SLEEP, APB\_MAX, CPU\_MAX}
         \end{axis}
         \end{tikzpicture}
-        \vspace{-0.1cm}\newline\centerline{\scriptsize\textbf{Figura 10}: \textit{Estados de energía del SoC.}}
+        \vspace{0.1cm}\newline\centerline{\scriptsize\textbf{Figura 10}: \textit{Estados de energía del SoC.}}
 
         \vspace{0.2cm}
         \textbf{Consumo en bater\'ia} (Tektronix TX3)
@@ -537,7 +537,7 @@
         \column{0.55\textwidth}
         \scriptsize
         \begin{enumerate}\itemsep0.05cm
-            \item \alert{\textbf{Brownout resuelto}}: Buck SGM6029 integrado ($\sim$800\,mA) reemplaza al LDO LLV8 ($\sim$300\,mA).
+            \item \alert{\textbf{Brownout resuelto}}: Buck SGM6029 integrado ($\sim$800\,mA) reemplaza al LDO LLV8 ($\sim$?\,mA).
             \item \textbf{Memoria para ML}: 512\,KB SRAM (vs 320 en C3) + PSRAM externa hasta 8\,MB.
             \item \textbf{ESP-NN con SIMD}: inferencia CNN 1D int8 \textbf{5--20\,ms} (S3) vs 50--200\,ms (C3).
             \item \textbf{Dual-core 240\,MHz}: separa ML del firmware sin contenci\'on con \texttt{ecg\_task} / \texttt{gui\_task}.

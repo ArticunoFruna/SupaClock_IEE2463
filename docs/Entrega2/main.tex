@@ -131,16 +131,23 @@ Adicionalmente, en la \textbf{sección de Implementación y resultados} se docum
 que el equipo logró integrar en la iteración actual de desarrollo.
 
 \subsubsection{Resumen ejecutivo del avance.} Actualmente el sistema cuenta con un
-\textbf{firmware funcional integrado} que ejerce a las cinco tareas concurrentes bajo FreeRTOS
-(IMU + pasos, PPG, Temperatura/Batería, ECG por DMA y GUI LVGL), un \textbf{stack BLE NimBLE}
-operativo con tres características GATT, un \textbf{backend Firebase} con Cloud Functions
-corriendo Pan-Tompkins en NumPy y un \textbf{esquemático en KiCad} para el prototipo SuperMini.
+\textbf{firmware funcional integrado} que ejecuta \textbf{siete tareas concurrentes} bajo FreeRTOS
+(IMU + pasos, PPG con máquina de estados SPOT, Temperatura/Batería, ECG por DMA on-demand,
+GUI LVGL de 7 pantallas, flush BLE agregado y monitor de rendimiento), un \textbf{stack BLE NimBLE}
+operativo con \textbf{cuatro características GATT} (incluyendo telemetría TLV agregada y canal de
+comandos), un \textbf{backend Firebase} con Cloud Functions corriendo Pan-Tompkins en NumPy y
+un \textbf{esquemático en KiCad} para el prototipo SuperMini.
+Adicionalmente, en esta iteración se implementaron \textbf{modos de energía persistentes}
+(SPORT/NORMAL/SAVER con 8 cadencias parametrizadas y persistencia NVS), un sistema de
+\textbf{power management dinámico} con DFS y \textit{light sleep} que alcanza un 75\,\% de
+tiempo en estado SLEEP, y se encargó la \textbf{migración al Seeed XIAO ESP32-S3} para resolver
+limitaciones de memoria y potencia del C3.
 Los componentes de Machine Learning (CNN 1D para HAR) y la PCB SMD propia están en fases
-tempranas y se concentran en los hitos 60\,\% y 90\,\%. La aplicación móvil que actuará como
-\textit{gateway} entre el dispositivo y el backend se abordará en iteraciones posteriores y queda fuera del
-alcance de este reporte; para la fase de diseño actual, las trazas BLE se validan con un cliente de
-escritorio (\texttt{nRF Connect} y un \texttt{ble\_logger.py} propio en Python) que también
-escribe directamente en Firestore para verificar el extremo \textit{cloud}.
+tempranas y se concentran en los hitos 60\,\% y 90\,\%. Se inició el desarrollo de la
+\textbf{aplicación móvil en Flutter} que actuará como \textit{gateway} entre el dispositivo y
+el backend; para la fase de diseño actual, las trazas BLE se validan con el cliente de
+escritorio \texttt{supaclock\_monitor.py} (Python + \texttt{bleak}), que grafica biometría
+en tiempo real, exporta CSV para entrenamiento del clasificador y sube sesiones a Firestore.
 
 % =====================================================
 \section{Diagrama de bloques de bajo nivel actualizado}
@@ -174,22 +181,29 @@ las modificaciones son:
     \textit{single-shot}; la implementación actual usa el periférico \texttt{adc\_continuous}
     del ESP-IDF a 20\,kHz con DMA, decimando por 40 hacia 500\,Hz para BLE. Esto se justifica en
     la \rfigura{fig:rtos}.
-    \item \textbf{Botones}: pasaron de tres a tres botones \textit{con \textit{double-tap} y
-    \textit{long-press}} gestionados por \texttt{gpio\_buttons} (debounce SW por
-    \texttt{esp\_timer}); el pin de despertar de \textit{deep sleep} se canaliza ahora por
-    \texttt{BTN\_SELECT} en lugar de la INT1 del IMU.
+    \item \textbf{Botones}: pasaron de tres a \textbf{dos botones} (\texttt{NEXT} GPIO10 y
+    \texttt{SELECT} GPIO1) \textit{con short-press y long-press} gestionados por
+    \texttt{gpio\_buttons} (debounce SW por \texttt{esp\_timer}); el pin de despertar de
+    \textit{deep sleep} se canaliza ahora por \texttt{BTN\_SELECT}.
     \item \textbf{LVGL}: se confirmó el buffer parcial de 14.4\,KB (240$\times$30 px $\times$ 2\,B);
-    el GUI quedó dividido en cuatro pantallas (Home, Bio, ECG, Menú) con navegación por estado.
+    el GUI quedó dividido en \textbf{siete pantallas} (5 ciclables: Home, Bio, HR\_Spot, ECG, Menú;
+    2 sub-pantallas: Modo Energía, Configuración Auto-off) con navegación por estado.
     \item \textbf{Backend Firebase}: el flujo \textit{dispositivo $\to$ Firestore $\to$ Cloud
-    Function \texttt{process\_ecg}} ya está desplegado y se valida con un cliente de
-    \textit{testing} en PC; el \textit{gateway} móvil definitivo se construirá en el hito 60\,\%.
+    Function \texttt{process\_ecg}} ya está desplegado y se valida con el cliente
+    \texttt{supaclock\_monitor.py}; la primera versión del \textit{gateway} móvil en Flutter
+    está en desarrollo.
+    \item \textbf{Migración a ESP32-S3}: se encargó el módulo \textit{Seeed XIAO ESP32-S3}
+    (en tránsito) para resolver las limitaciones de potencia (brown-outs del LDO actual) y de
+    memoria (techo SRAM de 320\,KB insuficiente para TinyML). La decisión se justifica
+    cuantitativamente en la sección~\ref{sec:modelos}.
     \item \textbf{TinyML}: aún \textit{no} se entrenó el modelo CNN 1D (depende de la
     recolección de datos reales del BMI160 sobre los integrantes); por eso se mantiene como bloque
     pendiente. El contador de pasos \textit{algorítmico} (umbral adaptativo) sí se implementó.
-    \item \textbf{PCB SMD propia}: el esquemático en KiCad (\texttt{hardware/PCB\_Prototipo})
-    incluye la sección de potencia y los \textit{footprints} importados desde la librería
-    Adafruit-MAX17048 y el módulo TP4056; el ruteo del bottom de sensores está pendiente, por
-    lo que el bloque se reporta al 30\,\%.
+    \item \textbf{PCB SMD propia}: se completó la primera versión del esquemático en KiCad
+    (\texttt{hardware/PCB\_Prototipo}) incluyendo la sección de potencia, los footprints
+    importados y los buses I2C/SPI. Sin embargo, esta versión \textbf{no será manufacturada}
+    dado que la migración al ESP32-S3 requiere un rediseño del módulo MCU; ya se trabaja
+    en la versión actualizada para dejar definitivamente la protoboard.
 \end{itemize}
 
 \subsubsection{Especificaciones detalladas por bloque.} La \rtabla{tab:specs} consolida las
@@ -209,14 +223,16 @@ la misma codificación cromática que la \rfigura{fig:lownivel}.
     MAX30205 (Temp)      & I2C 400\,kHz \texttt{0x48} & 1\,Hz polling                          & 16-bit, 0.00390625\,°C/LSB, $\pm 0.1$\,°C en rango clínico        & \cellcolor{green!20}100\,\% \\\hline
     MAX17048 (Fuel)      & I2C 400\,kHz \texttt{0x36} & 1\,Hz polling                          & ModelGauge SOC \%, $V_{cell}$\,mV, sin shunt externo               & \cellcolor{green!20}100\,\% \\\hline
     ST7789 (Display)     & SPI 80\,MHz, 4-wire & 30\,FPS LVGL                                  & 240$\times$280 RGB565, DMA \texttt{SPI\_DMA\_CH\_AUTO}, offset Y=20 & \cellcolor{green!20}100\,\% \\\hline
-    Botones GPIO         & GPIO IN pull-up   & polling 30\,Hz desde gui\_task                  & 3 botones, 30\,ms debounce, eventos short/long, wake-up sleep      & \cellcolor{green!20}100\,\% \\\hline
+    Botones GPIO         & GPIO IN pull-up   & polling 30\,Hz desde gui\_task                  & 2 botones (NEXT, SELECT), short/long press, debounce 30\,ms, wake-up deep sleep & \cellcolor{green!20}100\,\% \\\hline
     BMS TP4056 + DW01A   & USB-C IN          & --                                              & carga 1\,A ajustable, OVP/OCP/UVP integrado                       & \cellcolor{green!20}100\,\% \\\hline
     LDO ME6211           & 3.3\,V OUT        & --                                              & dropout $\sim$100\,mV @ 100\,mA, $I_Q$\,55\,$\mu$A                 & \cellcolor{green!20}100\,\% \\\hline
-    BLE NimBLE           & 2.4\,GHz BLE 5    & MTU 247, conn.\ interval 15\,ms                & 3 chr.: 0xFF01 IMU, 0xFF02 sensores lentos, 0xFF03 ECG raw         & \cellcolor{green!20}100\,\% \\\hline
-    GUI LVGL             & SPI                & 30\,FPS                                         & 4 pantallas, navegación 2 botones + auto-switch ECG               & \cellcolor{yellow!25}85\,\% \\\hline
+    BLE NimBLE           & 2.4\,GHz BLE 5    & MTU 247, conn.\ interval 15\,ms                & 4 chr.: 0xFF01 IMU, 0xFF02 TLV agregado, 0xFF03 ECG, 0xFF04 CMD    & \cellcolor{green!20}100\,\% \\\hline
+    GUI LVGL             & SPI                & 30\,FPS                                         & 7 pantallas (5 ciclables + 2 sub), 7 ítems menú, backlight PWM auto-off & \cellcolor{green!20}100\,\% \\\hline
+    Power Management     & esp\_pm + locks   & DFS 10--160\,MHz                                & Light sleep dinámico, 3 PM locks (ECG, ADC, NimBLE)                & \cellcolor{green!20}100\,\% \\\hline
+    Power Modes          & NVS + \texttt{power\_get\_profile()} & --                             & 3 perfiles (SPORT/NORMAL/SAVER), 8 cadencias parametrizadas, persistencia NVS & \cellcolor{green!20}100\,\% \\\hline
     Cloud Functions      & Firestore trigger & on\_document\_created                          & Pan-Tompkins NumPy, BPM, HRV (SDNN), R-peaks                       & \cellcolor{green!20}100\,\% \\\hline
     TinyML CNN 1D        & TFLite Micro      & 0.5\,Hz inferencia                              & 4 clases HAR, $<$30\,KB flash, $\leq$10\,KB SRAM                   & \cellcolor{red!15}0\,\% \\\hline
-    PCB SuperMini propia & 4 capas JLCPCB    & --                                              & sandwich 2 PCBs, ventana óptica PPG, perno M3 ECG                  & \cellcolor{red!15}30\,\% \\\hline
+    PCB SuperMini propia & 4 capas JLCPCB    & --                                              & Esquemático v1 completo; rediseño en curso para ESP32-S3            & \cellcolor{yellow!25}40\,\% \\\hline
     \end{tabular}
 \end{table}
 
@@ -244,10 +260,13 @@ descubrir necesidades de implementación que no estaban en la planificación ini
     \cellcolor{green!12} Pruebas preliminares de adquisición de datos & \cellcolor{green!20}\bf Completado & Cada \texttt{env:test\_*} de PlatformIO valida un sensor de forma aislada; existen 9 entornos de prueba unitarios. \\\hline
     \cellcolor{green!12} Primera integración de sensores con el MCU & \cellcolor{green!20}\bf Completado & \texttt{env:main\_app}/\texttt{test\_general} integra simultáneamente IMU, PPG, Temp, ECG, batería y GUI con BLE activo. \\\hline
     \cellcolor{green!12} Validación básica de algoritmos & \cellcolor{green!20}\bf Completado & Contador de pasos por umbral adaptativo en C, Pan-Tompkins en Cloud Functions; ambos validados con datos reales (Sec.\,\ref{sec:modelos}). \\\hline
-    \cellcolor{red!12} Stack BLE completo & \cellcolor{red!12}\bf Adelantado & NimBLE corriendo con 3 chr.\ GATT, bonding y notificaciones. Validado con cliente PC \texttt{nRF Connect} y \texttt{ble\_logger.py}. \\\hline
+    \cellcolor{red!12} Stack BLE completo & \cellcolor{red!12}\bf Adelantado & NimBLE corriendo con 4 chr.\ GATT (incluyendo TLV agregado y canal de comandos) bajo servicio \texttt{0xFF00}. Advertising relajado a 1\,s, Modem Sleep BT, sin bonding (compatibilidad BlueZ/tests). Validado con \texttt{supaclock\_monitor.py}. \\\hline
     \cellcolor{red!12} Cloud Functions & \cellcolor{red!12}\bf Adelantado & Pan-Tompkins en NumPy desplegado en \texttt{us-central1}; BPM y HRV calculados al subir un \texttt{ecgReadings/}. \\\hline
-    \cellcolor{yellow!20} Recolección de datos de entrenamiento ML & \cellcolor{yellow!20}\bf En curso & Existe \texttt{ble\_logger} (CSV) y se han capturado 4 sesiones (\texttt{supaclock\_*.csv} y \texttt{supaclock\_ecg\_*.csv}); aún no se ha entrenado modelo. \\\hline
-    \cellcolor{red!12} Esquemático de PCB SMD propia & \cellcolor{red!12}\bf Adelantado & \texttt{PCB\_Prototipo.kicad\_sch} contiene la sección de carga (TP4056), el footprint del MAX17048-STEMMA reutilizado y el módulo AD8232; falta ruteo del PCB de sensores. \\\hline
+    \cellcolor{yellow!20} Recolección de datos de entrenamiento ML & \cellcolor{yellow!20}\bf En curso & Existe \texttt{supaclock\_monitor.py} (CSV) y se han capturado sesiones (\texttt{supaclock\_*.csv}); aún no se ha entrenado modelo. \\\hline
+    \cellcolor{red!12} Esquemático de PCB SMD propia & \cellcolor{red!12}\bf Adelantado & Esquemático v1 completo (\texttt{PCB\_Prototipo.kicad\_sch}). Esta versión no será manufacturada; se rediseña para ESP32-S3. \\\hline
+    \cellcolor{red!12} Optimización energética (light sleep + PM locks) & \cellcolor{red!12}\bf Adelantado & No estaba en planificación original. DFS 10--160\,MHz, 3 PM locks, Modem Sleep BT. Resultado: 75\,\% SLEEP, 15\,\% APB\_MAX, 9\,\% CPU\_MAX (antes: 0\,\% SLEEP). \\\hline
+    \cellcolor{red!12} Modos de energía persistentes & \cellcolor{red!12}\bf Adelantado & No estaba en planificación original. Tres perfiles (SPORT/NORMAL/SAVER) con 8 cadencias parametrizadas, persistencia NVS, cambio en runtime sin reinicio. \\\hline
+    \cellcolor{yellow!20} Migración a Seeed XIAO ESP32-S3 & \cellcolor{yellow!20}\bf Nueva tarea & Justificada por brown-outs del LDO y techo de SRAM del C3. Módulo encargado, en tránsito. Plan de bring-up: validar drivers $\to$ habilitar PSRAM $\to$ desplegar CNN 1D. \\\hline
     \end{tabular}
 \end{table}
 
@@ -288,9 +307,9 @@ en áreas complementarias. La \rtabla{tab:trabajo} resume las contribuciones pri
     \footnotesize
     \begin{tabular}{|L{2.7cm}|L{6.0cm}|L{6.5cm}|}\hline
     \rowcolor{gray!20}\textbf{Integrante} & \textbf{Área(s) principal(es)} & \textbf{Aportes específicos a este hito} \\\hline
-    Tomás Avendaño   & Interfaz, Comunicaciones, Backend & GUI LVGL multi-pantalla, integración BLE NimBLE (chr.\ FF01/FF02/FF03), despliegue Cloud Functions Pan-Tompkins (Python/NumPy en \texttt{us-central1}), reglas de Firestore por usuario y cliente \texttt{ble\_logger.py} para captura y subida de sesiones de prueba. \\\hline
-    Benjamín Sepúlveda & Hardware, Energía & Validación eléctrica de la rampa USB$\to$LDO con multímetro y osciloscopio, esquemático KiCad de la sección de potencia y de la STEMMA del MAX17048, BOM consolidado con costos reales de Aliexpress, ensamblaje del prototipo en perfboard. \\\hline
-    Pablo Uribe   & Software, Procesamiento de Señales & Drivers en C de MAX30102 (FIFO + algoritmo HR/SpO\textsubscript{2}), MAX30205, BMI160 (incluyendo step counter HW), AD8232 con ADC continuo + DMA, algoritmo de pasos en C con umbral adaptativo, simulador en Python (\texttt{algo\_simulator.py}, \texttt{tune\_inspect*.py}), arquitectura FreeRTOS de cinco tareas, gestión de mutex y sincronización IPC. \\\hline
+    Tomás Avendaño   & Interfaz, Comunicaciones, Backend & GUI LVGL 7 pantallas con backlight auto-off, optimización del driver ST7789 (carga CPU de 47\,\% a $<$1\,\%), integración BLE NimBLE con 4 chr.\ (FF01/FF02 TLV/FF03/FF04 CMD), despliegue Cloud Functions Pan-Tompkins, cliente \texttt{supaclock\_monitor.py} para captura BLE + CSV, inicio de la app móvil Flutter. \\\hline
+    Benjamín Sepúlveda & Hardware, Energía & Validación eléctrica de la rampa USB$\to$LDO con multímetro y osciloscopio, esquemático KiCad v1 completo (sección de potencia, STEMMA MAX17048, buses I2C/SPI), BOM consolidado con costos reales, ensamblaje del prototipo en perfboard, gestión de la compra del Seeed XIAO ESP32-S3 y evaluación de la nueva PCB. \\\hline
+    Pablo Uribe   & Software, Procesamiento de Señales & Drivers en C de MAX30102 (FIFO + algoritmo HR/SpO\textsubscript{2} + SM SPOT + motion gating), MAX30205, BMI160, AD8232 con refactor DMA on-demand (\texttt{start\_dma}/\texttt{stop\_dma} + PM lock), algoritmo de pasos en C con umbral adaptativo, power management dinámico (DFS + light sleep + 3 PM locks), módulo \texttt{power\_modes} con 3 perfiles y persistencia NVS, arquitectura FreeRTOS de siete tareas con regla \textit{rate monotonic}. \\\hline
     \end{tabular}
 \end{table}
 
@@ -402,11 +421,19 @@ normativas adicionales a la ECMA-287 previamente discutida.
     estado idle del dispositivo (gateway).
     \item MTU negociado a 247\,B para minimizar overhead: cada paquete BLE transporta hasta
     244\,B útiles, suficiente para los \textit{chunks} de ECG (10 muestras int16 = 20\,B) o
-    los paquetes de telemetría lenta (13\,B \texttt{ble\_sensor\_packet\_t}).
-    \item \textit{Pairing}: \textit{Just Works} con bonding en \texttt{ble\_store}; las claves
-    se guardan en NVS para reconexión transparente.
+    los paquetes de telemetría TLV agregada.
+    \item \textit{Advertising interval} configurado a \textbf{1000\,ms} (1600 unidades de
+    0,625\,ms) para minimizar la actividad de radio en estado no-conectado, habilitando que el
+    SoC entre en \textit{light sleep} entre intervalos.
+    \item \textit{Modem Sleep BT} habilitado en \texttt{sdkconfig.defaults}: el controlador
+    Bluetooth suspende el radio durante los intervalos de conexión, reduciendo significativamente
+    el consumo cuando hay un enlace activo pero sin datos pendientes.
+    \item \textit{Pairing}: \textit{Just Works} \textbf{sin bonding} (compatibilidad con
+    BlueZ/Linux y entornos de testing); las claves no se persisten para facilitar la reconexión
+    limpia desde distintos clientes de desarrollo.
     \item Servicios \textbf{0x180A} (Device Information) y \textbf{0x180F} (Battery Service)
-    estándar, más un servicio custom de telemetría con UUIDs cortos 16-bit.
+    estándar, más un servicio custom de telemetría \textbf{0xFF00} con UUIDs cortos 16-bit
+    y 4 características (IMU, TLV agregado, ECG streaming, Comandos RX).
 \end{itemize}
 
 \subsubsection{(ii) IEEE 11073-10406 (\textit{Personal Health Devices --- Basic ECG}) \cite{ieee11073}.}
@@ -439,61 +466,63 @@ ya descritas en la sección de impacto ambiental.
 \label{sec:modelos}
 Para sustentar rigurosamente la viabilidad técnica del dispositivo, es necesario desarrollar
 modelos y curvas de desempeño que respalden las decisiones de diseño. Esta sección presenta
-cuatro modelos cuantitativos que fueron construidos para validar el sistema
+\textbf{cinco} modelos cuantitativos que fueron construidos para validar el sistema
 antes y durante la integración.
 
 \subsection{Modelo de autonomía energética}
-La autonomía teórica del dispositivo se modeló con el desglose de consumo presentado en la
-Tabla\,9 del informe anterior y se actualiza ahora con \textbf{mediciones de
-laboratorio} (multímetro USB INA219 en serie con la entrada del LDO). El modelo es:
-\begin{equation}
-    I_{avg} = \frac{T_{act} \cdot \sum_i I_{i,act} \cdot D_i + T_{idle} \cdot \sum_i I_{i,idle}}{T_{act}+T_{idle}}
-    \label{eq:autonomia}
-\end{equation}
-con $T_{act} = 8\,\text{h}$ (perfil activo) y $T_{idle}=16\,\text{h}$. La
-\rfigura{fig:autonomia} compara la curva teórica de autonomía (calculada a partir de las
-hojas de datos) con las mediciones reales tomadas sobre el prototipo.
+\label{sec:autonomia}
+El consumo del prototipo se midió con un multímetro Tektronix TX3 intercalado en el rail de la
+batería. La \rfigura{fig:consumos} consolida los puntos operativos relevantes.
+
+\subsubsection{Disclaimer instrumental.} El TX3 no resuelve temporalmente los pulsos de
+\textit{light sleep} (que duran milisegundos a 10\,MHz de reloj mínimo del DFS), por lo que
+las lecturas corresponden al \textbf{consumo en estado activo} del SoC y subestiman el ahorro
+real introducido por el power management dinámico (§\,\ref{sec:pm}). La validación empírica
+del consumo medio se realizará sobre la plataforma definitiva Seeed XIAO ESP32-S3 con un
+INA219 a alta tasa de muestreo o un \textit{coulomb counter} dedicado.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-    width=12cm, height=6cm,
-    xlabel={Capacidad de batería [mAh]},
-    ylabel={Autonomía [h]},
-    xmin=100, xmax=600,
-    ymin=0, ymax=80,
-    grid=both,
-    minor grid style={gray!20},
-    major grid style={gray!50},
-    legend pos=north west,
-    legend cell align=left,
-    title={\small Autonomía vs.\ capacidad de batería},
+    xbar,
+    width=12cm, height=5.5cm,
+    bar width=10pt,
+    xmin=0, xmax=100,
+    enlarge y limits=0.3,
+    symbolic y coords={Pant. off ECO,Teórico,Pant. off Sport,Pant. on,Pico post-opt.},
+    ytick=data,
+    tick label style={font=\small},
+    xlabel={\small mA},
+    xlabel style={font=\small},
+    nodes near coords={\pgfmathprintnumber\pgfplotspointmeta\,mA},
+    every node near coord/.append style={font=\small, anchor=west},
 ]
-% Modelo teórico: t = 0.9*C / I_avg con I_avg=7.7mA
-\addplot[blue, thick, domain=100:600, samples=20]{0.9*x/7.7};
-\addlegendentry{Modelo teórico ($I_{avg}$=7.7\,mA, $\eta_{LDO}=0.9$)};
-% Medido (5 puntos)
-\addplot[red, mark=square*, only marks, mark size=2.5pt]
-    coordinates {(150, 14.0) (200, 18.5) (250, 23.4) (350, 32.1) (500, 45.0)};
-\addlegendentry{Medido en prototipo ($I_{avg,real}\approx 9.6$\,mA)};
-% Línea de requerimiento mínimo
-\addplot[gray, dashed, thick, domain=100:600, samples=2]{12};
-\addlegendentry{Requerimiento mínimo (12\,h)};
+\addplot+[draw=black!50, fill=blue!40] coordinates {
+    (69,Pico post-opt.)
+    (63,Pant. on)
+    (27,Pant. off Sport)
+    (22,Teórico)
+    (17,Pant. off ECO)
+};
 \end{axis}
 \end{tikzpicture}
-\caption{Curva de autonomía teórica vs.\ medida del prototipo. Con la batería 502030 de
-250\,mAh seleccionada, el modelo teórico predice $\sim$29\,h y la medición arroja 23,4\,h,
-ambos sobre el requerimiento mínimo de 12\,h (línea gris).}
-\label{fig:autonomia}
+\caption{Consumo medido en batería (Tektronix TX3) para distintos escenarios operativos
+post-optimización. El pico de 69\,mA corresponde al peor caso: ECG + BLE streaming + pantalla
+encendida. El modo ECO con pantalla apagada alcanza 17\,mA en estado activo.}
+\label{fig:consumos}
 \end{figure}
 
-\subsubsection{Decisión de diseño.} La diferencia entre teoría (29.2\,h) y realidad (23.4\,h) se
-atribuye principalmente al \textit{duty cycle} de la pantalla, que en el firmware actual
-permanece encendida más tiempo del previsto (35\,FPS efectivo para la GUI vs.\ 40\,\%
-asumido). Para la versión Pro, se planifica un \textit{auto-dim} a los 30\,s sin actividad de
-botones, llevando la autonomía esperada a $\sim$30\,h con la misma celda. Aún con los
-$\sim$23\,h reales, el sistema cumple holgadamente el requerimiento de 12\,h.
+\subsubsection{Cota superior del consumo medio.} A partir de la fracción de tiempo en cada
+estado de potencia (§\,\ref{sec:pm}, $f_{sleep}=0{,}75$), el consumo medio queda acotado por:
+\begin{equation}
+    \bar{I} \leq f_{active}\cdot I_{active} + f_{sleep}\cdot I_{sleep}
+    \label{eq:autonomia}
+\end{equation}
+que para el modo ECO con pantalla apagada ($I_{active}=17$\,mA, $I_{sleep}\approx 1$\,mA
+estimado de la hoja de datos del C3) arroja $\bar{I} \lesssim 5{,}0$\,mA. Con la celda 502030
+de 250\,mAh esto proyecta una autonomía nominal $>$\,40\,h en modo ECO, holgadamente sobre
+el requerimiento de 12\,h. La cifra debe ratificarse empíricamente sobre la plataforma S3.
 
 \subsection{Validación del algoritmo de pasos}
 El contador de pasos en C (\texttt{lib/step\_algorithm}) se simuló \textit{offline} contra
@@ -506,8 +535,8 @@ implementa exactamente el mismo pipeline en aritmética entera de la versión em
     \includegraphics[width=0.85\linewidth]{sim_pasos.png}
     \caption{Salida del simulador del contador de pasos: magnitud cruda del acelerómetro,
     señal filtrada por media móvil, umbral adaptativo y eventos de paso detectados sobre
-    una ventana de 60\,s capturada con \texttt{scripts/ble\_logger}. Ground-truth manual:
-    72 pasos. Detectados: 70 (97.2\,\% precisión).}
+    una ventana de 60\,s capturada con \texttt{supaclock\_monitor.py}. Ground-truth manual:
+    72 pasos. Detectados: 70 (97,2\,\% precisión).}
     \label{fig:simpasos}
 \end{figure}
 
@@ -516,6 +545,13 @@ $\pm$3,5\,\% comparado con la cuenta visual, y descarta vibraciones no periódic
 ``vibración manos'' obtuvo 4 falsos positivos en 1\,min). El umbral adaptativo se actualiza
 cada 5\,s con el 60\,\% de la amplitud pico-a-pico observada, lo que confiere robustez frente
 a cambios de cadencia.
+
+\subsubsection{Limitación detectada y migración planificada.} Durante las pruebas de campo se
+identificó que agitar la mano en el aire genera falsos positivos, ya que el algoritmo opera
+exclusivamente en el dominio del tiempo y no valida la periodicidad de la señal. Para el
+siguiente hito se planifica migrar a un análisis frecuencial basado en FFT (ventana de
+3\,s, validación de cadencia rítmica entre 1 y 3\,Hz), aprovechando la librería
+\texttt{ESP-DSP} con aceleración SIMD del ESP32-S3.
 
 \subsection{Validación del algoritmo Pan-Tompkins}
 El algoritmo Pan-Tompkins desplegado en Cloud Functions
@@ -530,12 +566,20 @@ con umbral adaptativo dual (signal/noise) y refractario de 200\,ms.
     \resizebox{0.95\linewidth}{!}{\input{fig_pan_tompkins.tex}}
     \caption{Pipeline completo de procesamiento ECG: edge (ESP32) $\to$ cliente PC de testing
     $\to$ Firebase. La detección de R-peaks corre íntegramente en Cloud Functions sobre NumPy.
-    En el hito 60\,\% el cliente PC será reemplazado por la app móvil definitiva.}
+    En el hito 60\,\% el cliente PC será reemplazado por la app móvil en Flutter.}
     \label{fig:pantompkins}
 \end{figure}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\linewidth]{pan_tompkins_results_140819.png}
+    \caption{Resultados del análisis Pan-Tompkins sobre datos reales del AD8232: señal ECG
+    cruda, etapas de filtrado y detección de R-peaks. BPM calculado: 76; HRV (SDNN): 32,4\,ms.}
+    \label{fig:ptresults}
+\end{figure}
+
 \subsubsection{Resultado.} En 30\,s de captura sobre el integrante de prueba se detectaron
-38 R-peaks ($\Rightarrow$ 76\,BPM) con SDNN = 32.4\,ms, valores fisiológicamente plausibles.
+38 R-peaks ($\Rightarrow$ 76\,BPM) con SDNN = 32,4\,ms, valores fisiológicamente plausibles.
 La precisión visual contra el trazo crudo es del 100\,\% (sin falsos positivos ni negativos)
 para esta calidad de señal, aunque la función reporta \texttt{bpm = 0} si la captura tiene
 $<$\,100 muestras (caso de \textit{leads off} momentáneo), comportamiento intencional para
@@ -545,7 +589,8 @@ evitar reportar valores no fisiológicos.
 La preocupación principal al pasar de pruebas individuales a integración fue la potencial
 \textit{starvation} en el bus I2C de 400\,kHz, compartido por cuatro tareas con prioridades
 distintas (\rfigura{fig:rtos}). Se modeló el ancho de banda I2C disponible ($BW_{I2C}$) y la
-demanda de cada tarea ($D_i$) para verificar holgura.
+demanda de cada tarea ($D_i$) para verificar holgura. Las cadencias corresponden al peor caso
+(modo SPORT).
 
 \subsubsection{Cálculo.} Cada transacción I2C de N bytes con START + ADDR + ACK + STOP toma
 \((N+1) \cdot 9\) bits + 2 bits de overhead, es decir $\sim 10\,\mu s/byte$ a 400\,kHz.
@@ -553,9 +598,10 @@ Las demandas son:
 \begin{itemize}
     \item BMI160 a 50\,Hz $\times$ 12\,B = 600\,B/s $\Rightarrow$ 6\,ms/s
     \item MAX30102 a 10\,Hz $\times$ 6\,B/sample $\times$ 5 samples/burst = 300\,B/s $\Rightarrow$ 3\,ms/s
-    \item MAX30205 + MAX17048 a 1\,Hz $\times$ 4\,B = 8\,B/s $\Rightarrow$ 0.08\,ms/s
+    \item MAX30205 a 1/30\,Hz $\times$ 4\,B = 0,13\,B/s $\Rightarrow$ 0,001\,ms/s
+    \item MAX17048 a 1/30\,Hz $\times$ 4\,B = 0,13\,B/s $\Rightarrow$ 0,001\,ms/s
 \end{itemize}
-Total estimado: \textbf{$\sim$9\,ms/s}, lo que representa un \textbf{0.9\,\%} del bus.
+Total estimado: \textbf{$\sim$9\,ms/s}, lo que representa un \textbf{0,9\,\%} del bus.
 La holgura del 99,1\,\% confirma que el mutex \texttt{xSensorDataMutex} no provoca
 \textit{starvation} ni jitter perceptible.
 
@@ -563,6 +609,81 @@ La holgura del 99,1\,\% confirma que el mutex \texttt{xSensorDataMutex} no provo
 FIFO del MAX30102 durante 24\,h continuas (la métrica más sensible al jitter de la tarea
 \texttt{hrm\_task}): 0 overflows. El log filtrado por la línea
 \texttt{``MAX30102 FIFO overflows acumulados''} no se imprimió, confirmando el modelo.
+
+\subsection{Modelo de duty cycle bajo PM dinámico}
+\label{sec:pm}
+La \rfigura{fig:pmstates} compara la fracción de tiempo en cada estado de potencia del SoC
+antes y después de aplicar las mitigaciones de consumo (refactor DMA del ECG on-demand,
+advertising BLE relajado a 1\,s, Modem Sleep BT habilitado, driver ST7789 reescrito para
+eliminar \textit{busy-wait} durante la espera de DMA SPI). La métrica proviene de
+\texttt{vTaskGetRunTimeStats} y \texttt{esp\_pm\_dump\_locks} ejecutados en
+\texttt{perf\_monitor\_task} (prioridad 2, período 10\,s).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    xbar stacked,
+    width=12cm, height=3.5cm,
+    bar width=16pt,
+    xmin=0, xmax=100,
+    symbolic y coords={Después, Antes},
+    ytick=data,
+    tick label style={font=\small},
+    xlabel={\small \%\ tiempo},
+    xlabel style={font=\small},
+    legend style={
+        at={(0.5,-0.55)}, anchor=north,
+        font=\small, legend columns=3,
+        draw=none,
+        /tikz/every even column/.append style={column sep=0.2cm}
+    },
+    nodes near coords={\pgfmathprintnumber\pgfplotspointmeta\,\%},
+    every node near coord/.append style={font=\small}
+]
+\addplot+[fill=green!55, draw=green!70] coordinates {(75,Después) (0,Antes)};
+\addplot+[fill=orange!60, draw=orange!80] coordinates {(15,Después) (92,Antes)};
+\addplot+[fill=red!60, draw=red!80] coordinates {(9,Después) (8,Antes)};
+\legend{SLEEP, APB\_MAX, CPU\_MAX}
+\end{axis}
+\end{tikzpicture}
+\caption{Fracción de tiempo del SoC en cada estado de potencia, antes y después de las
+optimizaciones. Antes: 0\,\% SLEEP, 92\,\% APB\_MAX, 8\,\% CPU\_MAX. Después: 75\,\% SLEEP,
+15\,\% APB\_MAX, 9\,\% CPU\_MAX.}
+\label{fig:pmstates}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.9]
+    % IDLE: 95% -> 342 deg (from 108 to 450)
+    \filldraw[fill=green!40!white, draw=white, thick] (0,0) -- (108:1.8) arc (108:450:1.8) -- cycle;
+    \node[font=\small, inner sep=1pt] at (279:0.9) {IDLE $\sim$95\,\%};
+    % Otros: <1% -> 4 deg (104 to 108)
+    \filldraw[fill=blue!50!white, draw=white, thick] (0,0) -- (104:1.8) arc (104:108:1.8) -- cycle;
+    % imu_task: 1% -> 5 deg (99 to 104)
+    \filldraw[fill=orange!50!white, draw=white, thick] (0,0) -- (99:1.8) arc (99:104:1.8) -- cycle;
+    % gui_task: 1% -> 9 deg (90 to 99)
+    \filldraw[fill=red!50!white, draw=white, thick] (0,0) -- (90:1.8) arc (90:99:1.8) -- cycle;
+    % Leyenda
+    \node[font=\small, anchor=west, inner sep=1pt] at (2.0, 1.2) {\textcolor{red!50!white}{\rule{2mm}{2mm}} \texttt{gui\_task} \textbf{1\,\%}};
+    \node[font=\small, anchor=west, inner sep=1pt] at (2.0, 0.6) {\textcolor{orange!50!white}{\rule{2mm}{2mm}} \texttt{imu\_task} 1\,\%};
+    \node[font=\small, anchor=west, inner sep=1pt] at (2.0, 0.0) {\textcolor{blue!50!white}{\rule{2mm}{2mm}} Otros $<$1\,\%};
+    \node[font=\small, anchor=west, inner sep=1pt] at (2.0, -0.6) {\textcolor{green!40!white}{\rule{2mm}{2mm}} IDLE $\sim$95\,\%};
+\end{tikzpicture}
+\caption{Distribución de CPU por tarea tras la optimización. El sistema pasa más del 95\,\%
+del tiempo en IDLE, lo que habilita el \textit{light sleep} dinámico. El driver ST7789
+reescrito redujo la carga de \texttt{gui\_task} de 47\,\% a $<$1\,\%.}
+\label{fig:cpupie}
+\end{figure}
+
+\subsubsection{Impacto de las mitigaciones.} El driver ST7789 fue reescrito eliminando el
+\textit{polling} activo durante la espera de DMA SPI: la carga de \texttt{gui\_task} cayó de
+47\,\% a $<$1\,\%, liberando la CPU para idle. El refactor del ADC del ECG (handle creado
+en \texttt{start\_dma}, destruido en \texttt{stop\_dma}) permite que el lock APB\_MAX se
+adquiera \textbf{sólo dentro de la pantalla ECG}, en lugar de retenerlo permanentemente.
+Estos dos cambios, combinados con el advertising BLE relajado y el Modem Sleep BT, llevaron
+la fracción de SLEEP de 0\,\% a 75\,\%.
 
 % =====================================================
 \section{Diseño del set-up final de pruebas}
@@ -588,18 +709,23 @@ ilustra la arquitectura del set-up.
     \item \textbf{Fuente DC programable} (Rigol DP832 o equivalente del laboratorio Capstone):
     emula la batería LiPo y permite barrer de 3.0--4.2\,V para verificar el LDO.
     \item \textbf{Multímetro USB INA219}: registra la corriente de entrada al LDO con
-    resolución de 100\,$\mu$A. Se utiliza para validar la \rfigura{fig:autonomia}.
+    resolución de 100\,$\mu$A. Se utiliza para validar la \rfigura{fig:consumos}.
     \item \textbf{Osciloscopio digital de 4 canales} (Rigol DS1054Z): captura la señal SPI a
     80\,MHz, el eje analógico del AD8232 y eventos de \textit{handshake} del bus I2C.
     \item \textbf{Oxímetro clínico de pulso} (Beurer PO 30 o similar): referencia para la
     validación de HR/SpO\textsubscript{2}, colocado en el dedo opuesto al sensor del DUT.
     \item \textbf{Termómetro IR de contacto} (clase clínica $\pm 0.1$\,°C): referencia para la
     validación del MAX30205, midiendo la misma zona de la piel simultáneamente.
-    \item \textbf{PC con Python 3.11}: ejecuta \texttt{ble\_logger.py} y
-    \texttt{supaclock\_monitor.py} para graficar tiempo real, además de \texttt{algo\_simulator.py}
-    para el contador de pasos. Acceso a Firebase Console para verificar el procesamiento de
-    Cloud Functions.
+    \item \textbf{PC con Python 3.11}: ejecuta \texttt{supaclock\_monitor.py} (herramienta
+    principal de validación BLE) para graficar biometría en tiempo real y exportar CSV,
+    además de \texttt{algo\_simulator.py} para el contador de pasos. Acceso a Firebase Console
+    para verificar el procesamiento de Cloud Functions.
 \end{itemize}
+
+\subsubsection{Replicación sobre ESP32-S3.} El set-up aquí descrito se replicará de forma
+idéntica sobre la plataforma Seeed XIAO ESP32-S3 para realizar una validación A/B entre
+ambas plataformas, verificando que los drivers actuales son compatibles sin cambios y que
+las cifras de consumo mejoran gracias al regulador buck integrado.
 
 \subsubsection{Métricas a registrar en cada sesión:}
 \begin{enumerate}
@@ -641,13 +767,15 @@ guiadas siguiendo el set-up de la \rfigura{fig:setup}.
     \begin{tabular}{|L{2.6cm}|L{2.6cm}|L{4.0cm}|L{5.0cm}|}\hline
     \rowcolor{gray!20}\textbf{Bloque}     & \textbf{Entorno PIO}      & \textbf{Prueba}                                & \textbf{Criterio de aceptación} \\\hline
     Display ST7789      & \texttt{test\_display}     & Render de patrón RGB y LVGL                    & 30\,FPS estables, sin tearing visible \\\hline
-    GUI LVGL            & \texttt{test\_gui}         & Navegación entre 4 pantallas                   & Cada botón cambia pantalla en $<$200\,ms \\\hline
+    GUI LVGL            & \texttt{test\_gui}         & Navegación entre 7 pantallas                   & Cada botón cambia pantalla en $<$200\,ms \\\hline
     Temperatura         & \texttt{test\_temp}        & Lectura MAX30205 a 1\,Hz                       & Lectura $\in$ [20\,°C, 40\,°C], delta $<$1\,°C/5\,s \\\hline
     IMU + pasos         & \texttt{test\_imu}         & 100 pasos en banda caminadora a 5\,km/h        & Error $\leq$\,5 pasos \\\hline
     PPG (HR/SpO2)       & \texttt{test\_spo2}        & 60\,s con dedo en sensor                       & HR converge a $\pm$\,3\,BPM del oxímetro de referencia, SpO\textsubscript{2} $\geq$\,95\,\% \\\hline
     ECG                 & \texttt{test\_ecg}         & 30\,s lead-on con dedos en pernos M3           & R-peaks claramente visibles en plot Python; SNR $>$\,15\,dB \\\hline
-    BLE                 & \texttt{test\_ble}         & Discovery + connect + notify desde nRF Connect & 3 chr.\ enumeradas (FF01/02/03), notificaciones recibidas \\\hline
+    BLE                 & \texttt{test\_ble}         & Discovery + connect + notify desde nRF Connect & 4 chr.\ enumeradas (FF01/02/03/04), notificaciones recibidas \\\hline
     Fuel Gauge          & \texttt{test\_fuel\_gauge} & Display de SOC durante 1\,h                    & SOC monótono decreciente, $V_{cell}$ $\in$ [3.0, 4.2]\,V \\\hline
+    ECG raw             & \texttt{test\_ecg\_raw}    & Captura ECG sin promedio, sin PM               & Verifica si artefactos provienen de SW (filtro boxcar) o HW (reloj APB durante DMA) \\\hline
+    Modos de energía    & \texttt{test\_general}      & Cambio SPORT$\leftrightarrow$NORMAL$\leftrightarrow$SAVER en runtime & Cadencias se ajustan en el siguiente ciclo de cada tarea, sin reinicio. NVS persiste el modo tras reboot. \\\hline
     Sistema completo    & \texttt{main\_app}/\texttt{test\_general} & Operación 1\,h sin reinicio        & 0 panic logs, 0 watchdog resets, FIFO overflow = 0 \\\hline
     \end{tabular}
 \end{table}
@@ -669,6 +797,12 @@ guiadas siguiendo el set-up de la \rfigura{fig:setup}.
     \item \textbf{Resiliencia de batería}: simular UVP forzando $V_{cell}$\,$<$\,3.0\,V con la
     fuente de laboratorio, verificar que el dispositivo entra en \textit{deep sleep} y rechaza
     arranque hasta que se reconecte el USB.
+    \item \textbf{Power management}: con \texttt{esp\_pm\_dump\_locks}, verificar que fuera de
+    la pantalla ECG no existe ningún lock \texttt{NO\_LIGHT\_SLEEP} activo de forma sostenida.
+    Validación experimental del modelo §\,\ref{sec:pm}.
+    \item \textbf{Persistencia NVS}: cambiar modo de energía y auto-off de pantalla, hacer
+    reboot y deep sleep, verificar que ambos valores sobreviven. Borrar NVS
+    (\texttt{nvs\_flash\_erase}) y verificar que se aplica el default SPORT.
 \end{enumerate}
 
 \subsection{Pruebas funcionales (sistema completo)}
@@ -684,7 +818,7 @@ guiadas siguiendo el set-up de la \rfigura{fig:setup}.
     (objetivo del modelo HAR final; en esta etapa sólo se verifica que el
     dispositivo no se reinicia mecánicamente y que la lectura del IMU registra el impacto).
     \item \textbf{Aceptación visual del UI}: tres usuarios externos al equipo navegan las
-    cuatro pantallas y reportan el tiempo necesario para iniciar una toma de ECG. Objetivo:
+    siete pantallas y reportan el tiempo necesario para iniciar una toma de ECG. Objetivo:
     $\leq$\,30\,s sin tutorial.
 \end{enumerate}
 
@@ -714,25 +848,45 @@ resultados} que respaldan su funcionamiento.
 \subsection{Arquitectura de firmware concurrente (FreeRTOS)}
 \subsubsection{Descripción y funcionalidad.} En el informe del 5\,\% se planteó una arquitectura
 preliminar con dos tareas (\texttt{TaskSensor}, \texttt{TaskDisplay}). En este hito se evolucionó
-hacia la \rfigura{fig:rtos}: \textbf{cinco tareas concurrentes con prioridades 4--7}, dos
+hacia la \rfigura{fig:rtos}: \textbf{siete tareas concurrentes con prioridades 2--7}, dos
 mutex (LVGL + datos compartidos) y un stack BLE NimBLE corriendo en su propio host task del
 framework. Cada tarea tiene una responsabilidad bien delimitada que coincide 1-a-1 con un
-sensor o subsistema.
+sensor o subsistema. La \rtabla{tab:tasks} detalla las tareas, sus prioridades y periodicidades.
 
 \begin{figure}[H]
     \centering
     \resizebox{0.95\linewidth}{!}{\input{fig_freertos_actual.tex}}
-    \caption{Arquitectura FreeRTOS implementada en \texttt{src/tests/test\_general.c}. Cinco
+    \caption{Arquitectura FreeRTOS implementada en \texttt{src/tests/test\_general.c}. Siete
     tareas con prioridades distintas, dos mutex y \textit{queue} implícita por el host de
     NimBLE. El bus I2C es serializado por el mutex \texttt{xSensorDataMutex}.}
     \label{fig:rtos}
 \end{figure}
 
+\begin{table}[H]
+    \centering
+    \caption{Tareas FreeRTOS implementadas, prioridades y periodicidades.}
+    \label{tab:tasks}
+    \footnotesize
+    \begin{tabular}{|c|l|c|l|}
+    \hline
+    \rowcolor{gray!20}\textbf{Prio} & \textbf{Tarea} & \textbf{Período} & \textbf{Responsabilidad} \\\hline
+    7 & \texttt{ecg\_task}       & on-demand DMA      & ECG streaming AD8232 + PM lock \\\hline
+    6 & \texttt{imu\_task}       & 20--80\,ms (perfil) & BMI160 6-DOF + pasos + jerk \\\hline
+    5 & \texttt{gui\_task}       & 33\,ms (30\,FPS)    & LVGL, navegación, backlight \\\hline
+    5 & \texttt{hrm\_task}       & 100\,ms (perfil)    & MAX30102 FIFO + SM SPOT \\\hline
+    4 & \texttt{ble\_tx\_task}   & 1--60\,s (perfil)   & Flush periódico del buffer TLV \\\hline
+    3 & \texttt{system\_task}    & 2\,s base           & Temp + batería + pasos TLV \\\hline
+    2 & \texttt{perf\_monitor}   & 10\,s               & CPU stats + heap + PM locks \\\hline
+    \end{tabular}
+\end{table}
+
 \subsubsection{Cálculos / decisiones.} La asignación de prioridades sigue la regla \textit{rate
-monotonic}: a mayor frecuencia de muestreo, mayor prioridad. \texttt{ecg\_task} (DMA al
-arranque y empaquetado a 50\,Hz efectivos) recibe prioridad 7 para no perder muestras DMA;
-\texttt{imu\_task} (50\,Hz) recibe prioridad 6; \texttt{hrm\_task} (10\,Hz polling FIFO) y
-\texttt{gui\_task} (30\,FPS) reciben prioridad 5; \texttt{sensor\_task} (1\,Hz) prioridad 4.
+monotonic}: a mayor frecuencia de muestreo, mayor prioridad. \texttt{ecg\_task} (DMA
+on-demand) recibe prioridad 7 para no perder muestras DMA;
+\texttt{imu\_task} (20--80\,ms según perfil) recibe prioridad 6; \texttt{hrm\_task} (100\,ms polling FIFO) y
+\texttt{gui\_task} (33\,ms) reciben prioridad 5; \texttt{ble\_tx\_task} (flush periódico
+del buffer TLV agregado) prioridad 4; \texttt{system\_task} (temperatura y batería) prioridad 3;
+\texttt{perf\_monitor\_task} (debug) prioridad 2.
 Las tareas usan \texttt{vTaskDelayUntil} para mantener la frecuencia exacta a pesar del
 jitter del scheduler.
 
@@ -741,14 +895,110 @@ fallo recurrente: el ESP32-C3 entraba en \textit{brown-out reset} al inicializar
 simultáneamente la pantalla y el BLE, ambos consumidores agresivos de corriente. Se
 implementó una \textbf{secuencia de arranque en tres fases} en \texttt{app\_main} con
 \texttt{vTaskDelay} entre cada una: Fase 1 (sensores I2C, $\sim$5\,mA), Fase 2 (display, +35\,mA), Fase 3 (BLE, +130\,mA peak). El \textit{flushing} explícito del FIFO del MAX30102
-en la Fase 3 evita el desbordamiento causado por los $\sim$1.5\,s de latencia entre Fase 1
+en la Fase 3 evita el desbordamiento causado por los $\sim$1,5\,s de latencia entre Fase 1
 y el arranque de \texttt{hrm\_task}.
 
-\subsubsection{Resultados.} El sistema arranca en $\sim$2.0\,s, ejecuta las cinco tareas sin
+\subsubsection{Resultados.} El sistema arranca en $\sim$2,0\,s, ejecuta las siete tareas sin
 \textit{stack overflow} (verificado con \texttt{uxTaskGetStackHighWaterMark}) y mantiene las
-frecuencias planificadas (medido con \texttt{esp\_timer\_get\_time} en cada iteración).
-La carga total del CPU es $\sim$22\,\% (medido con \texttt{vTaskGetRunTimeStats} compilado en
-\texttt{sdkconfig.main\_app}).
+frecuencias planificadas. Gracias al PM dinámico (§\,\ref{sec:pm}), la CPU
+pasa $\sim$95\,\% del tiempo en IDLE (\rfigura{fig:cpupie}).
+
+\subsection{Modos de energía y persistencia NVS}
+\label{sec:powermodes}
+\subsubsection{Descripción.} El módulo \texttt{lib/power\_modes} define tres perfiles de
+consumo (SPORT, NORMAL, SAVER) que parametrizan \textbf{ocho cadencias} de muestreo y
+comunicación. Cada tarea consulta \texttt{power\_get\_profile()} en cada iteración de su
+bucle principal, adaptándose instantáneamente sin reinicio. La \rtabla{tab:cadencias}
+resume las cadencias por modo.
+
+\begin{table}[H]
+    \centering
+    \caption{Cadencias parametrizadas por modo de energía (extracto de \texttt{power\_profiles[]}).}
+    \label{tab:cadencias}
+    \footnotesize
+    \begin{tabular}{|l|c|c|c|}
+    \hline
+    \rowcolor{gray!20}\textbf{Cadencia} & \textbf{SPORT} & \textbf{NORMAL} & \textbf{SAVER} \\\hline
+    HR poll (ms)           & 100        & 100         & 100        \\\hline
+    HR auto-spot (min)     & continuo   & 10          & 30         \\\hline
+    SpO2 auto-spot (min)   & 5          & 30          & manual     \\\hline
+    IMU poll (ms)          & 20 (50\,Hz) & 40 (25\,Hz) & 80 (12,5\,Hz) \\\hline
+    Temperatura (s)        & 30         & 300         & 900        \\\hline
+    Batería (s)            & 30         & 30          & 30         \\\hline
+    BLE agg flush (s)      & 1          & 10          & 60         \\\hline
+    Display auto-off (s)   & 30         & 15          & 8          \\\hline
+    \end{tabular}
+\end{table}
+
+\subsubsection{Persistencia NVS.} El modo activo y los tiempos de auto-off de pantalla se
+persisten en el namespace \texttt{supaclock} de NVS:
+\begin{itemize}
+    \item \texttt{power\_mode} (u8): modo activo (0=SPORT, 1=NORMAL, 2=SAVER).
+    \item \texttt{off\_sport\_s}, \texttt{off\_normal\_s}, \texttt{off\_saver\_s} (u16): override
+    del auto-off por modo.
+\end{itemize}
+Al arrancar, \texttt{power\_modes\_init()} carga los valores; si NVS está vacío, aplica
+defaults de la tabla \texttt{s\_profiles[]}. El cambio de modo se realiza desde el submenú
+del GUI sin reinicio.
+
+\subsubsection{Resultado.} Cambio de modo validado en \texttt{test\_general}: las cadencias
+de todas las tareas se ajustan en el siguiente ciclo. Persistencia verificada tras reboot
+y deep sleep.
+
+\subsection{Power management dinámico (light sleep)}
+\label{sec:pm_impl}
+\subsubsection{Descripción.} Se habilitó el PM dinámico de ESP-IDF con la configuración:
+\begin{verbatim}
+esp_pm_config_esp32c3_t pm = {
+    .max_freq_mhz = 160,
+    .min_freq_mhz = 10,
+    .light_sleep_enable = true
+};
+\end{verbatim}
+Este esquema permite que el SoC baje la frecuencia a 10\,MHz cuando no hay locks activos y
+entre en \textit{light sleep} cuando todas las tareas están en \texttt{vTaskDelay}.
+
+\subsubsection{PM locks implementados.} Se identificaron tres fuentes que impiden el sleep:
+\begin{enumerate}
+    \item \textbf{ECG PM lock} (\texttt{ESP\_PM\_NO\_LIGHT\_SLEEP}, ``ecg''): adquirido por
+    \texttt{ecg\_task} al iniciar \texttt{ad8232\_start\_dma()} y liberado al detener el DMA.
+    Impide que el reloj APB se reconfigure durante la adquisición continua, evitando los
+    artefactos cuadrados observados en el trazo ECG.
+    \item \textbf{NimBLE internal}: el stack BLE adquiere automáticamente un lock APB\_MAX
+    durante los eventos de radio (advertising, conexión, notify). Configurar advertising a
+    1000\,ms y habilitar Modem Sleep BT minimiza el tiempo de retención.
+    \item \textbf{SPI DMA} (driver ST7789): el refactor del driver reemplazó el
+    \textit{busy-wait} por \texttt{spi\_device\_polling\_end()} no bloqueante, eliminando la
+    retención permanente del lock APB que mantenía la CPU despierta.
+\end{enumerate}
+
+\subsubsection{Resultado cuantitativo.} Medido con \texttt{esp\_pm\_dump\_locks} en
+\texttt{perf\_monitor\_task}: el sistema pasa un 75\,\% del tiempo en SLEEP, 15\,\% en
+APB\_MAX y 9\,\% en CPU\_MAX (\rfigura{fig:pmstates}), vs.\ 0\,\%/92\,\%/8\,\% antes de la
+optimización.
+
+\subsection{Migración a Seeed XIAO ESP32-S3}
+\label{sec:s3}
+\subsubsection{Motivación técnica.} La decisión de migrar al ESP32-S3 se fundamenta en cinco
+limitaciones cuantificadas del ESP32-C3 SuperMini actual:
+\begin{enumerate}
+    \item \textbf{Brown-outs}: el LDO ME6211 no soporta picos de 130\,mA del radio BLE
+    alimentado simultáneamente con la pantalla SPI. El Seeed XIAO ESP32-S3 integra un regulador
+    buck más robusto.
+    \item \textbf{SRAM}: el C3 dispone de 320\,KB de SRAM interna. Tras NimBLE ($\sim$90\,KB),
+    LVGL ($\sim$30\,KB), buffers DMA y stacks FreeRTOS, el heap libre baja a $\sim$40\,KB, insuficiente
+    para el modelo CNN 1D ($\sim$30\,KB) sin comprometer la estabilidad.
+    \item \textbf{PSRAM}: el S3 ofrece 8\,MB de PSRAM accesible vía OPI, permitiendo alojar el
+    modelo TFLite y los buffers de inferencia en memoria externa.
+    \item \textbf{Flash}: 8\,MB (vs.\ 4\,MB del C3 SuperMini), margen para OTA y NVS extendido.
+    \item \textbf{SIMD/DSP}: el S3 incluye instrucciones vectoriales que aceleran la librería
+    ESP-DSP, beneficiando tanto la FFT planificada para el algoritmo de pasos como la
+    inferencia del modelo CNN.
+\end{enumerate}
+
+\subsubsection{Estado.} Módulo Seeed XIAO ESP32-S3 encargado (en tránsito). Plan de bring-up:
+(1) validar compilación y drivers I2C/SPI sin cambios, (2) habilitar PSRAM y mover buffers
+grandes, (3) desplegar modelo CNN 1D, (4) validación A/B de consumo contra el prototipo C3.
 
 \subsection{Bloque de Sensores: BMI160 + algoritmo de pasos}
 \subsubsection{Descripción.} Driver propio en C (\texttt{lib/bmi160\_driver}) que reemplaza la
@@ -792,6 +1042,27 @@ detección de picos sobre la señal IR y cálculo de SpO\textsubscript{2} por la
 ratios AC/DC (R = $\frac{AC_{red}/DC_{red}}{AC_{ir}/DC_{ir}}$). Para evitar overflows del
 FIFO, la \texttt{hrm\_task} hace \textit{flush} al arrancar y polling agresivo cada 100\,ms.
 
+\subsubsection{Máquina de estados SPOT.} Se implementó una SM para mediciones puntuales
+de HR/SpO\textsubscript{2} con los estados:
+\begin{enumerate}
+    \item \textbf{IDLE}: sensor en SHDN (modos NORMAL/SAVER entre mediciones).
+    \item \textbf{SETTLING}: sensor despertado, se descartan las primeras muestras mientras
+    la señal se estabiliza ($\sim$2\,s).
+    \item \textbf{MEASURING}: acumulación de muestras para calcular HR y SpO\textsubscript{2}
+    con indicador de progreso.
+    \item \textbf{DONE}: resultado válido (BPM, SpO\textsubscript{2}, calidad, duración).
+    \item \textbf{FAILED}: señal inutilizable (dedo mal posicionado o movimiento excesivo).
+    \item \textbf{ABORTED}: cancelación manual por el usuario (botón SELECT).
+\end{enumerate}
+En modos NORMAL y SAVER, la \texttt{hrm\_task} dispara mediciones SPOT automáticas con la
+periodicidad definida por el perfil (\texttt{hrm\_auto\_period\_ms}), apagando el sensor
+entre mediciones (\texttt{hrm\_shdn\_between = true}).
+
+\subsubsection{Motion gating.} La \texttt{imu\_task} calcula el \textit{jerk} (derivada
+discreta de la aceleración: $|\Delta a|^2 = \Delta a_x^2 + \Delta a_y^2 + \Delta a_z^2$)
+y lo informa al driver MAX30102 vía \texttt{max30102\_set\_motion\_level()}. Valores de jerk
+por encima de un umbral (80) invalidan la medición SPOT, evitando publicar lecturas ruidosas.
+
 \subsubsection{Resultados.} Sobre el dedo del integrante, el sensor entrega lecturas estables
 de 70--75\,BPM y 96--98\,\% de SpO\textsubscript{2}, coincidiendo con el oxímetro Beurer
 PO 30 ($\pm$\,2\,BPM, $\pm$\,1\,\% SpO\textsubscript{2}). La latencia hasta convergencia es
@@ -807,6 +1078,17 @@ ESP-IDF v5.x. Configuración: ADC1 ch.\,0 (GPIO0), 20\,kHz HW, frame DMA de 256\
 para entregar 500\,Hz efectivos al BLE, agrupados en chunks de 10 muestras int16
 (20\,B/notify) por la característica \texttt{0xFF03}.
 
+\subsubsection{Refactor DMA on-demand.} Para minimizar el impacto del ADC continuo sobre el
+power management, el handle del ADC se crea/destruye dinámicamente:
+\begin{itemize}
+    \item \texttt{ad8232\_start\_dma()}: crea el handle \texttt{adc\_continuous}, inicia la
+    captura y adquiere el PM lock \texttt{ESP\_PM\_NO\_LIGHT\_SLEEP} (``ecg'').
+    \item \texttt{ad8232\_stop\_dma()}: detiene y destruye el handle, libera el PM lock.
+\end{itemize}
+Esto garantiza que el lock APB\_MAX sólo se retiene durante la grabación ECG activa,
+permitiendo \textit{light sleep} el resto del tiempo. El entorno \texttt{test\_ecg\_raw}
+permite capturar ECG sin promedio ni PM para depurar artefactos a nivel de hardware.
+
 \subsubsection{Cálculos.} La elección de 20\,kHz ($\to$ 500\,Hz) viene de dos restricciones:
 \begin{enumerate}
     \item El ADC continuo del ESP32-C3 requiere $f_s \geq 20\,kHz$ para operar en modo DMA
@@ -817,7 +1099,7 @@ para entregar 500\,Hz efectivos al BLE, agrupados en chunks de 10 muestras int16
 
 \subsubsection{Resultados.} Captura limpia de la Derivación I del ECG durante 30\,s, con QRS
 claramente visibles. El archivo \texttt{supaclock\_ecg\_20260422\_194732.csv} contiene una
-captura representativa que se procesa correctamente en Cloud Functions (BPM = 76, HRV = 32.4\,ms,
+captura representativa que se procesa correctamente en Cloud Functions (BPM = 76, HRV = 32,4\,ms,
 sec.\,\ref{sec:modelos}).
 
 \subsection{Bloque de Sensores: MAX30205 (Temperatura)}
@@ -844,52 +1126,83 @@ la entrada al detectar 4.25\,V (sobre-voltaje) y a $V_{cell}\leq$\,2.55\,V (sub-
 
 \subsubsection{Resultados.} Autonomía medida en sesión continua de 12\,h con el firmware integrado
 (BLE conectado + GUI activa): SoC final 56\,\%, lo que extrapola a $\sim$23\,h totales,
-consistente con el modelo (\rfigura{fig:autonomia}).
+consistente con el modelo de la sección\,\ref{sec:autonomia}.
 
 \subsection{Bloque de Comunicaciones: BLE NimBLE}
 \subsubsection{Descripción.} Reescritura completa del stack BLE migrando de Bluedroid (cuyo
 \textit{footprint} de 270\,KB excedía la SRAM disponible) a \textbf{NimBLE} (host: $\sim$\,90\,KB).
-Implementado en \texttt{lib/ble\_telemetry} con tres características GATT bajo el servicio
-custom \texttt{12345678-0000-...}:
+Implementado en \texttt{lib/ble\_telemetry} con \textbf{cuatro características GATT} bajo el
+servicio custom \texttt{0xFF00}:
 \begin{itemize}
-    \item \texttt{0xFF01} -- Telemetría IMU cruda (12\,B/notify a 50\,Hz, opcional).
-    \item \texttt{0xFF02} -- Sensores lentos (\texttt{ble\_sensor\_packet\_t} de 13\,B a 1\,Hz).
-    \item \texttt{0xFF03} -- ECG raw 100\,Hz (chunks de 20\,B).
+    \item \texttt{0xFF01} -- Telemetría IMU cruda (12\,B/notify, cadencia según perfil, desactivable desde menú).
+    \item \texttt{0xFF02} -- \textbf{Telemetría TLV agregada}: buffer de hasta 200\,B con
+    header (\texttt{ble\_agg\_header\_t}: \texttt{boot\_ts\_ms} u32, \texttt{power\_mode} u8,
+    \texttt{payload\_len} u8) seguido de records TLV (tipo u8, largo u8, datos). Siete tipos
+    definidos: HR, SpO\textsubscript{2}, Temp, Bat, Steps, Spot Result, Mode Event. Flush
+    periódico por \texttt{ble\_tx\_task} según cadencia del perfil (1--60\,s).
+    \item \texttt{0xFF03} -- ECG streaming (chunks de 20\,B a 100\,Hz efectivos).
+    \item \texttt{0xFF04} -- \textbf{Comandos RX} (WRITE, no ACK): byte 0x01 = iniciar ECG,
+    0x00 = detener ECG.
 \end{itemize}
 Adicionalmente se incluye el servicio estándar \texttt{0x180A} (Device Information) con
-\textit{Manufacturer Name} y \textit{Model Number}. \textit{Bonding} habilitado, claves
-persistidas en NVS.
+\textit{Manufacturer Name} y \textit{Model Number}. \textit{Pairing}: \textit{Just Works}
+\textbf{sin bonding} (compatibilidad BlueZ/tests).
 
-\subsubsection{Resultados.} Conexión estable con un cliente PC (\texttt{nRF Connect} sobre un
-Pixel 7 actuando como sniffer y un script Python con \texttt{bleak}) a $\sim$\,3\,m de
-distancia (RSSI -55\,dBm). Latencia de notify medida con cronómetro: 80--120\,ms desde la
-captura del sensor hasta la recepción en el cliente. Sin desconexiones inesperadas en
-sesiones de 1\,h.
+\subsubsection{Optimizaciones de consumo.}
+\begin{itemize}
+    \item \textit{Advertising interval} = 1000\,ms (1600 $\times$ 0,625\,ms) para permitir
+    \textit{light sleep} entre intervalos.
+    \item \textit{Modem Sleep BT} habilitado en \texttt{sdkconfig.defaults}.
+    \item Nombre del dispositivo: \texttt{``SupaClock\_BLE''}, appearance: \texttt{0x00C1} (Watch).
+\end{itemize}
+
+\subsubsection{Resultados.} Conexión estable con \texttt{supaclock\_monitor.py} (Python +
+\texttt{bleak}) a $\sim$\,3\,m de distancia (RSSI -55\,dBm). Latencia de notify medida:
+80--120\,ms desde la captura del sensor hasta la recepción en el cliente. Sin desconexiones
+inesperadas en sesiones de 1\,h.
 
 \subsection{Bloque de Interfaz Local: GUI multi-pantalla LVGL}
-\subsubsection{Descripción.} Cuatro pantallas (\texttt{SCREEN\_HOME}, \texttt{\_BIO},
-\texttt{\_ECG}, \texttt{\_MENU}) construidas con LVGL 8.4 sobre el ST7789 a 30\,FPS,
-gobernadas por \texttt{gui\_task}. La navegación se realiza con dos botones físicos:
-\textbf{NEXT} (cicla pantallas, scrollea ítems del menú) y \textbf{SELECT} (acción
-contextual). Cada pantalla tiene su \textit{updater} dedicado que toma snapshot del struct
+\subsubsection{Descripción.} \textbf{Siete pantallas} construidas con LVGL 8.4 sobre el ST7789
+a 30\,FPS, gobernadas por \texttt{gui\_task}:
+\begin{enumerate}
+    \item \texttt{SCREEN\_HOME}: reloj, pasos, batería (arco), HR, nivel de actividad, modo activo.
+    \item \texttt{SCREEN\_BIO}: HR, SpO\textsubscript{2}, temperatura, estado del sensor, edad de
+    cada medida.
+    \item \texttt{SCREEN\_HRSPOT}: interfaz de medición puntual HR/SpO\textsubscript{2} con
+    barra de progreso y resultado con calidad.
+    \item \texttt{SCREEN\_ECG}: instrucciones, cronómetro de grabación, indicador REC.
+    \item \texttt{SCREEN\_MENU}: lista de 7 opciones navegables.
+    \item \texttt{SCREEN\_MODE} (sub): selector de SPORT/NORMAL/SAVER con indicador activo.
+    \item \texttt{SCREEN\_SETTINGS} (sub): ajuste de auto-off por modo (valores cíclicos
+    5/8/15/30/60/120\,s).
+\end{enumerate}
+La navegación se realiza con dos botones físicos: \textbf{NEXT} (cicla pantallas 1--5 o ítems
+en listas; long-press = atrás) y \textbf{SELECT} (acción contextual; long-press = Home).
+Cada pantalla tiene su \textit{updater} dedicado que toma snapshot del struct
 \texttt{shared\_sensor\_data\_t} bajo mutex y refresca los \texttt{lv\_label\_t} relevantes
 sin re-construir widgets.
 
-\subsubsection{Funcionalidades específicas.}
-\begin{itemize}
-    \item \textbf{Auto-switch a pantalla ECG} cuando un cliente BLE remoto activa el modo ECG
-    (escribiendo \texttt{0x01} en la chr.\ \texttt{0xFF03}): el \texttt{gui\_task} consulta
-    \texttt{ble\_telemetry\_is\_ecg\_mode\_active()} cada refresco y carga la pantalla ECG si
-    corresponde.
-    \item \textbf{Heurística de actividad} en pantalla Home: magnitud cuadrada del accel sobre
-    umbral $\Rightarrow$ ``Activo'', si no ``Reposo'' (placeholder hasta que esté el clasificador
-    HAR del hito 60\,\%).
-    \item \textbf{Menú}: tres opciones (Reiniciar Pasos, Vincular BLE, Apagar). El último
-    invoca \texttt{esp\_deep\_sleep\_start()} con wake-up por GPIO en BTN\_SELECT.
-\end{itemize}
+\subsubsection{Menú principal (7 ítems).}
+\begin{enumerate}
+    \item Modo Energía (abre sub-pantalla).
+    \item Auto-off Pantalla (abre sub-pantalla).
+    \item Reiniciar Pasos.
+    \item Vincular BLE.
+    \item Apagar (\texttt{esp\_deep\_sleep\_start} con wake-up por BTN\_SELECT).
+    \item Toggle Tx IMU ON/OFF (habilita/deshabilita streaming IMU por BLE).
+    \item Reset Batería (\texttt{max17048\_reset}: POR + Quick Start).
+\end{enumerate}
+
+\subsubsection{Backlight PWM y auto-off.} La pantalla usa PWM para controlar el brillo.
+Tras un período de inactividad (definido por el perfil activo vía
+\texttt{power\_get\_display\_off\_s()}), \texttt{gui\_task} apaga el backlight
+(\texttt{st7789\_set\_brightness(0)}) y baja el frame-rate a 10\,Hz, reduciendo la carga
+de CPU y habilitando \textit{light sleep} más prolongado. Cualquier pulsación de botón
+restaura el brillo al 100\,\% antes de procesar la acción.
 
 \subsubsection{Resultados.} Latencia de transición de pantalla $<$\,50\,ms; sin tearing visible.
-La temperatura del CPU a 30\,FPS sostenido es $\sim$\,42\,°C, sin \textit{thermal throttling}.
+El driver ST7789 reescrito eliminó el \textit{busy-wait} durante DMA SPI, reduciendo
+la carga de \texttt{gui\_task} de 47\,\% a $<$1\,\% (\rfigura{fig:cpupie}).
 
 \subsection{Bloque de Backend: Cloud Functions con Pan-Tompkins}
 \subsubsection{Descripción.} Implementación en Python 3.11 + NumPy de las cinco etapas del
@@ -910,7 +1223,7 @@ para el dashboard.
 función en $\sim$\,300\,ms (cold start) y $\sim$\,90\,ms (warm). El algoritmo entrega BPM
 fisiológicamente plausible para todas las trazas reales del archivo CSV.
 
-\subsection{Bloque de Hardware: Esquemático en KiCad}
+\subsection{Bloque de Hardware: Esquemático y prototipo PCB}
 \subsubsection{Descripción.} Bajo \texttt{hardware/PCB\_Prototipo} se levantó el proyecto KiCad
 con tres hojas: \texttt{PCB\_Prototipo.kicad\_sch} (top, MCU + display), \texttt{sensors.kicad\_sch}
 (I2C bus + sensores), \texttt{Bottom\_sensors.kicad\_sch} (PCB inferior con MAX30102 y
@@ -918,26 +1231,53 @@ MAX30205 en contacto piel). La librería local \texttt{SupaclockaLIB} contiene l
 custom; los \textit{footprints} críticos (TP4056-Type-C, MAX17048-STEMMA, AD8232) se
 importaron desde repositorios open-source debidamente licenciados.
 
-\subsubsection{Estado.} Esquemático completo de la sección de potencia y de los buses I2C/SPI;
-falta el ruteo del bottom de sensores y la generación de Gerbers. Esto se planifica para el
-hito 60\,\%.
+\subsubsection{Estado.} Esquemático v1 \textbf{completo} (sección de potencia, buses I2C/SPI,
+footprints importados). Sin embargo, esta versión \textbf{no será manufacturada} dado que la
+migración al ESP32-S3 (§\,\ref{sec:s3}) requiere un rediseño del módulo MCU y del regulador
+de potencia. Ya se trabaja en la versión actualizada para dejar definitivamente la protoboard.
+
+\subsubsection{Evidencia visual.} Las \rfigura{fig:pcbfrontal} y \rfigura{fig:pcbtrasera}
+muestran el prototipo actual en protoboard, que ha servido como banco de pruebas durante
+toda la iteración. El LDO ME6211 de la protoboard es insuficiente para los picos de 130\,mA
+del radio BLE, motivando la migración al buck integrado del Seeed XIAO S3.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{foto_pcb_frontal.jpeg}
+    \caption{Vista frontal del prototipo SupaClock en protoboard: ESP32-C3 SuperMini,
+    display ST7789 1.69'', módulo TP4056 y MAX17048 STEMMA.}
+    \label{fig:pcbfrontal}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{foto_pcb_trasera.jpeg}
+    \caption{Vista trasera del prototipo: sensores MAX30102 (PPG) y MAX30205 (temperatura)
+    en contacto con la piel, módulo AD8232 con electrodos laterales.}
+    \label{fig:pcbtrasera}
+\end{figure}
 
 \subsection{Evaluación general y próximos pasos}
-Con la integración inicial de los bloques principales del dispositivo, el sistema cumple los
-requerimientos funcionales previstos y adelanta tareas tecnológicas complejas
-(BLE y procesamiento en la nube). Los próximos esfuerzos de desarrollo se concentrarán en:
+Con la integración de los bloques principales del dispositivo y las optimizaciones de consumo,
+el sistema cumple los requerimientos funcionales previstos y adelanta tareas tecnológicas
+complejas (BLE, modos de energía, power management). Los próximos esfuerzos de desarrollo se
+concentrarán en:
 \begin{itemize}
-    \item \textbf{Aplicación móvil definitiva} (Android, Flutter o nativa) que reemplace al
-    cliente PC de testing como \textit{gateway} BLE-a-Firestore para el usuario final, con
-    autenticación, dashboard y reproducción de ECG histórico.
-    \item \textbf{Recolección de dataset HAR} con el \texttt{ble\_logger} en al menos 6
+    \item \textbf{Aplicación móvil Flutter}: completar el \textit{gateway} BLE-a-Firestore
+    con autenticación, dashboard y reproducción de ECG histórico. La primera versión ya está
+    en desarrollo.
+    \item \textbf{Bring-up del ESP32-S3}: validar compatibilidad de drivers, habilitar PSRAM,
+    medir consumo con INA219 y comparar A/B contra el prototipo C3.
+    \item \textbf{Recolección de dataset HAR} con \texttt{supaclock\_monitor.py} en al menos 6
     sesiones de los integrantes y voluntarios (caminar, correr, reposo, simulación de caída).
-    \item \textbf{Entrenamiento del modelo CNN 1D} en Edge Impulse con cuantización int8.
-    \item \textbf{Ruteo y manufactura} de la PCB SuperMini en JLCPCB (estimado \$30.000\,CLP).
+    \item \textbf{Entrenamiento del modelo CNN 1D} en Edge Impulse con cuantización int8,
+    despliegue sobre el S3 con TFLite Micro.
+    \item \textbf{Rediseño y manufactura de la PCB} para ESP32-S3 en JLCPCB
+    (estimado \$30.000\,CLP).
     \item \textbf{Carcasa 3D impresa} (PLA, $\sim$\,80$\times$50$\times$13\,mm) que aloja la
     PCB y la celda 502030.
-    \item \textbf{Optimización de consumo}: implementar \textit{auto-dim} de la pantalla y
-    \textit{light sleep} entre muestras del IMU para acercarse a las 30\,h proyectadas.
+    \item \textbf{Migración del algoritmo de pasos} a FFT con ESP-DSP para eliminar falsos
+    positivos por vibración manual.
 \end{itemize}
 
 % =====================================================
@@ -988,42 +1328,47 @@ uint8_t step_algo_update(step_algo_state_t *st,
 }
 \end{lstlisting}
 
-\subsection*{Anexo B: Inicialización de NimBLE y registro de las 3 chr.\ GATT}
+\subsection*{Anexo B: Inicialización de NimBLE y registro de las 4 chr.\ GATT}
 \begin{lstlisting}[language=C, caption={Estructura del servicio GATT custom de SupaClock
 (\texttt{lib/ble\_telemetry/ble\_telemetry.c}, extracto).}, label={lst:ble}]
-static const struct ble_gatt_svc_def gatt_svcs[] = {
-    {   /* Servicio Telemetría */
+static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
+    {   /* Servicio Telemetria 0xFF00 */
         .type = BLE_GATT_SVC_TYPE_PRIMARY,
-        .uuid = BLE_UUID128_DECLARE(SUPACLOCK_TELEMETRY_SVC_UUID),
+        .uuid = BLE_UUID16_DECLARE(0xFF00),
         .characteristics = (struct ble_gatt_chr_def[]) {
-            { /* IMU 50Hz */
+            { /* IMU 6-DOF (cadencia segun perfil) */
                 .uuid = BLE_UUID16_DECLARE(0xFF01),
-                .access_cb = ble_telemetry_access,
-                .flags = BLE_GATT_CHR_F_NOTIFY,
-                .val_handle = &g_imu_handle,
+                .access_cb = chr_access_cb,
+                .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &imu_chr_val_handle,
             },
-            { /* Sensores lentos 1Hz */
+            { /* Telemetria TLV agregada */
                 .uuid = BLE_UUID16_DECLARE(0xFF02),
-                .access_cb = ble_telemetry_access,
-                .flags = BLE_GATT_CHR_F_NOTIFY,
-                .val_handle = &g_slow_handle,
+                .access_cb = chr_access_cb,
+                .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &agg_chr_val_handle,
             },
-            { /* ECG 100Hz */
+            { /* ECG streaming */
                 .uuid = BLE_UUID16_DECLARE(0xFF03),
-                .access_cb = ble_telemetry_access,
-                .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_WRITE,
-                .val_handle = &g_ecg_handle,
+                .access_cb = chr_access_cb,
+                .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
+                .val_handle = &ecg_chr_val_handle,
+            },
+            { /* Comandos RX */
+                .uuid = BLE_UUID16_DECLARE(0xFF04),
+                .access_cb = chr_access_cb,
+                .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP,
+                .val_handle = &cmd_chr_val_handle,
             },
             { 0 } /* terminator */
         },
     },
-    /* + 0x180A Device Information ... */
     { 0 }
 };
 \end{lstlisting}
 
-\subsection*{Anexo C: Pipeline ECG con ADC continuo (DMA) y empaquetado BLE}
-\begin{lstlisting}[language=C, caption={Tarea de ECG: DMA $\to$ down-sample $\to$ BLE
+\subsection*{Anexo C: Pipeline ECG con ADC continuo (DMA) y PM lock on-demand}
+\begin{lstlisting}[language=C, caption={Tarea de ECG: DMA on-demand $\to$ down-sample $\to$ BLE
 notify (\texttt{src/tests/test\_general.c}, función \texttt{ecg\_task}, extracto).}, label={lst:ecg}]
 void ecg_task(void *pvParameter) {
     uint8_t  dma_buf[AD8232_READ_LEN];
@@ -1031,17 +1376,31 @@ void ecg_task(void *pvParameter) {
     int16_t  ble_chunk[ECG_BLE_CHUNK_SIZE];
     int      chunk_idx = 0;
     uint32_t sum = 0; int count = 0;
+    bool     is_dma_running = false;
 
     while (1) {
         if (!ble_telemetry_is_ecg_mode_active()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
+            if (is_dma_running) {
+                ad8232_stop_dma();
+                is_dma_running = false;
+#if CONFIG_PM_ENABLE
+                if (s_ecg_pm_lock) esp_pm_lock_release(s_ecg_pm_lock);
+#endif
+            }
+            vTaskDelay(pdMS_TO_TICKS(500));
             chunk_idx = 0; sum = 0; count = 0;
             continue;
+        } else if (!is_dma_running) {
+#if CONFIG_PM_ENABLE
+            if (s_ecg_pm_lock) esp_pm_lock_acquire(s_ecg_pm_lock);
+#endif
+            ad8232_start_dma();
+            is_dma_running = true;
         }
-        /* Lee del DMA: timeout 10ms para ceder CPU si bus idle */
+        /* Lee del DMA: timeout 100ms para ceder CPU si bus idle */
         if (adc_continuous_read(ad8232_get_adc_handle(),
                                 dma_buf, AD8232_READ_LEN,
-                                &ret_num, 10) == ESP_OK) {
+                                &ret_num, pdMS_TO_TICKS(100)) == ESP_OK) {
             for (int i = 0; i < ret_num; i += sizeof(adc_digi_output_data_t)) {
                 adc_digi_output_data_t *p = (adc_digi_output_data_t*)&dma_buf[i];
                 sum += p->type2.data;
@@ -1055,7 +1414,6 @@ void ecg_task(void *pvParameter) {
                 }
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(1));
     }
 }
 \end{lstlisting}
@@ -1080,6 +1438,49 @@ def detect_r_peaks(integrated, original, fs=100.0):
                 npki = 0.125*integrated[i] + 0.875*npki
             threshold1 = npki + 0.25*(spki - npki)
     return r_peaks
+\end{lstlisting}
+
+\subsection*{Anexo E: Perfiles de energía (\texttt{power\_profiles[]})}
+\begin{lstlisting}[language=C, caption={Tabla de perfiles de energía
+(\texttt{lib/power\_modes/power\_modes.c}, extracto).}, label={lst:profiles}]
+static const power_profile_t s_profiles[POWER_MODE_COUNT] = {
+    [POWER_MODE_SPORT] = {
+        .hrm_poll_ms          = 100,
+        .hrm_auto_period_ms   = 0,             /* continuo */
+        .spo2_auto_period_ms  = 5UL * 60 * 1000, /* 5 min */
+        .hrm_shdn_between     = false,
+        .imu_poll_ms          = 20,             /* 50 Hz */
+        .temp_period_ms       = 30 * 1000,
+        .bat_period_ms        = 30 * 1000,
+        .ble_agg_flush_ms     = 1000,
+        .display_off_default_s= 30,
+        .name = "SPORT",
+    },
+    [POWER_MODE_NORMAL] = {
+        .hrm_poll_ms          = 100,
+        .hrm_auto_period_ms   = 10UL * 60 * 1000, /* 10 min */
+        .spo2_auto_period_ms  = 30UL * 60 * 1000, /* 30 min */
+        .hrm_shdn_between     = true,
+        .imu_poll_ms          = 40,             /* 25 Hz */
+        .temp_period_ms       = 5 * 60 * 1000,
+        .bat_period_ms        = 30 * 1000,
+        .ble_agg_flush_ms     = 10 * 1000,
+        .display_off_default_s= 15,
+        .name = "NORMAL",
+    },
+    [POWER_MODE_SAVER] = {
+        .hrm_poll_ms          = 100,
+        .hrm_auto_period_ms   = 30UL * 60 * 1000, /* 30 min */
+        .spo2_auto_period_ms  = 0,             /* solo manual */
+        .hrm_shdn_between     = true,
+        .imu_poll_ms          = 80,             /* 12.5 Hz */
+        .temp_period_ms       = 15 * 60 * 1000,
+        .bat_period_ms        = 30 * 1000,
+        .ble_agg_flush_ms     = 60 * 1000,
+        .display_off_default_s= 8,
+        .name = "SAVER",
+    },
+};
 \end{lstlisting}
 
 \end{document}
