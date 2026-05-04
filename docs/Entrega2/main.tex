@@ -48,7 +48,7 @@
 \newcommand{\NumeroGrupo}{10}
 \newcommand{\NombreProyecto}{SupaClock: Wearable Biométrico Modular}
 \newcommand{\Integrantes}{Tomás Avendaño, Benjamín Sepúlveda, Pablo Uribe}
-\newcommand{\FechaEntrega}{27 de abril de 2026}
+\newcommand{\FechaEntrega}{4 de mayo de 2026}
 
 \lstset{
   basicstyle=\ttfamily\small,
@@ -118,9 +118,8 @@
 % =====================================================
 \section{Introducción al estado actual del proyecto}
 % =====================================================
-Este documento detalla el estado actual del desarrollo del proyecto \textit{SupaClock},
-dando continuidad al diseño establecido en el reporte preliminar del 7 de abril de
-2026. La motivación, los requerimientos técnicos y el diagrama de bloques de alto nivel descritos en aquel
+El siguiente informe detalla el estado actual del desarrollo del proyecto \textit{SupaClock},
+dando continuidad al diseño establecido en el informe de diseño preliminar entregado el 7 de abril de 2026. La motivación, los requerimientos técnicos y el diagrama de bloques de alto nivel descritos en aquel
 documento se mantienen vigentes, por lo que en este informe \textbf{no se reproducen}, sino que se
 referencian. El presente documento se estructura en torno a cinco ejes fundamentales:
 diagrama de bloques de bajo nivel \textit{actualizado}, planificación contrastada con el estado real
@@ -128,7 +127,7 @@ del proyecto, análisis de impacto socioeconómico y de estándares aplicables, 
 que respaldan las decisiones de diseño, set-up final de pruebas y un diseño de pruebas preliminar
 (sección que se incorpora en este reporte para complementar la planificación original).
 Adicionalmente, en la \textbf{sección de Implementación y resultados} se documentan todos los bloques
-que el equipo logró integrar en la iteración actual de desarrollo.
+que se logró integrar en la etapa actual de desarrollo.
 
 \subsubsection{Resumen ejecutivo del avance.} Actualmente el sistema cuenta con un
 \textbf{firmware funcional integrado} que ejecuta \textbf{siete tareas concurrentes} bajo FreeRTOS
@@ -199,8 +198,7 @@ las modificaciones son:
     \item \textbf{TinyML}: aún \textit{no} se entrenó el modelo CNN 1D (depende de la
     recolección de datos reales del BMI160 sobre los integrantes); por eso se mantiene como bloque
     pendiente. El contador de pasos \textit{algorítmico} (umbral adaptativo) sí se implementó.
-    \item \textbf{PCB SMD propia}: se completó la primera versión del esquemático en KiCad
-    (\texttt{hardware/PCB\_Prototipo}) incluyendo la sección de potencia, los footprints
+    \item \textbf{PCB SMD propia}: se completó la primera versión del esquemático en KiCad incluyendo la sección de potencia, los footprints
     importados y los buses I2C/SPI. Sin embargo, esta versión \textbf{no será manufacturada}
     dado que la migración al ESP32-S3 requiere un rediseño del módulo MCU; ya se trabaja
     en la versión actualizada para dejar definitivamente la protoboard.
@@ -256,7 +254,7 @@ descubrir necesidades de implementación que no estaban en la planificación ini
     \begin{tabular}{|L{4.0cm}|L{2.4cm}|L{8.0cm}|}\hline
     \rowcolor{gray!20}\textbf{Tarea planificada} & \textbf{Estado} & \textbf{Observaciones} \\\hline
     \cellcolor{green!12} Implementación bloque de energía (BMS + LDO) & \cellcolor{green!20}\bf Completado & Módulo TP4056 + DW01A montado y validado a 4.2\,V; LDO ME6211 entrega 3.30\,V estables. Driver \texttt{max17048} entrega SOC y $V_{cell}$ con 1\,Hz polling. \\\hline
-    \cellcolor{green!12} Integración inicial de sensores en bus I2C compartido & \cellcolor{green!20}\bf Completado & Cuatro esclavos en el bus a 400\,kHz, mutex FreeRTOS protege accesos concurrentes desde 4 tareas. Sin colisiones tras 24\,h de operación continua. \\\hline
+    \cellcolor{green!12} Integración inicial de sensores en bus I2C compartido & \cellcolor{green!20}\bf Completado & Cuatro esclavos en el bus a 400\,kHz, mutex FreeRTOS protege accesos concurrentes desde 4 tareas.  \\\hline
     \cellcolor{green!12} Pruebas preliminares de adquisición de datos & \cellcolor{green!20}\bf Completado & Cada \texttt{env:test\_*} de PlatformIO valida un sensor de forma aislada; existen 9 entornos de prueba unitarios. \\\hline
     \cellcolor{green!12} Primera integración de sensores con el MCU & \cellcolor{green!20}\bf Completado & \texttt{env:main\_app}/\texttt{test\_general} integra simultáneamente IMU, PPG, Temp, ECG, batería y GUI con BLE activo. \\\hline
     \cellcolor{green!12} Validación básica de algoritmos & \cellcolor{green!20}\bf Completado & Contador de pasos por umbral adaptativo en C, Pan-Tompkins en Cloud Functions; ambos validados con datos reales (Sec.\,\ref{sec:modelos}). \\\hline
@@ -317,10 +315,10 @@ en áreas complementarias. La \rtabla{tab:trabajo} resume las contribuciones pri
 \section{Análisis de impacto y estándares}
 % =====================================================
 \label{sec:impacto}
-Para el correcto desarrollo del proyecto, resulta fundamental realizar un análisis del
-\textit{impacto social, económico, ambiental y ético} de la solución, además de
-la revisión de estándares relevantes y de los riesgos eléctricos
-descritos en el punto~3 de la norma ECMA-287.
+% Para el correcto desarrollo del proyecto, resulta fundamental realizar un análisis del
+% \textit{impacto social, económico, ambiental y ético} de la solución, además de
+% la revisión de estándares relevantes y de los riesgos eléctricos
+% descritos en el punto~3 de la norma ECMA-287.
 
 \subsection{Aplicaciones e impacto socioeconómico, ambiental y en salud}
 \subsubsection{Salud pública.} El proyecto se inserta en la línea de los \textit{wearables} de
@@ -413,7 +411,7 @@ A continuación se enumeran los estándares aplicables y las especificaciones de
 \textit{SupaClock} adopta para asegurar su seguridad e interoperabilidad. Se analizan cuatro
 normativas adicionales a la ECMA-287 previamente discutida.
 
-\subsubsection{(i) Bluetooth Core Specification 5.3 \cite{ble_core_spec}.}
+\subsubsection{Bluetooth Core Specification 5.3 \cite{ble_core_spec}.}
 \begin{itemize}
     \item \textit{LE 1M PHY} se selecciona como \textit{phy} primario (compatibilidad con
     teléfonos $\geq$ Android 5.0).
@@ -436,7 +434,7 @@ normativas adicionales a la ECMA-287 previamente discutida.
     y 4 características (IMU, TLV agregado, ECG streaming, Comandos RX).
 \end{itemize}
 
-\subsubsection{(ii) IEEE 11073-10406 (\textit{Personal Health Devices --- Basic ECG}) \cite{ieee11073}.}
+\subsubsection{IEEE 11073-10406 (\textit{Personal Health Devices --- Basic ECG}) \cite{ieee11073}.}
 Este estándar especifica las propiedades mínimas de un ECG personal monitorizado: rango
 $\pm$5\,mV, ruido referido a entrada $<$30\,$\mu V_{pp}$, ancho de banda 0.05--40\,Hz, tasa
 de muestreo $\geq$\,250\,Hz para diagnóstico básico. \textit{SupaClock} cumple parcialmente:
@@ -444,20 +442,20 @@ el AD8232 entrega 0.5--40\,Hz con ganancia $\sim$1100, la decimación a 500\,Hz 
 mínimo, pero el modo de derivación es \textit{single-lead} (Lead I bimanual) por lo que el
 dispositivo se declara como \textbf{ECG personal de tamizaje}, no de Holter.
 
-\subsubsection{(iii) USB Type-C Cable and Connector Specification, Rev.~2.3 \cite{usbpd}.}
+\subsubsection{USB Type-C Cable and Connector Specification, Rev.~2.3 \cite{usbpd}.}
 El conector USB-C del prototipo opera en modo \textit{legacy 5\,V/500\,mA} (USB 2.0). El
 módulo TP4056 ya declara compatibilidad con esta categoría. Para la versión Pro se evalúa
 soportar 5\,V/1.5\,A (CC pull-down 22\,k$\Omega$) si se mantiene el TP4056, lo que ahorra
 $\sim$\,40\,\% del tiempo de carga.
 
-\subsubsection{(iv) IEC 60601-1 (\textit{Medical electrical equipment}) \cite{iec60601}.}
+\subsubsection{IEC 60601-1 (\textit{Medical electrical equipment}) \cite{iec60601}.}
 Aunque \textit{SupaClock} no se homologa como dispositivo médico, se adoptan voluntariamente
 los criterios de \textbf{aislamiento de paciente tipo BF} para el subsistema ECG: el
 front-end AD8232 tiene impedancia de entrada $>$10\,M$\Omega$ y corriente de fuga DC
 $<$10\,$\mu$A, dentro del límite BF de 100\,$\mu$A. Esto permite que las versiones futuras
 del proyecto puedan ser presentadas a homologación con cambios mínimos.
 
-\subsubsection{(v) RoHS-2 (Directiva 2011/65/EU) \cite{rohs} e IEC 62133-2 \cite{en62133}}
+\subsubsection{RoHS-2 (Directiva 2011/65/EU) \cite{rohs} e IEC 62133-2 \cite{en62133}}
 ya descritas en la sección de impacto ambiental.
 
 % =====================================================
@@ -478,8 +476,7 @@ batería. La \rfigura{fig:consumos} consolida los puntos operativos relevantes.
 \textit{light sleep} (que duran milisegundos a 10\,MHz de reloj mínimo del DFS), por lo que
 las lecturas corresponden al \textbf{consumo en estado activo} del SoC y subestiman el ahorro
 real introducido por el power management dinámico (§\,\ref{sec:pm}). La validación empírica
-del consumo medio se realizará sobre la plataforma definitiva Seeed XIAO ESP32-S3 con un
-INA219 a alta tasa de muestreo o un \textit{coulomb counter} dedicado.
+del consumo medio se realizará sobre la plataforma definitiva Seeed XIAO ESP32-S3.
 
 \begin{figure}[H]
 \centering
@@ -685,6 +682,18 @@ adquiera \textbf{sólo dentro de la pantalla ECG}, en lugar de retenerlo permane
 Estos dos cambios, combinados con el advertising BLE relajado y el Modem Sleep BT, llevaron
 la fracción de SLEEP de 0\,\% a 75\,\%.
 
+\subsection{Análisis comparativo de topología algorítmica frente a la industria}
+El desarrollo del firmware y los algoritmos biométricos de \textit{SupaClock} se basó en un extenso análisis de las arquitecturas comerciales (tales como Samsung BioActive \cite{samsung_bioactive}, ecosistemas Apple y algoritmos de Garmin/Fitbit). Dado el contexto de recursos acotados (SRAM y potencia de cómputo limitadas en la familia ESP32) frente a los SoCs dedicados de la industria, el diseño algorítmico se adaptó heurísticamente para lograr mediciones precisas sin un costo computacional prohibitivo.
+
+\textbf{Análisis PPG y mitigación de artefactos cinéticos (Motion Artifacts):}
+Mientras que la industria de punta (ej. la arquitectura BioActive de Samsung) implementa redes convolucionales dilatadas \cite{kazemi_cnn} y factorizaciones complejas (SVD + ICA \cite{motion_artifact_svd}) sobre arreglos ópticos multicanal para aislar el ritmo cardíaco del ruido de movimiento durante el trote intenso, \textit{SupaClock} opera con un fotodiodo simple (MAX30102). Para solventar la vulnerabilidad ante el ruido cinético sin hardware dedicado, implementamos un enfoque \textit{ad-hoc} de \textbf{Spot Check con Motion Gating}: la \texttt{imu\_task} computa continuamente la derivada de la aceleración (\textit{jerk}) en la muñeca; si la magnitud inercial excede un umbral empírico, la máquina de estados del PPG invalida inmediatamente la toma de la señal. Esta heurística pasiva asegura que los picos sistólicos detectados en reposo sean de alta fidelidad, requiriendo apenas el 1\,\% de los ciclos de reloj que tomaría un filtro adaptativo multicanal.
+
+\textbf{Electrocardiografía (ECG) y extracción morfológica:}
+En dispositivos comerciales, la detección de picos (como la "Detección de Dos Rondas" determinista de Samsung o el solapamiento pasivo de tacogramas de Fitbit \cite{fitbit_afib}) ejecuta promedios geométricos iterativos y algoritmos AMPD a bordo para tamizar asimetrías basales y ruidos electromagnéticos. \textit{SupaClock} evita forzar este procesamiento pesado localmente (lo cual monopolizaría el SoC). En su lugar, explota su topología IoT: el ESP32 decima la señal analógica por hardware (DMA a 500\,Hz) y transmite telemetría cruda para que el algoritmo clínico \textbf{Pan-Tompkins} corra íntegramente de manera escalable en \textit{Firebase Cloud Functions} apoyado en operaciones vectorizadas (NumPy). Esto nos permite igualar las métricas de precisión de extracción del pico R y variabilidad (HRV) sin saturar la batería.
+
+\textbf{Reconocimiento de actividad (HAR) y Podometría:}
+La detección inercial avanzada en Apple Watch y Samsung emplea comúnmente topologías de redes recurrentes bidireccionales (BiLSTM) para discernir contextos de impacto biomecánico (caminar vs. escalar). Acotados inicialmente a un ESP32-C3 sin aceleración flotante, la \textbf{podometría de SupaClock} opera actualmente con un \textbf{umbral adaptativo dinámico} de aritmética entera, ajustado iterativamente por la magnitud pico-a-pico (descrito en el Anexo A). Si bien este método puede incurrir en falsos positivos ante vibraciones arrítmicas (a diferencia de redes de atención profundas), la planificada migración al \textbf{ESP32-S3} habilitará el despliegue de modelos \textbf{TinyML} (CNN 1D) gracias al co-procesador vectorial SIMD y la PSRAM externa, permitiéndonos realizar clasificación HAR (\textit{Human Activity Recognition}) tridimensional que cierra la brecha técnica con el estado del arte de la industria sin sobrecostos de hardware.
+
 % =====================================================
 \section{Diseño del set-up final de pruebas}
 % =====================================================
@@ -714,8 +723,9 @@ ilustra la arquitectura del set-up.
     80\,MHz, el eje analógico del AD8232 y eventos de \textit{handshake} del bus I2C.
     \item \textbf{Oxímetro clínico de pulso} (Beurer PO 30 o similar): referencia para la
     validación de HR/SpO\textsubscript{2}, colocado en el dedo opuesto al sensor del DUT.
-    \item \textbf{Termómetro IR de contacto} (clase clínica $\pm 0.1$\,°C): referencia para la
-    validación del MAX30205, midiendo la misma zona de la piel simultáneamente.
+    \item \textbf{Cámara térmica}: referencia para la validación del MAX30205, midiendo
+    simultáneamente la temperatura ambiente y la de la superficie (objeto/piel) para
+    contrastar la desviación de la lectura.
     \item \textbf{PC con Python 3.11}: ejecuta \texttt{supaclock\_monitor.py} (herramienta
     principal de validación BLE) para graficar biometría en tiempo real y exportar CSV,
     además de \texttt{algo\_simulator.py} para el contador de pasos. Acceso a Firebase Console
@@ -801,35 +811,33 @@ guiadas siguiendo el set-up de la \rfigura{fig:setup}.
     la pantalla ECG no existe ningún lock \texttt{NO\_LIGHT\_SLEEP} activo de forma sostenida.
     Validación experimental del modelo §\,\ref{sec:pm}.
     \item \textbf{Persistencia NVS}: cambiar modo de energía y auto-off de pantalla, hacer
-    reboot y deep sleep, verificar que ambos valores sobreviven. Borrar NVS
+    reboot y deep sleep, verificar que ambos valores se mantienen. Borrar NVS
     (\texttt{nvs\_flash\_erase}) y verificar que se aplica el default SPORT.
 \end{enumerate}
 
 \subsection{Pruebas funcionales (sistema completo)}
 \begin{enumerate}
-    \item \textbf{Sesión cotidiana}: portar el dispositivo durante 4\,h en muñeca, registrar
+    \item \textbf{Sesión cotidiana}: portar el dispositivo durante 4\,h (idealmente) en muñeca, registrar
     pasos manualmente y comparar contra \texttt{stepsHW} y \texttt{stepsSw} reportados.
-    \item \textbf{Detección de fiebre}: aplicar dedo caliente (45\,°C, baño térmico) sobre el
-    MAX30205 durante 30\,s y verificar la lectura.
-    \item \textbf{Detección de bradicardia}: usar un \textit{pulse simulator} (si está
-    disponible en laboratorio Capstone) o pulsioxímetro de paciente para inducir 50\,BPM y
-    verificar la métrica reportada.
+    \item \textbf{Detección de variaciones térmicas}: utilizar una cámara térmica para registrar la
+    temperatura de un objeto/superficie calentado progresivamente (y la del ambiente),
+    contrastando ambos perfiles térmicos contra la lectura reportada por el MAX30205.
+    \item \textbf{Validación métricas de sensores SPO2 y HR}: usar un pulsioxímetro clínico (como referencia) para realizar mediciones en reposo y contrastar con la métrica reportada por el dispositivo.
     \item \textbf{Caída}: dejar caer el dispositivo desde 1\,m sobre superficie blanda
     (objetivo del modelo HAR final; en esta etapa sólo se verifica que el
     dispositivo no se reinicia mecánicamente y que la lectura del IMU registra el impacto).
-    \item \textbf{Aceptación visual del UI}: tres usuarios externos al equipo navegan las
+    \item \textbf{Aceptación visual del UI}: usuarios externos al equipo (idealmente 5) navegan las
     siete pantallas y reportan el tiempo necesario para iniciar una toma de ECG. Objetivo:
-    $\leq$\,30\,s sin tutorial.
+    $\leq$\,30\,s sin tutorial. Además, se les encuestará sobre su experiencia de uso.
 \end{enumerate}
 
 \subsection{Plan de validación de la PCB propia}
-Cuando el ruteo del PCB SuperMini esté completo y manufacturado por JLCPCB:
+Cuando el ruteo del PCB SuperMini esté completo y manufacturado:
 \begin{itemize}
     \item Inspección visual y eléctrica con multímetro: continuidad de pistas críticas (I2C,
-    SPI, ADC), \textit{shorts} entre rails 3.3\,V y GND.
+    SPI, ADC), cortocircuitos entre pistas 3.3\,V y GND, etc.
     \item Bring-up secuencial de fases (igual que el firmware: \textbf{Fase 1} I2C/sensores,
-    \textbf{Fase 2} display, \textbf{Fase 3} BLE) para identificar fallos por aislación de
-    fault.
+    \textbf{Fase 2} display, \textbf{Fase 3} BLE) para identificar fallos por aislación.
     \item Comparación A/B contra el prototipo en placa de desarrollo: ejecutar \texttt{main\_app}
     en ambos y verificar que las lecturas son indistinguibles dentro de tolerancia de los
     sensores.
