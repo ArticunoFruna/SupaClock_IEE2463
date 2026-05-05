@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 0)
+  (lib (name "AD8232_Heart_Rate_Monitor-eagle-import")(type "KiCad")(uri "${KIPRJMOD}/AD8232_Heart_Rate_Monitor-eagle-import.kicad_sym")(options "")(descr ""))
+)

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "AD8232_Heart_Rate_Monitor")(type "KiCad")(uri "$(KIPRJMOD)/AD8232_Heart_Rate_Monitor.pretty")(options "")(descr ""))
+)

@@ -34,6 +34,13 @@ Thumbs.db
 # Hardware / KiCad
 *-backups/
 *.bck
+*.bak
+*.sch-bak
+*.kicad_pcb-bak
+*.lck
+*.kicad_prl
+fp-info-cache
+.history/
 
 # Carpetas de otros proyectos (App / Firebase)
 firebase/
