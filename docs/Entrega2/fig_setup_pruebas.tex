@@ -8,37 +8,28 @@
 ]
 
 % --- DUT central ---
-\node[dut] (dut) {SupaClock\\(prototipo en ESP32-C3\\SuperMini + módulos)};
+\node[dut] (dut) {SupaClock\\(Seeed XIAO ESP32-S3\\+ PCB integrada)};
 
 % --- Instrumentos / Fuentes ---
-\node[inst, above=1.4cm of dut, xshift=-4.2cm] (psu)  {DC PSU\\(emula bater\'ia LiPo)};
-\node[inst, above=1.4cm of dut]                  (mm) {Mult\'imetro USB\\(corriente $I_{\text{avg}}$)};
-\node[inst, above=1.4cm of dut, xshift=4.2cm]  (osc) {Osciloscopio\\(SPI / ADC ECG)};
-
-\node[inst, left=2.2cm of dut]  (oxm)  {Oxímetro clínico\\(referencia HR/SpO\textsubscript{2})};
-\node[inst, right=2.2cm of dut] (term) {Termómetro IR\\(referencia $^\circ$C)};
+\node[inst, above=1.4cm of dut, xshift=-3.5cm] (oxm)  {Ox\'imetro cl\'inico\\(referencia HR/SpO\textsubscript{2})};
+\node[inst, above=1.4cm of dut, xshift=3.5cm]  (term) {Term\'ometro IR\\(referencia $^\circ$C)};
 
 % --- Logger / Software ---
-\node[soft, below=1.4cm of dut, xshift=-4.2cm] (csv) {ble\_logger\\$\to$ CSV};
-\node[soft, below=1.4cm of dut]                  (mon) {supaclock\_monitor.py\\(plot tiempo real)};
-\node[soft, below=1.4cm of dut, xshift=4.2cm]   (fb)  {Firebase\\(verifica BPM/HRV)};
+\node[soft, below=1.4cm of dut, xshift=-3.5cm] (mon) {supaclock\_monitor.py\\(PC + plot + CSV)};
+\node[soft, below=1.4cm of dut, xshift=3.5cm]  (app) {App Flutter Android\\(gateway BLE m\'ovil)};
 
 % --- Conexiones ---
-\draw[arrow] (psu)  -- node[left, xshift=-0.1cm]{3.7\,V} (dut.145);
-\draw[arrow] (mm)   -- node[left]{$I$} (dut.north);
-\draw[arrow] (dut.35) -- node[right, xshift=0.1cm]{probe} (osc);
-\draw[arrow] (oxm)  -- node[above]{lado a lado} (dut.west);
-\draw[arrow] (term) -- node[above]{contacto piel} (dut.east);
+\draw[arrow] (oxm)  -- node[left, xshift=-0.1cm]{lado a lado} (dut.155);
+\draw[arrow] (term) -- node[right, xshift=0.1cm]{contacto piel} (dut.25);
 
-\draw[arrow, dashed, blue!60] (dut.south) -- node[right]{BLE} (mon.north);
-\draw[arrow] (mon) -- (csv);
-\draw[arrow, dashed, blue!60] (mon) -- (fb);
+\draw[arrow, dashed, blue!60] (dut.-155) -- node[left]{BLE} (mon.north);
+\draw[arrow, dashed, blue!60] (dut.-25)  -- node[right]{BLE} (app.north);
 
-% --- Contenedor del Laboratorio ---
+% --- Contenedor del set-up ---
 \begin{scope}[on background layer]
 \node[rectangle, draw=black!40, dashed, inner sep=0.6cm,
-      fit=(psu) (osc) (oxm) (term) (csv) (fb) (dut), fill=black!2] (lab) {};
-\node[anchor=north west, font=\scriptsize\bfseries] at (lab.north west) {Banco de pruebas (laboratorio Capstone)};
+      fit=(oxm) (term) (mon) (app) (dut), fill=black!2] (lab) {};
+\node[anchor=north west, font=\scriptsize\bfseries] at (lab.north west) {Set-up final de validaci\'on};
 \end{scope}
 
 \end{tikzpicture}
