@@ -276,31 +276,32 @@ descubrir necesidades de implementación que no estaban en la planificación ini
 \end{table}
 
 \subsection{Carta Gantt corregida}
-La carta Gantt presentada en el informe anterior se mantiene como referencia base, pero
-los siguientes ajustes deben quedar reflejados en la próxima revisión maestra:
+La carta Gantt presentada en el informe anterior ha sido reemplazada por una versión completamente actualizada. Este cambio responde a la falta de especificidad de la planificación original y a la necesidad de reevaluar los porcentajes de avance (pesos) asignados a cada hito, los cuales se encontraban infravalorados frente a la carga real de trabajo. Esta corrección metodológica permite reflejar con mayor precisión el esfuerzo de ingeniería invertido hasta la fecha y reajusta la importancia de los nuevos hitos por alcanzar.
+
+Los siguientes ajustes estructurales quedan reflejados en la nueva revisión maestra:
 \begin{itemize}
-    \item La tarea de \textbf{Comunicación BLE} se reasignó a una fase más temprana, ya que
-    sin un \textit{loop} BLE cerrado contra un cliente PC no era posible validar el ECG ni
-    los modos de energía. El \textbf{algoritmo Pan-Tompkins} también se adelantó (escrito
-    y validado offline contra CSV reales) pero su \textbf{despliegue} como Cloud Function y
-    la construcción del \textit{gateway} móvil Flutter se mantienen para el hito 60\,\%
-    como estaba planificado.
-    \item La tarea de \textbf{Machine Learning} se postergó hasta la disponibilidad de
-    \textit{datos reales} en cantidad suficiente. La fase de \textit{recolección} de esos datos
-    se adelantó parcialmente y ya hay sesiones almacenadas en \texttt{scripts/}.
-    \item La tarea \textbf{Diseño PCB} se separó en dos sub-tareas: ``esquemático'' (adelantada)
-    y ``ruteo + manufactura JLCPCB'' (mantiene fecha original).
-    \item No hay tareas atrasadas respecto del plan original.
+    \item \textbf{Reestructuración por Fases Específicas:} Las tareas genéricas del plan original se dividieron en 8 fases de desarrollo secuenciales y lógicas (desde ``Planificación inicial'' hasta ``Cierre técnico''), eliminando la ambigüedad en el alcance de cada módulo.
+    
+    \item \textbf{Ajuste de Pesos y Avance Real:} Se reasignaron los porcentajes de impacto de cada tarea para reflejar su complejidad real en el sistema. Hitos críticos como el ``Firmware base con FreeRTOS'' (7\,\%) y la ``Integración sensores + MCU + BLE'' (9\,\%) ahora poseen un peso acorde a su dificultad técnica. Con esta recalibración, el avance real consolidado del proyecto se sitúa en un 45\,\%.
+    
+    \item \textbf{Validación de Subsistemas en Paralelo:} Las tareas de validación de sensores e integración se desglosaron. La validación de la IMU y el algoritmo de pasos se encuentra completa (100\,\%), mientras que los flujos de PPG (HR y SpO\textsubscript{2}), ECG y la integración de la GUI local junto con la comunicación BLE avanzan sólidamente con un 70\,\% de progreso.
+    
+    \item \textbf{Machine Learning y Datos:} La tarea general de \textit{Machine Learning} se separó explícitamente en ``Recolección de datos reales'' y ``Entrenamiento de modelo'', transparentando que el entrenamiento depende de la primera. Ambas fases se reportan como ``Iniciadas'' (5\,\% de avance) basándose en las sesiones preliminares registradas.
+    
+    \item \textbf{Desarrollo de PCB Granular:} El diseño de la placa se dividió en hitos técnicos específicos y medibles. El esquemático de la PCB propia se reporta como finalizado (100\,\%), el ruteo y envío a manufactura está en curso (40\,\%), y se planificaron formalmente las etapas futuras de \textit{bring-up} y validación eléctrica tanto para la PCB inicial como para la versión final SMD.
+    
+    \item \textbf{Visibilidad de Estados:} El nuevo formato incluye una semaforización clara del estado de las tareas (``Listo'', ``Curso'', ``Iniciado'', ``Nada''), confirmando que el desarrollo avanza según los tiempos estipulados para llegar a la integración física.
 \end{itemize}
-La \rfigura{fig:gantt} reproduce la carta Gantt vigente del informe anterior, con un overlay
-manual de los hitos cumplidos al 4 de mayo de 2026.
+
+La \rfigura{fig:gantt_actualizada} reproduce la carta Gantt actualizada, evidenciando el estado vigente de las tareas, la nueva distribución de pesos y las fases proyectadas para el cierre técnico.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\linewidth]{CartaGantt_v1.jpeg}
-    \caption{Carta Gantt original (Informe 5\,\%) con anotación manual del estado al 04/05/2026.}
-    \label{fig:gantt}
+    \includegraphics[width=1.0\linewidth]{carta_gantt_2.png} % Reemplazar con el nombre de tu archivo
+    \caption{Carta Gantt actualizada estructurada en fases, con ajuste de pesos y estado de avance consolidado (45\,\%) al 04/05/2026.}
+    \label{fig:gantt_actualizada}
 \end{figure}
+
 
 \subsection{Distribución del trabajo en este hito}
 El desarrollo de las tareas se abordó de manera colaborativa; si bien se mantuvo la división
@@ -805,7 +806,7 @@ La \rtabla{tab:iteraciones} resume las dos iteraciones planificadas y su alcance
     1 PCB de 2 capas. Módulos comerciales en sockets 2.54\,mm (XIAO~S3, AD8232, MAX17048-STEMMA). MAX30102 + MAX30205 SMD en cara inferior. &
     $\sim$50$\times$40$\times$13\,mm &
     Geometría de la caja, alineación de ventanas/electrodos, ergonomía,
-    validación funcional fuera del breadboard. \\\hline
+    validación funcional fuera del protoboardoard. \\\hline
     v2 --- All-SMD lab-friendly &
     1 PCB de 2 capas, todos los componentes SMD directos. XIAO~S3 soldado por
     castellated edges, AD8232 LFCSP, sensores en encapsulados nativos. Passives
@@ -829,7 +830,7 @@ Cinco pruebas con criterios de aceptación explícitos:
 \begin{enumerate}
     \item \textbf{Encaje y cierre}: armar/desarmar la caja 5 veces con los tornillos hex
     M2/M3. Verificar que el PCB no se desplaza, que los botones siguen alineados con sus
-    actuadores, que el slug de aluminio aplica presión consistente sobre el MAX30205, y que
+    actuadores, que el placa de aluminio aplica presión consistente sobre el MAX30205, y que
     el \textit{cutout} del PPG no presenta luz ambiente filtrándose al sensor.
 
     \item \textbf{Aislación eléctrica de los electrodos ECG}: con multímetro en modo
@@ -837,9 +838,9 @@ Cinco pruebas con criterios de aceptación explícitos:
     GND y 3.3\,V del PCB. Los pogo pins deben hacer contacto \textbf{exclusivamente} con los
     pads de entrada del AD8232.
 
-    \item \textbf{Acople térmico (caja cerrada vs.\ PCB pelado)}: aplicar dedo durante 30\,s
-    sobre el slug de aluminio y comparar la curva de temperatura reportada por la unidad
-    cerrada vs.\ una sesión equivalente con el PCB pelado en breadboard. Caracterizar el
+    \item \textbf{Acople térmico (caja cerrada vs.\ integrado desnudo)}: aplicar dedo durante 30\,s
+    sobre el placa de aluminio y comparar la curva de temperatura reportada por la unidad
+    cerrada vs.\ una sesión equivalente con el integrado desnudo en protoboard. Caracterizar el
     offset y la constante de tiempo del acople carcasa$\leftrightarrow$piel; ajustar firmware
     si es necesario.
 
@@ -858,10 +859,10 @@ Cinco pruebas con criterios de aceptación explícitos:
 % -------------------------------------------------------
 Se repiten las pruebas del §\,\ref{sec:pruebas} (unitarias e integración) ahora con la
 \textbf{caja cerrada y sobre brazo humano}, contrastando contra las cifras obtenidas en
-breadboard. La métrica clave es cuánto se degrada cada lectura por el cerramiento.
+protoboardoard. La métrica clave es cuánto se degrada cada lectura por el cerramiento.
 
 \begin{enumerate}
-    \item \textbf{HR/SpO$_2$ con ventana óptica vs.\ breadboard pelado}: aceptar pérdida
+    \item \textbf{HR/SpO$_2$ con ventana óptica vs.\ protoboardoard pelado}: aceptar pérdida
     de 1--2\,\% en SpO$_2$ y 1--3\,BPM en HR por la atenuación del cristal integrado del
     MAX30102 dentro de la carcasa. Adicionalmente, se contrastarán las lecturas contra
     un \textbf{Samsung Galaxy Watch~4 Classic} (sensor BioActive, PPG multicanal) portado
@@ -874,7 +875,7 @@ breadboard. La métrica clave es cuánto se degrada cada lectura por el cerramie
     con el \textbf{Galaxy Watch~4 Classic} (Derivación I, 30\,s) para comparar la
     morfología del complejo QRS y el BPM reportado por ambos dispositivos.
 
-    \item \textbf{Temperatura con slug de Al vs.\ contacto directo}: caracterizar el offset
+    \item \textbf{Temperatura con placa de Al vs.\ contacto directo}: caracterizar el offset
     estático y la constante térmica de la transferencia caja$\leftrightarrow$piel; ajustar
     offset en firmware si la desviación supera $\pm 0.3$\,°C.
 
@@ -920,23 +921,16 @@ en KiCad.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.82\linewidth]{sketch_v1_exploded.png}
+    \includegraphics[width=0.82\linewidth]{bosquejo.jpeg}
     \caption{Bosquejo explosionado de la iteración v1 (pin sockets): carcasa PLA
     $\sim$50$\times$40$\times$13\,mm, PCB única con módulos en socket (cara superior)
-    y sensores MAX30102/MAX30205 en la cara inferior, batería LiPo reciclada, slug de
+    y sensores MAX30102/MAX30205 en la cara inferior, batería LiPo reciclada, placa de
     aluminio para acople térmico, pernos M3 304 como electrodos ECG con contacto vía
     pogo pins, y lugs de 20\,mm para correa.}
     \label{fig:sketch_v1}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.82\linewidth]{sketch_v2_exploded.png}
-    \caption{Bosquejo explosionado de la iteración v2 (all-SMD): misma arquitectura de
-    PCB única pero más compacta, sin breakout boards ni pin headers. XIAO S3 soldado por
-    castellated edges, AD8232 LFCSP, MAX17048 TDFN, passives 0603.}
-    \label{fig:sketch_v2}
-\end{figure}
+
 
 La \rfigura{fig:setup} resume esquemáticamente el set-up de validación, incluyendo los
 instrumentos de referencia y los canales de captura BLE.
