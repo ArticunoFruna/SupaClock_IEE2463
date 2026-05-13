@@ -1,0 +1,3063 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-05-13T17:13:07",
+    "ignored_checks": [
+        {
+            "description": "Track angle",
+            "key": "track_angle"
+        },
+        {
+            "description": "Track segment length",
+            "key": "track_segment_length"
+        },
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "PTH inside courtyard",
+            "key": "pth_inside_courtyard"
+        },
+        {
+            "description": "NPTH inside courtyard",
+            "key": "npth_inside_courtyard"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.2",
+    "schematic_parity": [],
+    "source": "SupaClock_Carrier.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [/BTN_NEXT] on F.Cu, length 6.7500 mm",
+                    "pos": {
+                        "x": 141.9,
+                        "y": 59.25
+                    },
+                    "uuid": "a5e1d394-0620-4d98-95af-427d5ed795f5"
+                },
+                {
+                    "description": "PTH pad 7 [/BTN_NEXT] of U1",
+                    "pos": {
+                        "x": 128.88,
+                        "y": 34.88
+                    },
+                    "uuid": "f534774e-b3c7-4474-8825-97e032f06aaa"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": [
+        {
+            "description": "Footprint has malformed courtyard (not a closed shape)",
+            "items": [
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 99.5,
+                        "y": 57.42
+                    },
+                    "uuid": "16b0a17b-2da1-4feb-ad89-8ca4e1400f5c"
+                }
+            ],
+            "severity": "error",
+            "type": "malformed_courtyard"
+        },
+        {
+            "description": "Footprint has malformed courtyard (not a closed shape)",
+            "items": [
+                {
+                    "description": "Footprint J14",
+                    "pos": {
+                        "x": 114.5,
+                        "y": 57.19
+                    },
+                    "uuid": "e5239fc8-5a65-4d72-8d67-ea0df9daf43b"
+                }
+            ],
+            "severity": "error",
+            "type": "malformed_courtyard"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2545 mm)",
+            "items": [
+                {
+                    "description": "Track [/GND] on B.Cu, length 3.3579 mm",
+                    "pos": {
+                        "x": 78.6906,
+                        "y": 41.79
+                    },
+                    "uuid": "627245f5-5fd0-4450-9de2-5cd44c3c3007"
+                },
+                {
+                    "description": "PTH pad 1 [/+3V3] of J6a1",
+                    "pos": {
+                        "x": 78.525,
+                        "y": 44.25
+                    },
+                    "uuid": "779613f0-793a-4e6e-80e3-74b3f1a1a354"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [/I2C_SDA] on B.Cu, length 11.5169 mm",
+                    "pos": {
+                        "x": 110.31,
+                        "y": 76.18
+                    },
+                    "uuid": "3c6881d6-97c8-41b7-a543-562aa38978ba"
+                },
+                {
+                    "description": "Track [/I2C_SCL] on B.Cu, length 13.5892 mm",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 72.48
+                    },
+                    "uuid": "c31682dd-7025-4616-ae1f-03721569bb2b"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.5000 mm; actual 0.3394 mm)",
+            "items": [
+                {
+                    "description": "Track [/GND] on F.Cu, length 2.0616 mm",
+                    "pos": {
+                        "x": 126.9328,
+                        "y": 73.5622
+                    },
+                    "uuid": "53151eb4-b85f-42fc-b9d8-f97d5d581435"
+                },
+                {
+                    "description": "Track [/ECG_LA] on F.Cu, length 22.0271 mm",
+                    "pos": {
+                        "x": 127.8722,
+                        "y": 58.3722
+                    },
+                    "uuid": "ed60ece5-5919-4def-9357-40ec2942ce92"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Tracks crossing",
+            "items": [
+                {
+                    "description": "Track [/I2C_SCL] on B.Cu, length 15.7509 mm",
+                    "pos": {
+                        "x": 111.0767,
+                        "y": 71.6709
+                    },
+                    "uuid": "37cfd98f-7dd9-4ccd-8c65-2612155da90b"
+                },
+                {
+                    "description": "Track [/I2C_SDA] on B.Cu, length 5.5602 mm",
+                    "pos": {
+                        "x": 107.36,
+                        "y": 65.06
+                    },
+                    "uuid": "90c93e29-6c45-4e8a-843b-08a72c1537b1"
+                }
+            ],
+            "severity": "error",
+            "type": "tracks_crossing"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2078 mm)",
+            "items": [
+                {
+                    "description": "Track [/GND] on F.Cu, length 7.2444 mm",
+                    "pos": {
+                        "x": 126.9328,
+                        "y": 66.3178
+                    },
+                    "uuid": "69414f0e-cf64-439d-aaf9-19b3f145a7c6"
+                },
+                {
+                    "description": "PTH pad 4 [/I2C_SCL] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 72.48
+                    },
+                    "uuid": "9387b723-d305-4cc9-a9b1-9eafd4f14274"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.5000 mm; actual 0.3394 mm)",
+            "items": [
+                {
+                    "description": "Track [/GND] on F.Cu, length 7.2444 mm",
+                    "pos": {
+                        "x": 126.9328,
+                        "y": 66.3178
+                    },
+                    "uuid": "69414f0e-cf64-439d-aaf9-19b3f145a7c6"
+                },
+                {
+                    "description": "Track [/ECG_LA] on F.Cu, length 22.0271 mm",
+                    "pos": {
+                        "x": 127.8722,
+                        "y": 58.3722
+                    },
+                    "uuid": "ed60ece5-5919-4def-9357-40ec2942ce92"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.1252 mm)",
+            "items": [
+                {
+                    "description": "Track [/GND] on B.Cu, length 14.7500 mm",
+                    "pos": {
+                        "x": 115.1017,
+                        "y": 53.38
+                    },
+                    "uuid": "0c83e5d3-d8f8-4df2-9474-9d96dc48b316"
+                },
+                {
+                    "description": "Via [/SPI_CS] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 113.5765,
+                        "y": 50.5365
+                    },
+                    "uuid": "912cd9f7-c949-4402-8d3d-ad656f95ac9a"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.5000 mm; actual 0.3394 mm)",
+            "items": [
+                {
+                    "description": "Track [/GND] on F.Cu, length 2.0616 mm",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 64.86
+                    },
+                    "uuid": "ada58b24-a701-42d9-9de1-51c2fd853680"
+                },
+                {
+                    "description": "Track [/ECG_LA] on F.Cu, length 22.0271 mm",
+                    "pos": {
+                        "x": 127.8722,
+                        "y": 58.3722
+                    },
+                    "uuid": "ed60ece5-5919-4def-9357-40ec2942ce92"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2225 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+BATT] of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "3283e5ae-2e9e-4d70-82da-2095f4cee679"
+                },
+                {
+                    "description": "Track [/+3V3] on F.Cu, length 4.2618 mm",
+                    "pos": {
+                        "x": 75.0525,
+                        "y": 38.1347
+                    },
+                    "uuid": "fa4978d1-3ed3-4fd2-8a67-840fdbadee3b"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2278 mm)",
+            "items": [
+                {
+                    "description": "Track [/+3V3] on F.Cu, length 0.5617 mm",
+                    "pos": {
+                        "x": 75.4497,
+                        "y": 37.7375
+                    },
+                    "uuid": "31472f8b-e7ef-4c63-862d-5874f6c4c900"
+                },
+                {
+                    "description": "PTH pad 1 [/+BATT] of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "3283e5ae-2e9e-4d70-82da-2095f4cee679"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.3705 mm)",
+            "items": [
+                {
+                    "description": "Track [/+3V3] on B.Cu, length 14.2833 mm",
+                    "pos": {
+                        "x": 87.4045,
+                        "y": 54.5812
+                    },
+                    "uuid": "0adfec58-ccb8-45f8-b486-f392de8d8ad9"
+                },
+                {
+                    "description": "PTH pad 4 [unconnected-(J11-Pin_4-Pad4)] of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 65.405
+                    },
+                    "uuid": "49f30f97-d7d7-48f4-aa1d-dcf2980dfde0"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2016 mm)",
+            "items": [
+                {
+                    "description": "Track [/+3V3] on F.Cu, length 1.0133 mm",
+                    "pos": {
+                        "x": 96.9011,
+                        "y": 38.454
+                    },
+                    "uuid": "4a2679c5-9e2d-4b5d-b0f6-5dab09fca081"
+                },
+                {
+                    "description": "PTH pad 8 [/BLK_PWM] of J7",
+                    "pos": {
+                        "x": 97.5,
+                        "y": 37.0
+                    },
+                    "uuid": "625825d4-6e6a-4647-82d4-77be134062ed"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2040 mm)",
+            "items": [
+                {
+                    "description": "Track [/+3V3] on F.Cu, length 14.3849 mm",
+                    "pos": {
+                        "x": 111.286,
+                        "y": 38.454
+                    },
+                    "uuid": "65b17b5e-a7b2-46d1-a203-963f831ab465"
+                },
+                {
+                    "description": "PTH pad 5 [/SPI_RES] of J7",
+                    "pos": {
+                        "x": 105.12,
+                        "y": 37.0
+                    },
+                    "uuid": "71fca5e0-f395-4511-b9aa-58f93d3df90c"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2099 mm)",
+            "items": [
+                {
+                    "description": "Track [/+3V3] on B.Cu, length 9.7802 mm",
+                    "pos": {
+                        "x": 126.9349,
+                        "y": 68.8599
+                    },
+                    "uuid": "31b830bb-dff5-43d4-9600-20c9932390b1"
+                },
+                {
+                    "description": "PTH pad 2 [unconnected-(J5-Pin_2-Pad2)] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 77.56
+                    },
+                    "uuid": "9f4481da-e355-4811-bb2b-4582f8b6bbd3"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2201 mm)",
+            "items": [
+                {
+                    "description": "Track [/+3V3] on F.Cu, length 2.6212 mm",
+                    "pos": {
+                        "x": 75.0525,
+                        "y": 42.3965
+                    },
+                    "uuid": "6a6b94b5-c954-430b-9db8-54c929d3d26a"
+                },
+                {
+                    "description": "PTH pad 2 [/GND] of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 41.79
+                    },
+                    "uuid": "a520931a-ceb2-4839-bc9c-d521bd4d5072"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2625 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/I2C_SCL] of J6b1",
+                    "pos": {
+                        "x": 81.04,
+                        "y": 36.225
+                    },
+                    "uuid": "8123c3c3-e5f0-4d41-8bc8-dccebb7d46e4"
+                },
+                {
+                    "description": "Track [/+3V3] on F.Cu, length 20.7349 mm",
+                    "pos": {
+                        "x": 96.1846,
+                        "y": 37.7375
+                    },
+                    "uuid": "b0499ee7-df16-4e57-b202-d55800e76141"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2119 mm)",
+            "items": [
+                {
+                    "description": "Track [/+BATT] on F.Cu, length 1.7036 mm",
+                    "pos": {
+                        "x": 131.4369,
+                        "y": 40.0845
+                    },
+                    "uuid": "4109210b-88de-485d-b87e-faa0d9158aba"
+                },
+                {
+                    "description": "PTH pad 2 [/GND] of J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 40.71
+                    },
+                    "uuid": "949cd778-4e4a-4a0e-8224-f8a6fbb18a4c"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation ( clearance 0.4000 mm; actual 0.2260 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/GND] of J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 40.71
+                    },
+                    "uuid": "949cd778-4e4a-4a0e-8224-f8a6fbb18a4c"
+                },
+                {
+                    "description": "Track [/+BATT] on F.Cu, length 10.0190 mm",
+                    "pos": {
+                        "x": 124.3524,
+                        "y": 33.0
+                    },
+                    "uuid": "c9e8ca94-d788-4b7c-bd0f-7a8ef7038e31"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/GND] of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 73.025
+                    },
+                    "uuid": "91f78064-9da3-4cbc-952f-791a03a3b061"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/+3V3] of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 70.485
+                    },
+                    "uuid": "817e4657-c444-4779-b569-7a295abbad79"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 3 [/ECG_OUT] of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 67.945
+                    },
+                    "uuid": "33e304fc-daea-4495-96e6-eb6ea6391586"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 4 [unconnected-(J11-Pin_4-Pad4)] of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 65.405
+                    },
+                    "uuid": "49f30f97-d7d7-48f4-aa1d-dcf2980dfde0"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 5 [unconnected-(J11-Pin_5-Pad5)] of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 62.865
+                    },
+                    "uuid": "289bd314-552b-4d8c-bd16-9fdeb600f880"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 6 [/ECG_SDN] of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 60.325
+                    },
+                    "uuid": "b51eb1be-dfb7-4542-9dfa-a9abde0ececd"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/ECG_RA] of J13",
+                    "pos": {
+                        "x": 75.025,
+                        "y": 83.025
+                    },
+                    "uuid": "7c09de73-81ef-4bf1-9273-325cc4ea9695"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/ECG_LA] of J13",
+                    "pos": {
+                        "x": 72.485,
+                        "y": 83.025
+                    },
+                    "uuid": "b64a52c6-ee53-4559-b92e-6ce7266a1aca"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 3 [/ECG_RL] of J13",
+                    "pos": {
+                        "x": 69.945,
+                        "y": 83.025
+                    },
+                    "uuid": "bae15acb-d92c-45a7-a35c-1e23cce29d80"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+3V3] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 80.1
+                    },
+                    "uuid": "e3be3863-df0d-439b-aabc-317d0c7d74eb"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [unconnected-(J5-Pin_2-Pad2)] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 77.56
+                    },
+                    "uuid": "9f4481da-e355-4811-bb2b-4582f8b6bbd3"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 3 [/GND] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 75.02
+                    },
+                    "uuid": "ae8e6629-4aff-4677-8e61-631c03f58e7c"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 4 [/I2C_SCL] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 72.48
+                    },
+                    "uuid": "9387b723-d305-4cc9-a9b1-9eafd4f14274"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 5 [/I2C_SDA] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 69.94
+                    },
+                    "uuid": "f5632c4d-d180-47b1-bd5a-0c63764e4caf"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 6 [/+3V3] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 67.4
+                    },
+                    "uuid": "7b1dd149-2129-42b7-9407-84468abd2ffd"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 7 [/GND] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 64.86
+                    },
+                    "uuid": "d89a5883-66b6-4a3e-ba81-27744a998a70"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+3V3] of J6a1",
+                    "pos": {
+                        "x": 78.525,
+                        "y": 44.25
+                    },
+                    "uuid": "779613f0-793a-4e6e-80e3-74b3f1a1a354"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/GND] of J6a1",
+                    "pos": {
+                        "x": 81.065,
+                        "y": 44.25
+                    },
+                    "uuid": "14e8626e-bd59-4d7c-8962-a3d9bb285bb9"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 3 [unconnected-(J6a1-Pin_3-Pad3)] of J6a1",
+                    "pos": {
+                        "x": 83.605,
+                        "y": 44.25
+                    },
+                    "uuid": "655695ce-efc4-4ac7-bdce-12b8ecf8b482"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/I2C_SDA] of J6b1",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 36.225
+                    },
+                    "uuid": "16b3fb25-258f-4a3f-9ce9-2b665cb3438d"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/I2C_SCL] of J6b1",
+                    "pos": {
+                        "x": 81.04,
+                        "y": 36.225
+                    },
+                    "uuid": "8123c3c3-e5f0-4d41-8bc8-dccebb7d46e4"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 3 [unconnected-(J6b1-Pin_3-Pad3)] of J6b1",
+                    "pos": {
+                        "x": 83.58,
+                        "y": 36.225
+                    },
+                    "uuid": "1e5d7671-5c6a-437e-a9ad-eaa86684756a"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/GND] of J7",
+                    "pos": {
+                        "x": 115.28,
+                        "y": 37.0
+                    },
+                    "uuid": "68616161-9875-4bae-bb55-29f7c2b6a556"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/+3V3] of J7",
+                    "pos": {
+                        "x": 112.74,
+                        "y": 37.0
+                    },
+                    "uuid": "c30a658c-3b63-4d75-879a-280f8f005998"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 3 [/SPI_SCK] of J7",
+                    "pos": {
+                        "x": 110.2,
+                        "y": 37.0
+                    },
+                    "uuid": "d062e10e-7036-4ffb-9fb4-ba3524618817"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 4 [/SPI_MOSI] of J7",
+                    "pos": {
+                        "x": 107.66,
+                        "y": 37.0
+                    },
+                    "uuid": "a2586b16-d59e-4923-a0ce-34285ee96304"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 5 [/SPI_RES] of J7",
+                    "pos": {
+                        "x": 105.12,
+                        "y": 37.0
+                    },
+                    "uuid": "71fca5e0-f395-4511-b9aa-58f93d3df90c"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 6 [/SPI_DC] of J7",
+                    "pos": {
+                        "x": 102.58,
+                        "y": 37.0
+                    },
+                    "uuid": "677a45b8-aa0c-4e14-bfe3-5dc9acc427aa"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 7 [/SPI_CS] of J7",
+                    "pos": {
+                        "x": 100.04,
+                        "y": 37.0
+                    },
+                    "uuid": "e3cb6539-7547-4e50-a970-72448b9d713a"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 8 [/BLK_PWM] of J7",
+                    "pos": {
+                        "x": 97.5,
+                        "y": 37.0
+                    },
+                    "uuid": "625825d4-6e6a-4647-82d4-77be134062ed"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+BATT] of J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 43.25
+                    },
+                    "uuid": "2361c18d-2980-40e6-b91c-06a8c65d2df0"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/GND] of J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 40.71
+                    },
+                    "uuid": "949cd778-4e4a-4a0e-8224-f8a6fbb18a4c"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/ECG_OUT] of U1",
+                    "pos": {
+                        "x": 144.12,
+                        "y": 34.88
+                    },
+                    "uuid": "1ff3e8c6-e3d2-409c-96ea-9f337098452d"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/ECG_SDN] of U1",
+                    "pos": {
+                        "x": 141.58,
+                        "y": 34.88
+                    },
+                    "uuid": "40f04f55-44b7-4567-8a49-875de94bf2fc"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 3 [/BLK_PWM] of U1",
+                    "pos": {
+                        "x": 139.04,
+                        "y": 34.88
+                    },
+                    "uuid": "b873924a-e0dd-409a-aa2a-723f3ddefec4"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 4 [/SPI_DC] of U1",
+                    "pos": {
+                        "x": 136.5,
+                        "y": 34.88
+                    },
+                    "uuid": "5c290265-8685-4565-b2e5-0948e317e5ba"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 5 [/I2C_SDA] of U1",
+                    "pos": {
+                        "x": 133.96,
+                        "y": 34.88
+                    },
+                    "uuid": "2d92e4f2-f38c-48d4-ab3e-222286de4ba0"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 6 [/I2C_SCL] of U1",
+                    "pos": {
+                        "x": 131.42,
+                        "y": 34.88
+                    },
+                    "uuid": "5b1d2593-faf2-45e0-aef9-e48be5cb1338"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 7 [/BTN_NEXT] of U1",
+                    "pos": {
+                        "x": 128.88,
+                        "y": 34.88
+                    },
+                    "uuid": "f534774e-b3c7-4474-8825-97e032f06aaa"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 8 [/SPI_CS] of U1",
+                    "pos": {
+                        "x": 128.88,
+                        "y": 50.12
+                    },
+                    "uuid": "3fc4ea0e-8457-45bf-84da-658c73a2ec09"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 9 [/SPI_SCK] of U1",
+                    "pos": {
+                        "x": 131.42,
+                        "y": 50.12
+                    },
+                    "uuid": "6210479d-5db5-4f90-baa9-47302ec7017a"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 10 [/BTN_SELECT] of U1",
+                    "pos": {
+                        "x": 133.96,
+                        "y": 50.12
+                    },
+                    "uuid": "ba4b76f8-34cb-4d42-9af7-58a44d2b62ac"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 11 [/SPI_MOSI] of U1",
+                    "pos": {
+                        "x": 136.5,
+                        "y": 50.12
+                    },
+                    "uuid": "ff8eb0eb-6d02-4995-b5dc-7094f2cd7c20"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 12 [/+3V3] of U1",
+                    "pos": {
+                        "x": 139.04,
+                        "y": 50.12
+                    },
+                    "uuid": "15a29f45-b59a-4b20-9a15-1f2f486a1cd0"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 13 [/GND] of U1",
+                    "pos": {
+                        "x": 141.58,
+                        "y": 50.12
+                    },
+                    "uuid": "e54a3e31-9f30-43b4-8b67-1e5adcb35274"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3138 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 14 [unconnected-(U1-VBUS-Pad14)_1] of U1",
+                    "pos": {
+                        "x": 144.12,
+                        "y": 50.12
+                    },
+                    "uuid": "bc543789-6b6c-42c6-abc7-32017e9ec961"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+BATT] of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "3283e5ae-2e9e-4d70-82da-2095f4cee679"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Annular width (board setup constraints min annular width 0.6000 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/GND] of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 41.79
+                    },
+                    "uuid": "a520931a-ceb2-4839-bc9c-d521bd4d5072"
+                }
+            ],
+            "severity": "error",
+            "type": "annular_width"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Reference field of J3",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 57.42
+                    },
+                    "uuid": "be36f221-a1b6-4d1e-af2e-d474b3e318cf"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Value field of J3 (MAX30102_top)",
+                    "pos": {
+                        "x": 102.0,
+                        "y": 57.42
+                    },
+                    "uuid": "439a77aa-3a11-49f3-943a-5024110ae596"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Footprint text of J3 (J3)",
+                    "pos": {
+                        "x": 101.0,
+                        "y": 57.42
+                    },
+                    "uuid": "c4fb83b4-5ffe-4e0b-b973-770947868044"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Reference field of J4",
+                    "pos": {
+                        "x": 106.5,
+                        "y": 81.5
+                    },
+                    "uuid": "1de62558-7e9e-4cad-b5fb-b9a443cf89e9"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Value field of J4 (MAX30205_8pad)",
+                    "pos": {
+                        "x": 106.5,
+                        "y": 67.5
+                    },
+                    "uuid": "f022074b-9b7f-4481-a5d3-ec3f13ae0a39"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Footprint text of J4 (J4)",
+                    "pos": {
+                        "x": 106.5,
+                        "y": 73.5
+                    },
+                    "uuid": "c1e4f987-5811-470f-8b00-dbac5c7ec7f4"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Reference field of J14",
+                    "pos": {
+                        "x": 112.0,
+                        "y": 57.19
+                    },
+                    "uuid": "c60335f8-45c7-40ba-94eb-b866d4a59d9d"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Value field of J14 (MAX30102_bot)",
+                    "pos": {
+                        "x": 118.0,
+                        "y": 57.19
+                    },
+                    "uuid": "6057a477-9ec1-48e3-9795-3819eaaceb8f"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "items": [
+                {
+                    "description": "Footprint text of J14 (J14)",
+                    "pos": {
+                        "x": 116.0,
+                        "y": 57.19
+                    },
+                    "uuid": "1f218914-e166-400d-abd2-5c264398cbf0"
+                }
+            ],
+            "severity": "warning",
+            "type": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Reference field of C2",
+                    "pos": {
+                        "x": 122.0375,
+                        "y": 34.68
+                    },
+                    "uuid": "53b83e25-2c5d-46eb-bf06-37f2e47c62ef"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 91.0,
+                        "y": 35.0
+                    },
+                    "uuid": "a08852c7-9a17-4ded-a436-88daa07456b1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 123.975,
+                        "y": 63.56
+                    },
+                    "uuid": "5411a354-187c-494b-953f-c1b4b903579c"
+                },
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 126.805,
+                        "y": 63.53
+                    },
+                    "uuid": "f6fbfbfe-be26-446d-9216-7661b6491275"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0643 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J6a1",
+                    "pos": {
+                        "x": 75.755,
+                        "y": 44.25
+                    },
+                    "uuid": "39b6a0d4-fd92-4992-a10c-a54919a9dfd0"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J6a1",
+                    "pos": {
+                        "x": 75.755,
+                        "y": 44.25
+                    },
+                    "uuid": "39b6a0d4-fd92-4992-a10c-a54919a9dfd0"
+                },
+                {
+                    "description": "Segment of J6c1 on F.Silkscreen",
+                    "pos": {
+                        "x": 75.195,
+                        "y": 40.52
+                    },
+                    "uuid": "b99a42a8-4dbc-4613-8320-3d893099f374"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J6a1",
+                    "pos": {
+                        "x": 75.755,
+                        "y": 44.25
+                    },
+                    "uuid": "39b6a0d4-fd92-4992-a10c-a54919a9dfd0"
+                },
+                {
+                    "description": "Segment of J6c1 on F.Silkscreen",
+                    "pos": {
+                        "x": 75.195,
+                        "y": 43.12
+                    },
+                    "uuid": "3f68e360-f452-4384-b390-a7a2a9d11dd2"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0800 mm)",
+            "items": [
+                {
+                    "description": "Segment of J6c1 on F.Silkscreen",
+                    "pos": {
+                        "x": 75.195,
+                        "y": 43.12
+                    },
+                    "uuid": "3f68e360-f452-4384-b390-a7a2a9d11dd2"
+                },
+                {
+                    "description": "Segment of J6a1 on F.Silkscreen",
+                    "pos": {
+                        "x": 77.195,
+                        "y": 42.92
+                    },
+                    "uuid": "75af4264-4410-4c7c-b78f-d6d33b970a9a"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J6c1 on F.Silkscreen",
+                    "pos": {
+                        "x": 75.195,
+                        "y": 43.12
+                    },
+                    "uuid": "3f68e360-f452-4384-b390-a7a2a9d11dd2"
+                },
+                {
+                    "description": "Segment of J6a1 on F.Silkscreen",
+                    "pos": {
+                        "x": 77.195,
+                        "y": 44.25
+                    },
+                    "uuid": "5fff47a2-1919-4cc3-adf5-0bf94df07d67"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J6c1 on F.Silkscreen",
+                    "pos": {
+                        "x": 77.855,
+                        "y": 40.52
+                    },
+                    "uuid": "37839a7c-64fd-4c0a-b879-cc567e987d5d"
+                },
+                {
+                    "description": "Segment of J6a1 on F.Silkscreen",
+                    "pos": {
+                        "x": 77.195,
+                        "y": 42.92
+                    },
+                    "uuid": "75af4264-4410-4c7c-b78f-d6d33b970a9a"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J6b1",
+                    "pos": {
+                        "x": 75.73,
+                        "y": 36.225
+                    },
+                    "uuid": "44349020-b994-46f3-b767-7e7a87944836"
+                },
+                {
+                    "description": "Reference field of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 36.48
+                    },
+                    "uuid": "747f562f-0263-4e7c-bcfa-e87248445644"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0669 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 36.48
+                    },
+                    "uuid": "747f562f-0263-4e7c-bcfa-e87248445644"
+                },
+                {
+                    "description": "Segment of J6c1 on F.Silkscreen",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 37.92
+                    },
+                    "uuid": "97968ad2-998e-4eba-b621-bc3e4f7e00d2"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                },
+                {
+                    "description": "Reference field of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 36.48
+                    },
+                    "uuid": "747f562f-0263-4e7c-bcfa-e87248445644"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0557 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 36.48
+                    },
+                    "uuid": "747f562f-0263-4e7c-bcfa-e87248445644"
+                },
+                {
+                    "description": "Segment of J6b1 on F.Silkscreen",
+                    "pos": {
+                        "x": 77.17,
+                        "y": 34.895
+                    },
+                    "uuid": "cc00b25d-4f0b-4a9e-a344-e3e280a9bc28"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0552 mm)",
+            "items": [
+                {
+                    "description": "Segment of J6b1 on F.Silkscreen",
+                    "pos": {
+                        "x": 77.17,
+                        "y": 36.225
+                    },
+                    "uuid": "52c2c410-4241-4b25-afa7-278d12b4d989"
+                },
+                {
+                    "description": "Reference field of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 36.48
+                    },
+                    "uuid": "747f562f-0263-4e7c-bcfa-e87248445644"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J6b1",
+                    "pos": {
+                        "x": 75.73,
+                        "y": 36.225
+                    },
+                    "uuid": "44349020-b994-46f3-b767-7e7a87944836"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                },
+                {
+                    "description": "Segment of J6a1 on F.Silkscreen",
+                    "pos": {
+                        "x": 79.795,
+                        "y": 45.58
+                    },
+                    "uuid": "7eb4e6d8-132e-472c-bcf0-1e5a943e2e10"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J6a1 on F.Silkscreen",
+                    "pos": {
+                        "x": 84.935,
+                        "y": 45.58
+                    },
+                    "uuid": "21980051-7981-4918-8b0c-7c1b50d067c5"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 124.145,
+                        "y": 81.43
+                    },
+                    "uuid": "291b6322-ad17-4a8e-818c-820ce7781a42"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 123.975,
+                        "y": 63.56
+                    },
+                    "uuid": "5411a354-187c-494b-953f-c1b4b903579c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 123.975,
+                        "y": 63.56
+                    },
+                    "uuid": "5411a354-187c-494b-953f-c1b4b903579c"
+                },
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 81.43
+                    },
+                    "uuid": "f012e149-af72-43ad-aff1-abe298320f13"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0350 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 123.975,
+                        "y": 63.56
+                    },
+                    "uuid": "5411a354-187c-494b-953f-c1b4b903579c"
+                },
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 126.805,
+                        "y": 78.83
+                    },
+                    "uuid": "e4ffa8bc-7d69-4e35-b576-b574dc5666a4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 123.975,
+                        "y": 63.56
+                    },
+                    "uuid": "5411a354-187c-494b-953f-c1b4b903579c"
+                },
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 124.145,
+                        "y": 78.83
+                    },
+                    "uuid": "581a1737-ca5e-486f-81bb-3e72b6b33495"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 123.975,
+                        "y": 63.56
+                    },
+                    "uuid": "5411a354-187c-494b-953f-c1b4b903579c"
+                },
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 126.805,
+                        "y": 78.83
+                    },
+                    "uuid": "f8d4ec44-853f-46e8-9ab3-f927a308268d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                },
+                {
+                    "description": "Reference field of J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 75.795
+                    },
+                    "uuid": "e9617da5-63c8-415a-a309-2bf489752f5b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J6b1 on F.Silkscreen",
+                    "pos": {
+                        "x": 79.77,
+                        "y": 37.555
+                    },
+                    "uuid": "09984d59-5b17-48d8-b2df-1308b990b062"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                },
+                {
+                    "description": "Segment of J6b1 on F.Silkscreen",
+                    "pos": {
+                        "x": 84.91,
+                        "y": 37.555
+                    },
+                    "uuid": "60e0e527-7804-4e6e-92a6-80bcf32cfbc8"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 64.05,
+                        "y": 35.25
+                    },
+                    "uuid": "5006021a-c227-4526-9ad5-f267e525b851"
+                },
+                {
+                    "description": "Segment of J6b1 on F.Silkscreen",
+                    "pos": {
+                        "x": 77.17,
+                        "y": 36.225
+                    },
+                    "uuid": "52c2c410-4241-4b25-afa7-278d12b4d989"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J13 on F.Silkscreen",
+                    "pos": {
+                        "x": 76.355,
+                        "y": 83.025
+                    },
+                    "uuid": "1472ef26-f6a9-4867-b637-d9509cfd06b5"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                },
+                {
+                    "description": "Segment of J13 on F.Silkscreen",
+                    "pos": {
+                        "x": 76.355,
+                        "y": 84.355
+                    },
+                    "uuid": "f0e777a2-2510-4946-abef-cc06046d8ddd"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J13 on F.Silkscreen",
+                    "pos": {
+                        "x": 68.615,
+                        "y": 81.695
+                    },
+                    "uuid": "2c7ee4f8-6598-4734-b035-da5f1864cccc"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J13 on F.Silkscreen",
+                    "pos": {
+                        "x": 73.755,
+                        "y": 81.695
+                    },
+                    "uuid": "4a821bff-b675-4936-b9f4-78a191d34468"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J13 on F.Silkscreen",
+                    "pos": {
+                        "x": 73.755,
+                        "y": 84.355
+                    },
+                    "uuid": "59e1c767-5124-4697-b930-4bd1ef5b1982"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0848 mm)",
+            "items": [
+                {
+                    "description": "Reference field of J13",
+                    "pos": {
+                        "x": 77.795,
+                        "y": 83.025
+                    },
+                    "uuid": "2188e7db-a752-4770-b20e-53caf62be487"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                },
+                {
+                    "description": "Segment of J11 on F.Silkscreen",
+                    "pos": {
+                        "x": 90.355,
+                        "y": 58.995
+                    },
+                    "uuid": "e429033a-779f-46b9-99cf-e9d44b39639b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment of J11 on F.Silkscreen",
+                    "pos": {
+                        "x": 90.355,
+                        "y": 71.755
+                    },
+                    "uuid": "166703fb-d416-4020-8e55-6ae13a4ebd2d"
+                },
+                {
+                    "description": "Rectangle on F.Silkscreen",
+                    "pos": {
+                        "x": 62.025,
+                        "y": 49.025
+                    },
+                    "uuid": "d17e6d8e-01e7-44ff-b09b-829e48c237a1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 51.39
+                    },
+                    "uuid": "fee50fd7-13b1-4a5b-a5c8-c5b761203165"
+                },
+                {
+                    "description": "Pad 9 [/SPI_SCK] of U1 on F.Cu",
+                    "pos": {
+                        "x": 131.42,
+                        "y": 50.955
+                    },
+                    "uuid": "3c7ad74c-4da7-45c7-87e3-d3b380894fa0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 51.39
+                    },
+                    "uuid": "fee50fd7-13b1-4a5b-a5c8-c5b761203165"
+                },
+                {
+                    "description": "Pad 10 [/BTN_SELECT] of U1 on F.Cu",
+                    "pos": {
+                        "x": 133.96,
+                        "y": 50.955
+                    },
+                    "uuid": "498ef8a5-ce6e-40aa-a932-82accc666d30"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 51.39
+                    },
+                    "uuid": "fee50fd7-13b1-4a5b-a5c8-c5b761203165"
+                },
+                {
+                    "description": "Pad 11 [/SPI_MOSI] of U1 on F.Cu",
+                    "pos": {
+                        "x": 136.5,
+                        "y": 50.955
+                    },
+                    "uuid": "68907a21-3f51-4476-bebe-2a3a0507567f"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 51.39
+                    },
+                    "uuid": "fee50fd7-13b1-4a5b-a5c8-c5b761203165"
+                },
+                {
+                    "description": "Pad 8 [/SPI_CS] of U1 on F.Cu",
+                    "pos": {
+                        "x": 128.88,
+                        "y": 50.955
+                    },
+                    "uuid": "bb930011-56e9-4c53-a933-5ad4f0d764c6"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 51.39
+                    },
+                    "uuid": "fee50fd7-13b1-4a5b-a5c8-c5b761203165"
+                },
+                {
+                    "description": "Pad 12 [/+3V3] of U1 on F.Cu",
+                    "pos": {
+                        "x": 139.04,
+                        "y": 50.955
+                    },
+                    "uuid": "364b7d75-3e26-4fc1-9649-bff06029cca8"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 51.39
+                    },
+                    "uuid": "fee50fd7-13b1-4a5b-a5c8-c5b761203165"
+                },
+                {
+                    "description": "Pad 13 [/GND] of U1 on F.Cu",
+                    "pos": {
+                        "x": 141.58,
+                        "y": 50.955
+                    },
+                    "uuid": "cc04ee2b-6529-4e7b-88c2-87985476e44e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 51.39
+                    },
+                    "uuid": "fee50fd7-13b1-4a5b-a5c8-c5b761203165"
+                },
+                {
+                    "description": "Pad 14 [unconnected-(U1-VBUS-Pad14)] of U1 on F.Cu",
+                    "pos": {
+                        "x": 144.12,
+                        "y": 50.955
+                    },
+                    "uuid": "b6644506-befc-4cd2-a7e6-f4e8ab4f410e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 33.61
+                    },
+                    "uuid": "388ecbdc-e02b-4709-a7b0-93976eec490a"
+                },
+                {
+                    "description": "Pad 1 [/ECG_OUT] of U1 on F.Cu",
+                    "pos": {
+                        "x": 144.12,
+                        "y": 34.045
+                    },
+                    "uuid": "a2d600c1-e931-4456-ac34-dc1d5d66812d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 33.61
+                    },
+                    "uuid": "388ecbdc-e02b-4709-a7b0-93976eec490a"
+                },
+                {
+                    "description": "Pad 2 [/ECG_SDN] of U1 on F.Cu",
+                    "pos": {
+                        "x": 141.58,
+                        "y": 34.045
+                    },
+                    "uuid": "0d748cdc-41a2-4050-b382-28d62af8d76f"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 33.61
+                    },
+                    "uuid": "388ecbdc-e02b-4709-a7b0-93976eec490a"
+                },
+                {
+                    "description": "Pad 3 [/BLK_PWM] of U1 on F.Cu",
+                    "pos": {
+                        "x": 139.04,
+                        "y": 34.045
+                    },
+                    "uuid": "f8d4d6af-c313-44d0-9445-fb720a0cb601"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 33.61
+                    },
+                    "uuid": "388ecbdc-e02b-4709-a7b0-93976eec490a"
+                },
+                {
+                    "description": "Pad 4 [/SPI_DC] of U1 on F.Cu",
+                    "pos": {
+                        "x": 136.5,
+                        "y": 34.045
+                    },
+                    "uuid": "7662af96-d928-414e-aad4-2c2aeee29f5a"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 33.61
+                    },
+                    "uuid": "388ecbdc-e02b-4709-a7b0-93976eec490a"
+                },
+                {
+                    "description": "Pad 5 [/I2C_SDA] of U1 on F.Cu",
+                    "pos": {
+                        "x": 133.96,
+                        "y": 34.045
+                    },
+                    "uuid": "70582367-3aed-4e5e-9c57-d3abda95e74c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 33.61
+                    },
+                    "uuid": "388ecbdc-e02b-4709-a7b0-93976eec490a"
+                },
+                {
+                    "description": "Pad 6 [/I2C_SCL] of U1 on F.Cu",
+                    "pos": {
+                        "x": 131.42,
+                        "y": 34.045
+                    },
+                    "uuid": "e07e4021-6441-4c89-a9f5-33007fc3c011"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 127.991,
+                        "y": 33.61
+                    },
+                    "uuid": "388ecbdc-e02b-4709-a7b0-93976eec490a"
+                },
+                {
+                    "description": "Pad 7 [/BTN_NEXT] of U1 on F.Cu",
+                    "pos": {
+                        "x": 128.88,
+                        "y": 34.045
+                    },
+                    "uuid": "f6a8a47e-c063-427a-b60d-b99da56a45c4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Reference field of J6a1",
+                    "pos": {
+                        "x": 75.755,
+                        "y": 44.25
+                    },
+                    "uuid": "39b6a0d4-fd92-4992-a10c-a54919a9dfd0"
+                },
+                {
+                    "description": "PTH pad 2 [/GND] of J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 41.79
+                    },
+                    "uuid": "a520931a-ceb2-4839-bc9c-d521bd4d5072"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Reference field of J3",
+                    "pos": {
+                        "x": 97.0,
+                        "y": 57.42
+                    },
+                    "uuid": "be36f221-a1b6-4d1e-af2e-d474b3e318cf"
+                },
+                {
+                    "description": "Pad 2 [unconnected-(J3-Pin_2-Pad2)] of J3 on B.Cu",
+                    "pos": {
+                        "x": 98.5,
+                        "y": 58.69
+                    },
+                    "uuid": "549f30b0-a1b5-4a83-9515-cc0bcc793f61"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Reference field of J14",
+                    "pos": {
+                        "x": 112.0,
+                        "y": 57.19
+                    },
+                    "uuid": "c60335f8-45c7-40ba-94eb-b866d4a59d9d"
+                },
+                {
+                    "description": "Pad 2 [/I2C_SDA] of J14 on B.Cu",
+                    "pos": {
+                        "x": 113.5,
+                        "y": 58.46
+                    },
+                    "uuid": "77bcf2e1-cdf6-44e4-afbb-f841b2782c4d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Reference field of J14",
+                    "pos": {
+                        "x": 112.0,
+                        "y": 57.19
+                    },
+                    "uuid": "c60335f8-45c7-40ba-94eb-b866d4a59d9d"
+                },
+                {
+                    "description": "Pad 3 [/I2C_SCL] of J14 on B.Cu",
+                    "pos": {
+                        "x": 113.5,
+                        "y": 55.92
+                    },
+                    "uuid": "13ccb126-417f-4306-997b-bdd554c427f4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Text thickness out of range (board setup constraints silk text thickness min thickness 0.1500 mm; actual 0.1016 mm)",
+            "items": [
+                {
+                    "description": "Reference field of U1",
+                    "pos": {
+                        "x": 136.525,
+                        "y": 32.15
+                    },
+                    "uuid": "d56bd9bd-7c11-48f7-b3fe-45751b2e12d8"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_thickness"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.6350 mm)",
+            "items": [
+                {
+                    "description": "Reference field of U1",
+                    "pos": {
+                        "x": 136.525,
+                        "y": 32.15
+                    },
+                    "uuid": "d56bd9bd-7c11-48f7-b3fe-45751b2e12d8"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 73.025
+                    },
+                    "uuid": "0fa01ee3-81ee-47d8-bf7f-dc69e4cf2b9d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C6",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 31.9625
+                    },
+                    "uuid": "1643a904-72bb-4e25-8981-16b427153dd2"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint R5",
+                    "pos": {
+                        "x": 112.5,
+                        "y": 32.0
+                    },
+                    "uuid": "1cb8d8bf-d3d3-4e45-aae4-4c21057921ff"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J13",
+                    "pos": {
+                        "x": 75.025,
+                        "y": 83.025
+                    },
+                    "uuid": "216351ab-bf02-4918-8cd6-5321f3db4299"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 80.1
+                    },
+                    "uuid": "4923f9de-a40a-45be-b1f8-bb33a582e355"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J6a1",
+                    "pos": {
+                        "x": 78.525,
+                        "y": 44.25
+                    },
+                    "uuid": "62e4de97-4954-407a-996a-3c40a91b6a69"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J6b1",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 36.225
+                    },
+                    "uuid": "74df9561-ed32-44d0-bbc4-f01eff59b15e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C3",
+                    "pos": {
+                        "x": 140.4625,
+                        "y": 55.0
+                    },
+                    "uuid": "7b851067-68ce-4aa7-8070-a314f20f1d9e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+            "items": [
+                {
+                    "description": "Footprint C2",
+                    "pos": {
+                        "x": 122.0375,
+                        "y": 33.0
+                    },
+                    "uuid": "829e3693-db08-4687-a71e-4e7addcbbb1c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'MountingHole'",
+            "items": [
+                {
+                    "description": "Footprint MH2",
+                    "pos": {
+                        "x": 142.5,
+                        "y": 86.5
+                    },
+                    "uuid": "8587153f-c569-4efc-b2f7-9b8c759bf0ef"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'MountingHole'",
+            "items": [
+                {
+                    "description": "Footprint MH3",
+                    "pos": {
+                        "x": 65.5,
+                        "y": 27.5
+                    },
+                    "uuid": "8924b0d3-e268-4dc0-b38b-b51c8703726c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J7",
+                    "pos": {
+                        "x": 115.28,
+                        "y": 37.0
+                    },
+                    "uuid": "8f1c1e5e-37aa-40f5-bcc2-d6fc58395ccd"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 43.25
+                    },
+                    "uuid": "9d9ee023-a784-42be-a3a6-ed36339f6d6c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'MountingHole'",
+            "items": [
+                {
+                    "description": "Footprint MH4",
+                    "pos": {
+                        "x": 65.5,
+                        "y": 86.5
+                    },
+                    "uuid": "c75cb58e-53be-4861-a4d2-db1a510ef042"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'MountingHole'",
+            "items": [
+                {
+                    "description": "Footprint MH1",
+                    "pos": {
+                        "x": 142.5,
+                        "y": 27.5
+                    },
+                    "uuid": "cb8a5147-9437-486e-995b-154f6946933d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "The current configuration does not include the footprint library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "f762a1ef-4a17-4fd2-8301-dc0f8a9906b3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "Footprint 'MAX30102_Castellated_1x4' does not match copy in library 'SupaClock_Custom'",
+            "items": [
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 99.5,
+                        "y": 57.42
+                    },
+                    "uuid": "16b0a17b-2da1-4feb-ad89-8ca4e1400f5c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'MAX30205_8pad_Flush' does not match copy in library 'SupaClock_Custom'",
+            "items": [
+                {
+                    "description": "Footprint J4",
+                    "pos": {
+                        "x": 106.5,
+                        "y": 73.5
+                    },
+                    "uuid": "3b99a9d5-bb1b-4060-9745-b85cc5551204"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'MAX30102_Castellated_1x4' does not match copy in library 'SupaClock_Custom'",
+            "items": [
+                {
+                    "description": "Footprint J14",
+                    "pos": {
+                        "x": 114.5,
+                        "y": 57.19
+                    },
+                    "uuid": "e5239fc8-5a65-4d72-8d67-ea0df9daf43b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Reference field of MH2",
+                    "pos": {
+                        "x": 146.0,
+                        "y": 86.5
+                    },
+                    "uuid": "37e00f9a-b1c4-4ee5-bd98-ea3032f79dc5"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Reference field of MH1",
+                    "pos": {
+                        "x": 146.0,
+                        "y": 27.5
+                    },
+                    "uuid": "18e96a21-5bf9-4a7b-a89b-e1692255a815"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Arc of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 145.136,
+                        "y": 35.515
+                    },
+                    "uuid": "3631d905-0a7e-4374-ad67-58acee5ce1fd"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Arc of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 145.136,
+                        "y": 49.485
+                    },
+                    "uuid": "38d8a692-8453-4298-be80-7fa1948e7060"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.1460 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Circle of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 146.9,
+                        "y": 33.596
+                    },
+                    "uuid": "230fabf2-b504-47f7-ad7d-d2351f882806"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint J6a1",
+                    "pos": {
+                        "x": 78.525,
+                        "y": 44.25
+                    },
+                    "uuid": "62e4de97-4954-407a-996a-3c40a91b6a69"
+                },
+                {
+                    "description": "Footprint J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "f762a1ef-4a17-4fd2-8301-dc0f8a9906b3"
+                }
+            ],
+            "severity": "warning",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint J6b1",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 36.225
+                    },
+                    "uuid": "74df9561-ed32-44d0-bbc4-f01eff59b15e"
+                },
+                {
+                    "description": "Footprint J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "f762a1ef-4a17-4fd2-8301-dc0f8a9906b3"
+                }
+            ],
+            "severity": "warning",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 43.25
+                    },
+                    "uuid": "9d9ee023-a784-42be-a3a6-ed36339f6d6c"
+                },
+                {
+                    "description": "Footprint U1",
+                    "pos": {
+                        "x": 136.5,
+                        "y": 42.5
+                    },
+                    "uuid": "e550302f-64dd-491a-9259-d6755869d9f8"
+                }
+            ],
+            "severity": "warning",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Isolated copper fill",
+            "items": [
+                {
+                    "description": "Zone 'GND_Pour_BCu' [/GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 61.5,
+                        "y": 23.5
+                    },
+                    "uuid": "044584de-ce9a-4442-934f-cfc9ba9e7594"
+                }
+            ],
+            "severity": "warning",
+            "type": "isolated_copper"
+        }
+    ]
+}
