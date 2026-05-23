@@ -1,12 +1,12 @@
-# SupaClock ESP32-C3 Base Drivers (`/lib`)
+# SupaClock Base Drivers — XIAO ESP32-S3 (`/lib`)
 
-Este directorio contiene las encapsulaciones nativas de los periféricos hardware requeridos por el proyecto **SupaClock**. Dado el uso de ESP-IDF bajo PlatformIO, cada componente vive en su propia carpeta para auto-resolverse como librería aislada mediante el *Library Dependency Finder* (LDF).
+Este directorio contiene las encapsulaciones nativas de los periféricos hardware requeridos por el proyecto **SupaClock** sobre el carrier v1 con XIAO ESP32-S3 DIP. El mapa de pines único está en `include/supaclock_pinmap.h`; ningún driver debería volver a hard-codear GPIOs. Dado el uso de ESP-IDF bajo PlatformIO, cada componente vive en su propia carpeta para auto-resolverse como librería aislada mediante el *Library Dependency Finder* (LDF).
 
 ## Estado de Desarrollo y Progreso de Librerías
 
 ### 🟢 Módulos Completamente Activos (Base)
 Estas librerías tienen lógica extensa escrita en C (~80-100+ líneas) y deben considerarse los cimientos inmutables probados del proyecto.
-* **`i2c_bus`**: Orquestador principal de hardware. Gestiona el protocolo maestro en los pines por defecto (SCL=9, SDA=8) e implementa Mutex de FreeRTOS para unificar el canal y evitar que las peticiones multi-tarea choquen en el mismo hilo.
+* **`i2c_bus`**: Orquestador principal de hardware. Gestiona el protocolo maestro en los pines del carrier v1 (SCL=GPIO6, SDA=GPIO5) e implementa Mutex de FreeRTOS para unificar el canal y evitar que las peticiones multi-tarea choquen en el mismo hilo.
 * **`st7789_driver`**: Driver básico implementado sobre el bus SPI para comunicarse con el panel LCD TFT. Contiene las plantillas de dibujo rudimentarias o rutinas de inicialización de pantalla.
 
 ### 🟡 Módulos Esqueleto (Requieren Completarse)

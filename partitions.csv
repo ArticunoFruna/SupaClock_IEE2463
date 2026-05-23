@@ -1,5 +1,8 @@
-# Name,   Type, SubType, Offset,  Size, Flags
-nvs,      data, nvs,     0x9000,  0x6000,
-phy_init, data, phy,     0xf000,  0x1000,
-factory,  app,  factory, 0x10000, 2M,
-spiffs,   data, spiffs,  ,        1536K,
+# Name,    Type, SubType, Offset,  Size,    Flags
+# XIAO ESP32-S3: 8 MB de flash. Reservamos 3 MB para factory (firmware +
+# modelo CNN-1D + fuentes LVGL + JPEGs) y 4 MB para spiffs (logs ECG,
+# imágenes, datasets de calibración del HAR).
+nvs,       data, nvs,     0x9000,  0x6000,
+phy_init,  data, phy,     0xf000,  0x1000,
+factory,   app,  factory, 0x10000, 3M,
+spiffs,    data, spiffs,  ,        4M,

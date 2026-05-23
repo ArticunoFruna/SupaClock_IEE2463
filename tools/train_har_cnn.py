@@ -25,41 +25,70 @@ def load_data(data_dir):
         y = np.random.randint(0, len(CLASSES), 100).astype(np.int32)
         return X, y
         
+    # Mapeo de las etiquetas que escribe el recorder Flutter (csv_recorder.dart)
+    # a los índices del modelo. 'resting'/'walking'/'running' → indices fijos;
+    # 'fall' es la 4ª clase.
+    LABEL_ALIASES = {
+        'resting': 'rest', 'rest': 'rest',
+        'walking': 'walk', 'walk': 'walk', 'step': 'walk',
+        'running': 'run',  'run': 'run',
+        'fall': 'fall',    'emerg': 'fall', 'emergency': 'fall',
+    }
+
+    def label_for_row(row, fallback):
+        v = row.get('label') if 'label' in row else None
+        if isinstance(v, str) and v.strip():
+            key = LABEL_ALIASES.get(v.strip().lower())
+            if key is not None:
+                return CLASSES[key]
+        return fallback
+
+    def fallback_label_from_name(path):
+        s = os.path.basename(path).lower()
+        if 'run' in s:                                 return CLASSES['run']
+        if 'fall' in s or 'emerg' in s:                return CLASSES['fall']
+        if 'walk' in s or 'step' in s:                 return CLASSES['walk']
+        return CLASSES['rest']
+
     for file in csv_files:
         print(f"Procesando {os.path.basename(file)}...")
         df = pd.read_csv(file)
-        
+
         # Filtrar solo columnas inerciales
         cols = ['ax', 'ay', 'az', 'gx', 'gy', 'gz']
         if not all(c in df.columns for c in cols):
             print(f"  -> Ignorando (no contiene columnas {cols})")
             continue
-            
+
         data = df[cols].values.astype(np.float32)
-        
+
         # Normalización simple (rango del BMI160 int16 es +-32768)
         data = data / 32768.0
-        
-        # Etiquetado heurístico basado en el nombre del archivo
-        filename_lower = file.lower()
-        if 'run' in filename_lower:
-            label = CLASSES['run']
-        elif 'fall' in filename_lower or 'emerg' in filename_lower:
-            label = CLASSES['fall']
-        elif 'step' in filename_lower or 'walk' in filename_lower:
-            label = CLASSES['walk']
+
+        # Etiqueta por fila: prioriza la columna `label` del recorder Flutter,
+        # cae al nombre del archivo si no existe (datasets legacy).
+        fb = fallback_label_from_name(file)
+        if 'label' in df.columns:
+            row_labels = df['label'].apply(
+                lambda v: LABEL_ALIASES.get(str(v).strip().lower()) if isinstance(v, str) and v.strip() else None
+            ).map(lambda k: CLASSES[k] if k in CLASSES else fb).values
         else:
-            label = CLASSES['rest']
-        
-        # Creación de ventanas superpuestas
+            row_labels = np.full(len(data), fb, dtype=np.int32)
+
+        # Creación de ventanas superpuestas. La etiqueta de la ventana es la
+        # moda dentro del rango (robusto si una transición cae justo dentro).
         windows_extracted = 0
         for i in range(0, len(data) - WINDOW_SIZE, WINDOW_SIZE - OVERLAP):
             window = data[i:i+WINDOW_SIZE]
+            seg = row_labels[i:i+WINDOW_SIZE]
+            # bincount no soporta -1; aseguramos enteros >=0
+            label = int(np.bincount(seg.astype(np.int64)).argmax())
             X.append(window)
             y.append(label)
             windows_extracted += 1
-            
-        print(f"  -> {windows_extracted} ventanas extraídas. Clase: {label}")
+
+        print(f"  -> {windows_extracted} ventanas extraídas "
+              f"(label column: {'sí' if 'label' in df.columns else 'no, fallback ' + str(fb)})")
             
     if len(X) == 0:
         print("Error: No se pudo extraer ninguna ventana válida.")

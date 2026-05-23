@@ -64,22 +64,31 @@ esp_err_t st7789_init(void) {
   esp_err_t ret;
   ESP_LOGI(TAG, "Inicializando pines y SPI para ST7789");
 
-  // GPIO Config
-  gpio_config_t gc = {.pin_bit_mask =
-                          (1ULL << ST7789_DC_PIN) | (1ULL << ST7789_RST_PIN),
+  // GPIO Config — RST_PIN puede ser -1 si el carrier no cablea reset HW
+  uint64_t pin_mask = (1ULL << ST7789_DC_PIN);
+#if ST7789_RST_PIN >= 0
+  pin_mask |= (1ULL << ST7789_RST_PIN);
+#endif
+  gpio_config_t gc = {.pin_bit_mask = pin_mask,
                       .mode = GPIO_MODE_OUTPUT,
                       .pull_up_en = GPIO_PULLUP_DISABLE,
                       .pull_down_en = GPIO_PULLDOWN_DISABLE,
                       .intr_type = GPIO_INTR_DISABLE};
   gpio_config(&gc);
 
-  // Configuración de LEDC (PWM) para el Backlight
+  // Configuración de LEDC (PWM) para el Backlight.
+  // IMPORTANTE: el reloj NO puede ser APB cuando CONFIG_PM_ENABLE=y con
+  // light_sleep_enable=true — el APB se apaga al entrar a light sleep y el
+  // backlight parpadea visiblemente (~30 Hz, el ritmo de tickless idle).
+  // RC_FAST (≈17.5 MHz en S3, ≈8 MHz en C3) sigue activo durante light
+  // sleep, así que el PWM se mantiene estable a 4 kHz sin importar la
+  // política de PM.
   ledc_timer_config_t ledc_timer = {
       .speed_mode       = LEDC_LOW_SPEED_MODE,
       .timer_num        = LEDC_TIMER_0,
       .duty_resolution  = LEDC_TIMER_8_BIT,
-      .freq_hz          = 4000, // 4 kHz es buen balance para pantallas
-      .clk_cfg          = LEDC_AUTO_CLK
+      .freq_hz          = 4000,
+      .clk_cfg          = LEDC_USE_RC_FAST_CLK
   };
   ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
 
@@ -124,12 +133,16 @@ esp_err_t st7789_init(void) {
   ESP_ERROR_CHECK(ret);
   /*------------------------------------------- INCIALIZACIÓN DE LA PANTALLA
    * -------------------------------------------*/
-  // Hardware Reset
+  // Hardware Reset (sólo si el pin está cableado; en el carrier v1 va -1)
+#if ST7789_RST_PIN >= 0
   ESP_LOGI(TAG, "Ejecutando Hardware Reset");
   gpio_set_level(ST7789_RST_PIN, 0);
   vTaskDelay(pdMS_TO_TICKS(100));
   gpio_set_level(ST7789_RST_PIN, 1);
   vTaskDelay(pdMS_TO_TICKS(100));
+#else
+  ESP_LOGI(TAG, "RST no cableado → reset por software (SWRESET)");
+#endif
 
   // Software Init Sequence
   ESP_LOGI(TAG, "Enviando comandos de inicializacion...");

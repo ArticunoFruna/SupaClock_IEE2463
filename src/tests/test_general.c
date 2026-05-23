@@ -638,8 +638,20 @@ static void menu_execute_selected(void) {
         case 4: /* Apagar */
             ESP_LOGI(TAG, "Menu: deep sleep");
             vTaskDelay(pdMS_TO_TICKS(200));
+            /* Wake-up por BTN_SELECT (activo en bajo).
+             *
+             * C3/C6/H2 (RISC-V): API "GPIO wakeup" sirve para cualquier pin.
+             * S3 (Xtensa): solo los RTC-GPIOs (0..21) despiertan de deep
+             *              sleep → usamos ext1 con TRIGGER_LOW. BTN_SELECT
+             *              en el carrier es GPIO8, que SÍ es RTC.
+             */
+#if CONFIG_IDF_TARGET_ESP32S3
+            esp_sleep_enable_ext1_wakeup_io((1ULL << BTN_SELECT_PIN),
+                                            ESP_EXT1_WAKEUP_ANY_LOW);
+#else
             esp_deep_sleep_enable_gpio_wakeup((1ULL << BTN_SELECT_PIN),
                                               ESP_GPIO_WAKEUP_GPIO_LOW);
+#endif
             esp_deep_sleep_start();
             break;
         case 5: /* Tx IMU BLE */
@@ -1162,11 +1174,18 @@ void perf_monitor_task(void *pvParameter) {
 void app_main(void) {
     ESP_LOGI(TAG, "=== INICIANDO ENTORNO TEST GENERAL ===");
 
-    /* Inicializar Power Management (Light Sleep Dinámico) */
+    /* Inicializar Power Management (Light Sleep Dinámico).
+     * esp_pm_config_t es el tipo portable en IDF 5.x; en S3 podemos
+     * subir el máximo a 240 MHz, en C3 nos quedamos en 160 MHz. */
 #if CONFIG_PM_ENABLE
-    esp_pm_config_esp32c3_t pm_config = {
+    esp_pm_config_t pm_config = {
+#if CONFIG_IDF_TARGET_ESP32S3
+        .max_freq_mhz = 240,
+        .min_freq_mhz = 80,
+#else
         .max_freq_mhz = 160,
-        .min_freq_mhz = 10,   /* Opcional, baja la velocidad si está ocioso pero no durmiendo */
+        .min_freq_mhz = 10,
+#endif
         .light_sleep_enable = true
     };
     if (esp_pm_configure(&pm_config) == ESP_OK) {

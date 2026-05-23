@@ -1,4 +1,7 @@
-// Reemplazo completo de modulos para Single-Core y MAX30205
+// Stub principal — los includes pesados sólo se traen cuando el env
+// correspondiente lo activa, para que envs livianos (p.ej. capture_c3)
+// no necesiten LVGL ni los drivers del display.
+#ifdef ENV_MAIN_APP
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -12,8 +15,6 @@
 #include "bmi160.h"
 #include "ble_telemetry.h"
 
-
-#ifdef ENV_MAIN_APP
 static const char *TAG = "SupaClock_Main";
 
 void app_main(void) {
