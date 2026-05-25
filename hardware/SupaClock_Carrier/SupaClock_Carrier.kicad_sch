@@ -5283,7 +5283,7 @@
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x08")
-		(at 59.69 153.67 0)
+		(at 49.53 156.21 180)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5293,7 +5293,7 @@
 		(dnp no)
 		(uuid "21256df1-a054-49d1-84d4-e30e8a73eb8c")
 		(property "Reference" "J7"
-			(at 59.69 139.192 0)
+			(at 49.53 170.688 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5304,7 +5304,7 @@
 			)
 		)
 		(property "Value" "ST7789_1.69in"
-			(at 51.816 141.478 0)
+			(at 57.404 168.402 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5315,7 +5315,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical"
-			(at 59.69 153.67 0)
+			(at 49.53 156.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5326,7 +5326,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 59.69 153.67 0)
+			(at 49.53 156.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5337,7 +5337,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 59.69 153.67 0)
+			(at 49.53 156.21 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
