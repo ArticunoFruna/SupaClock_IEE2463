@@ -23,15 +23,21 @@ clearance      = 0.5;    // holgura PCB <-> pared interior
 // pegada al lado del display / XIAO. Ver supaclock_top_case.scad.
 altura_base    = 2.0;
 
-// Standoffs (cilindros huecos, tornillo M2 que muerde el plastico)
-standoff_od    = 4.0;    // diametro exterior
-standoff_id    = 1.8;    // diametro interior (rosca M2 self-tap en plastico)
+// Standoffs (cilindros huecos por los que pasa el tornillo M3). El tornillo
+// entra DESDE ABAJO (cabeza apoyada en la cara exterior del piso), atraviesa
+// el piso, el standoff y la PCB, y rosca self-tap en el pilar del top case.
+// Por eso aqui standoff_id = 3.2 (clearance) y no 2.7 (self-tap).
+standoff_od         = 5.5;    // diametro exterior (>= cabeza M3 ~5.5mm)
+standoff_id         = 3.2;    // diametro interior = clearance M3
+mh_clearance_d      = 3.2;    // through-hole en el piso (M3 clearance)
 
 // Ventana MAX30102 (acceso optico LED+fotodiodo a la piel)
 // Modulo MH-ET LIVE = 16 x 21 mm body. Cutout = body + 1mm de tolerancia
 // para que el modulo asome a traves del piso o quede flush con la cara externa.
-cutout_max30102_x = 17.0;
-cutout_max30102_y = 22.0;
+// Orientacion HORIZONTAL: el modulo se monta con su lado largo (21mm) a lo
+// largo de X. La ventana es 22 (X) x 17 (Y) en PCB-local coords.
+cutout_max30102_x = 22.0;
+cutout_max30102_y = 17.0;
 
 // Ventana MAX30205 (paso para placa de aluminio + thermal pad).
 // El modulo es 20x12 mm pero solo necesitamos una ventana del tamano de la
@@ -103,6 +109,14 @@ module electrode_hole(pos) {
         cylinder(h = grosor_pared + 0.02, d = cutout_electrode_d);
 }
 
+module mounting_through_hole(pos) {
+    // Through-hole M3 clearance que atraviesa el piso debajo de cada standoff.
+    // El tornillo entra desde la cara exterior del piso y rosca en el pilar
+    // del top case.
+    translate([pos[0] + pcb_off_x, pos[1] + pcb_off_y, -0.01])
+        cylinder(h = grosor_pared + 0.02, d = mh_clearance_d);
+}
+
 // ============================== CONSTRUCCION =================================
 
 difference() {
@@ -116,6 +130,9 @@ difference() {
 
     // Agujeros para los 3 electrodos ECG (atraviesan el piso)
     for (e = electrode_positions) electrode_hole(e);
+
+    // Through-holes M3 en el piso bajo cada standoff (tornillo desde abajo)
+    for (p = mh_positions) mounting_through_hole(p);
 }
 
 for (p = mh_positions) standoff(p);

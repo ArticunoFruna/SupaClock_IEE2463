@@ -30,6 +30,7 @@ static const power_profile_t s_profiles[POWER_MODE_COUNT] = {
         .bat_period_ms        = 30 * 1000,  /* batería cada 30 s en TODOS los modos */
         .ble_agg_flush_ms     = 1000,       /* flush 1 s */
         .display_off_default_s= 30,
+        .display_brightness_pct = 100,      /* full — usuario activo, quiere visibilidad */
         .name = "SPORT",
     },
     [POWER_MODE_NORMAL] = {
@@ -42,6 +43,7 @@ static const power_profile_t s_profiles[POWER_MODE_COUNT] = {
         .bat_period_ms        = 30 * 1000,
         .ble_agg_flush_ms     = 10 * 1000,  /* flush cada 10 s */
         .display_off_default_s= 15,
+        .display_brightness_pct = 80,
         .name = "NORMAL",
     },
     [POWER_MODE_SAVER] = {
@@ -54,6 +56,7 @@ static const power_profile_t s_profiles[POWER_MODE_COUNT] = {
         .bat_period_ms        = 30 * 1000,
         .ble_agg_flush_ms     = 60 * 1000,  /* flush cada 60 s */
         .display_off_default_s= 8,
+        .display_brightness_pct = 50,       /* visiblemente dim pero usable */
         .name = "SAVER",
     },
 };
@@ -160,6 +163,11 @@ esp_err_t power_set_display_off_s(power_mode_t mode, uint16_t seconds) {
         nvs_close(h);
     }
     return ESP_OK;
+}
+
+uint8_t power_get_display_brightness(power_mode_t mode) {
+    if (mode >= POWER_MODE_COUNT) mode = POWER_MODE_NORMAL;
+    return s_profiles[mode].display_brightness_pct;
 }
 
 const char *power_mode_name(power_mode_t mode) {

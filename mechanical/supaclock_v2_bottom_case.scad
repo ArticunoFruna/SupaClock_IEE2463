@@ -38,13 +38,16 @@ H_total        = 22.0;            // altura total del case ensamblado
 altura_base    = 2.0;             // altura interior del bottom (= V1)
 altura_total   = altura_base + grosor_pared;   // = 4
 
-// Standoffs
-standoff_od    = 4.0;
-standoff_id    = 1.8;
+// Standoffs (el tornillo M3 entra desde la cara exterior del piso, atraviesa
+// piso + standoff + PCB y rosca self-tap en el pilar del top case).
+standoff_od    = 5.5;   // >= cabeza M3 ~5.5mm
+standoff_id    = 3.2;   // clearance M3 (no self-tap aqui)
+mh_clearance_d = 3.2;   // through-hole en el piso bajo cada standoff
 
 // Sensor cutouts (iguales a V1)
-cutout_max30102_x  = 17.0;
-cutout_max30102_y  = 22.0;
+// Orientacion HORIZONTAL: ventana 22(X) x 17(Y), lado largo a lo largo de X.
+cutout_max30102_x  = 22.0;
+cutout_max30102_y  = 17.0;
 cutout_max30205_x  = 14.0;
 cutout_max30205_y  = 10.0;
 cutout_electrode_d = 6.0;
@@ -134,6 +137,13 @@ module electrode_hole(pos) {
         cylinder(h = grosor_pared + 2 * eps, d = cutout_electrode_d);
 }
 
+module mounting_through_hole(pos) {
+    // Through-hole M3 clearance en el piso bajo cada standoff (tornillo
+    // entra desde abajo y rosca en el pilar del top case).
+    translate([pos[0] + pcb_off_x, pos[1] + pcb_off_y, -eps])
+        cylinder(h = grosor_pared + 2 * eps, d = mh_clearance_d);
+}
+
 // =============================================================================
 // CONSTRUCCION
 // =============================================================================
@@ -144,6 +154,7 @@ difference() {
     sensor_cutout(pos_max30102, cutout_max30102_x, cutout_max30102_y);
     sensor_cutout(pos_max30205, cutout_max30205_x, cutout_max30205_y);
     for (e = electrode_positions) electrode_hole(e);
+    for (p = mh_positions) mounting_through_hole(p);
 }
 
 for (p = mh_positions) standoff(p);

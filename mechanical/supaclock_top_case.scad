@@ -2,7 +2,7 @@
 // SupaClock - Top Case parametrico
 // Generado a partir de SupaClock_Carrier.kicad_pcb (PUC IEE2913, Grupo 10)
 //
-// El top case se atornilla al bottom case con los mismos 4 tornillos M2 que
+// El top case se atornilla al bottom case con los mismos 4 tornillos M3 que
 // pasan a traves de los standoffs del bottom y de la PCB, y muerden los
 // pilares internos de este top case.
 //
@@ -35,8 +35,8 @@ pcb_thickness  = 1.6;    // FR4 estandar
 altura_top     = 18.0;
 
 // Standoffs / pilares internos del top case
-standoff_od    = 4.0;    // diametro exterior del pilar
-standoff_id    = 1.8;    // diametro del agujero pasante (rosca M2 self-tap)
+standoff_od    = 5.5;    // diametro exterior del pilar (>= cabeza M3 ~5.5mm)
+standoff_id    = 2.7;    // diametro del agujero pasante (rosca M3 self-tap)
 
 // ----------------- VENTANA DEL DISPLAY ST7789 1.69" --------------------------
 // J7 esta rotado -90 deg en el PCB => la fila de 8 pines corre HORIZONTAL
@@ -150,7 +150,7 @@ difference() {
         cube([grosor_pared + 2 * eps, usb_width_y, usb_height_z]);
 }
 
-// 2) Pilares internos en las 4 esquinas, con agujero axial para tornillo M2.
+// 2) Pilares internos en las 4 esquinas, con agujero axial para tornillo M3.
 //    Apoyan sobre la cara SUPERIOR de la PCB (Z = pcb_thickness en frame
 //    top-case) y suben hasta el techo. Asi el PCB queda sandwich entre los
 //    standoffs del bottom case (por debajo) y estos pilares (por arriba).

@@ -38,8 +38,8 @@ altura_total_bottom = altura_base + grosor_pared;   // = 4 (bottom case)
 altura_top     = H_total - altura_total_bottom;     // = 18 (top case)
 
 // Standoffs / pilares
-standoff_od    = 4.0;
-standoff_id    = 1.8;
+standoff_od    = 5.5;   // >= cabeza M3 ~5.5mm
+standoff_id    = 2.7;   // rosca M3 self-tap en plastico
 
 // ---------------------- DISPLAY ----------------------------------------------
 display_pos    = [53.78, 35.0];   // PCB-local Y-up
@@ -73,9 +73,18 @@ jack_z_above_pcb = 3.0;
 lug_strap_w    = 22.0;    // ancho libre entre lugs para la correa
 lug_thickness  = 5.0;     // espesor del lug a lo largo de X
 lug_protrude   = 7.0;     // cuanto sale del case en +Y/-Y
-lug_z_bot      = 5.0;     // en frame top-case-local (abs Z=9)
+lug_anchor_depth = 5.0;   // cuanto se mete el lug dentro del case. Generoso
+                          // para que el anchor cruce el chamfer (1.5mm) + taper
+                          // y siempre haga contacto solido con la pared curva.
+lug_z_bot      = 0.0;     // arranca en la base del top case (abs Z=4=seam)
 lug_z_top      = 15.0;    // en frame top-case-local (abs Z=19)
 spring_bar_d   = 1.8;     // agujero pasante para spring bar standard 1.5mm + holgura
+
+// Cutter generoso para agujeros en paredes laterales. Como la pared exterior
+// es curva/taperada, el grosor real (cavity_edge -> outer_face) varia con Z
+// y nunca es exactamente grosor_pared. r_vert+4 = 16mm garantiza que el cutter
+// cruza la pared completa sin importar la curvatura.
+wall_cutter_depth = r_vert + 4;
 
 lug_center_sep = lug_strap_w + lug_thickness;   // = 27mm center-to-center
 
@@ -154,7 +163,7 @@ module lug_one(x_center, y_case_edge, dir) {
     // El medio circulo tiene diametro = lug_thickness para que la punta tenga el
     // mismo ancho que el cuerpo (no se ve "puntiagudo" como antes).
     h = lug_z_top - lug_z_bot;
-    y_inner       = y_case_edge - dir * 1.0;                            // 1mm dentro del case
+    y_inner       = y_case_edge - dir * lug_anchor_depth;               // anchor profundo dentro del case
     y_outer_tip   = y_case_edge + dir * lug_protrude;                   // punta exterior
     y_outer_ctr   = y_outer_tip - dir * (lug_thickness / 2);            // centro del medio circulo
                                                                         // (lug_thickness/2 desde la punta)
@@ -193,10 +202,7 @@ module all_lugs() {
 // =============================================================================
 
 difference() {
-    union() {
-        v2_top_outer();
-        all_lugs();
-    }
+    v2_top_outer();
 
     // Cavidad
     v2_top_cavity();
@@ -207,25 +213,32 @@ difference() {
                ceiling_z - eps])
         cube([display_w, display_h, grosor_pared + 2 * eps]);
 
-    // Botones (pared derecha)
+    // Botones (pared derecha). Cutter inicia DENTRO de la cavidad (x = outer_x - r_vert)
+    // y se extiende wall_cutter_depth para garantizar atravesar la pared curva/taperada.
     for (b = btn_positions)
-        translate([outer_x - grosor_pared - eps,
+        translate([outer_x - r_vert,
                    b[1] + pcb_off_y,
                    btn_z])
             rotate([0, 90, 0])
-                cylinder(h = grosor_pared + 2 * eps, d = btn_hole_d);
+                cylinder(h = wall_cutter_depth, d = btn_hole_d);
 
-    // Jack 3.5 mm (pared inferior)
-    translate([jack_x + pcb_off_x, -eps, jack_z])
+    // Jack 3.5 mm (pared inferior). Cutter inicia FUERA del case (y = -4) y entra
+    // hasta r_vert = 12mm dentro, cubriendo toda la pared curva.
+    translate([jack_x + pcb_off_x, -4, jack_z])
         rotate([-90, 0, 0])
-            cylinder(h = grosor_pared + 2 * eps, d = jack_d);
+            cylinder(h = wall_cutter_depth, d = jack_d);
 
-    // USB-C (pared derecha)
-    translate([outer_x - grosor_pared - eps,
+    // USB-C (pared derecha). Mismo principio: inicia en x = outer_x - r_vert.
+    translate([outer_x - r_vert,
                usb_pos_y + pcb_off_y - usb_width_y / 2,
                usb_z_center - usb_height_z / 2])
-        cube([grosor_pared + 2 * eps, usb_width_y, usb_height_z]);
+        cube([wall_cutter_depth, usb_width_y, usb_height_z]);
 }
+
+// Lugs AGREGADOS DESPUES de la cavidad. Asi el anchor profundo (5mm) que entra
+// al case no es vaciado por la cavidad y queda como buttress solido pegado a
+// la pared exterior curva, eliminando el gap por chamfer/taper.
+all_lugs();
 
 // Pilares internos en las 4 esquinas, apoyando sobre la cara superior del PCB
 pillar_h = ceiling_z - pcb_thickness;

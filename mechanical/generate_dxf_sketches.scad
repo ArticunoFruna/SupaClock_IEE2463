@@ -104,9 +104,9 @@ else if (part == "bottom_cuts") {
             translate(pos) circle(d = 6.0);
         }
 
-        // Puntos de centro de standoffs (círculos Ø1.8 para self-tap)
+        // Puntos de centro de standoffs (círculos Ø2.7 para self-tap M3)
         for (pos = mh_positions) {
-            translate(pos) circle(d = 1.8);
+            translate(pos) circle(d = 2.7);
         }
     }
 }
@@ -121,9 +121,9 @@ else if (part == "top_cuts") {
         translate(display_center)
             square(display_size, center = true);
 
-        // Agujeros de pilares
+        // Agujeros de pilares (rosca M3 self-tap Ø2.7)
         for (pos = mh_positions) {
-            translate(pos) circle(d = 1.8);
+            translate(pos) circle(d = 2.7);
         }
     }
 }

@@ -2,12 +2,24 @@
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 #include "esp_log.h"
+#include "esp_pm.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <string.h>
 
 static const char *TAG = "ST7789_Driver";
 static spi_device_handle_t spi;
+
+/* Tracker de estado on/off del backlight. Se usa para gatillar las
+ * transiciones de panel (SLPIN/SLPOUT) y del pm_lock una sola vez. */
+static bool s_blk_on = false;
+
+#if CONFIG_PM_ENABLE
+/* Lock que bloquea light sleep mientras el backlight está prendido.
+ * Sin esto, las transiciones de entrada/salida de light sleep glitchean al
+ * periférico LEDC y el backlight parpadea, aún clockeado desde RC_FAST. */
+static esp_pm_lock_handle_t s_blk_pm_lock = NULL;
+#endif
 
 // Función para enviar comandos a la pantalla
 static void lcd_cmd(spi_device_handle_t spi, const uint8_t cmd) {
@@ -77,17 +89,19 @@ esp_err_t st7789_init(void) {
   gpio_config(&gc);
 
   // Configuración de LEDC (PWM) para el Backlight.
-  // IMPORTANTE: el reloj NO puede ser APB cuando CONFIG_PM_ENABLE=y con
-  // light_sleep_enable=true — el APB se apaga al entrar a light sleep y el
-  // backlight parpadea visiblemente (~30 Hz, el ritmo de tickless idle).
-  // RC_FAST (≈17.5 MHz en S3, ≈8 MHz en C3) sigue activo durante light
-  // sleep, así que el PWM se mantiene estable a 4 kHz sin importar la
-  // política de PM.
+  // Sobre PM y light sleep:
+  //   - El reloj se setea a RC_FAST (≈17.5 MHz S3 / ≈8 MHz C3) en vez de
+  //     APB porque APB se apaga durante light sleep y el PWM se cae.
+  //   - Pero RC_FAST por sí solo NO basta en el S3: las transiciones de
+  //     entrada/salida de light sleep glitchean al periférico LEDC y se
+  //     ve flicker visible en el backlight de todas formas. Por eso se
+  //     toma un esp_pm_lock NO_LIGHT_SLEEP mientras el backlight está
+  //     prendido (creado al final de este init, manejado en set_brightness).
   ledc_timer_config_t ledc_timer = {
       .speed_mode       = LEDC_LOW_SPEED_MODE,
       .timer_num        = LEDC_TIMER_0,
       .duty_resolution  = LEDC_TIMER_8_BIT,
-      .freq_hz          = 5000,
+      .freq_hz          = 500,
       .clk_cfg          = LEDC_USE_RC_FAST_CLK
   };
   ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
@@ -174,6 +188,13 @@ esp_err_t st7789_init(void) {
   ESP_LOGI(TAG, "Comando DISPON...");
   lcd_cmd(spi, ST7789_DISPON);
   vTaskDelay(pdMS_TO_TICKS(100));
+
+#if CONFIG_PM_ENABLE
+  if (esp_pm_lock_create(ESP_PM_NO_LIGHT_SLEEP, 0, "blk", &s_blk_pm_lock) != ESP_OK) {
+    ESP_LOGW(TAG, "BLK PM lock no se pudo crear — el backlight puede parpadear con light sleep");
+    s_blk_pm_lock = NULL;
+  }
+#endif
 
   ESP_LOGI(TAG, "Driver ST7789 Init finalizado OK");
   return ESP_OK;
@@ -271,7 +292,46 @@ void st7789_fill_screen(uint16_t color) {
 void st7789_set_brightness(uint8_t percent) {
   if (percent > 100) percent = 100;
   uint32_t duty = (percent * 255) / 100;
-  // 8-bit limit means values are 0-255
-  ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
-  ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+  bool want_on = (duty > 0);
+
+  /* ── Transición off → on ───────────────────────────────────────────
+   * 1. Bloquear light sleep (si PM activo) ANTES del SLPOUT, para que
+   *    el wake del panel no caiga en una transición de sleep.
+   * 2. Despertar el panel (SLPOUT + 120 ms + DISPON + 10 ms) ANTES de
+   *    prender el backlight, así el usuario nunca ve un panel apagado
+   *    iluminado por el backlight.
+   * El tracker s_blk_on evita doble-fire si el caller llama dos veces
+   * con brillo > 0. */
+  if (want_on && !s_blk_on) {
+#if CONFIG_PM_ENABLE
+    if (s_blk_pm_lock) esp_pm_lock_acquire(s_blk_pm_lock);
+#endif
+    lcd_cmd(spi, ST7789_SLPOUT);
+    vTaskDelay(pdMS_TO_TICKS(120));  /* datasheet: 120 ms antes del siguiente comando */
+    lcd_cmd(spi, ST7789_DISPON);
+    vTaskDelay(pdMS_TO_TICKS(10));
+  }
+
+  /* PWM del backlight: stop si va a off, set+update si va a on. */
+  if (duty == 0) {
+    ledc_stop(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, 0);
+  } else {
+    ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+  }
+
+  /* ── Transición on → off ───────────────────────────────────────────
+   * Backlight ya está apagado; ahora dormimos el panel (DISPOFF + SLPIN)
+   * y soltamos el lock de PM último para que el light sleep recién
+   * pueda entrar con todo en estado limpio. */
+  if (!want_on && s_blk_on) {
+    lcd_cmd(spi, ST7789_DISPOFF);
+    lcd_cmd(spi, ST7789_SLPIN);
+#if CONFIG_PM_ENABLE
+    if (s_blk_pm_lock) esp_pm_lock_release(s_blk_pm_lock);
+#endif
+  }
+
+  s_blk_on = want_on;
 }
+

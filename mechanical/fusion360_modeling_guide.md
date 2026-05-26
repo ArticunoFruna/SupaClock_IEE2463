@@ -80,9 +80,9 @@ Ahora huecaremos el envelope y lo separaremos en Bottom Case y Top Case:
    * Selecciona los tres círculos de electrodos de Ø6mm y extruye hacia abajo en modo **Cut**.
 4. **Standoffs (Pilares de soporte PCB):**
    * Crea un boceto en el piso interior (Z=2).
-   * Dibuja 4 círculos concéntricos de Ø4.0 mm en los mismos centros provistos por los círculos de Ø1.8 mm en el DXF.
-   * Extruye estos cilindros de Ø4.0 mm hacia **arriba** por `2.0 mm` (llegando a Z=4) con la operación **Join** (Unir) al Bottom Case.
-   * Vuelve a activar el croquis DXF y extruye en modo **Cut** los círculos internos de Ø1.8 mm hacia abajo para dejar el canal roscado de los tornillos de fijación M2.
+   * Dibuja 4 círculos concéntricos de Ø5.5 mm en los mismos centros provistos por los círculos de Ø2.7 mm en el DXF.
+   * Extruye estos cilindros de Ø5.5 mm hacia **arriba** por `2.0 mm` (llegando a Z=4) con la operación **Join** (Unir) al Bottom Case.
+   * Vuelve a activar el croquis DXF y extruye en modo **Cut** los círculos internos de Ø2.7 mm hacia abajo para dejar el canal roscado de los tornillos de fijación M3.
 
 ---
 
@@ -92,8 +92,8 @@ Ahora huecaremos el envelope y lo separaremos en Bottom Case y Top Case:
    * Ve a **Insert > Insert DXF** y selecciona `top_cuts.dxf`.
    * Selecciona el rectángulo de la ventana de display (28x34 mm) y extruye hacia arriba en modo **Cut** atravesando el techo de 2mm (hasta Z=22).
 2. **Pilares de Techo:**
-   * Usando las referencias de centros de pilares provistas por `top_cuts.dxf`, dibuja círculos concéntricos de Ø4.0 mm.
-   * Extrúyelos hacia **abajo** en modo **Join** hasta apoyar en el PCB (Z=5.6 en top-case-local). Haz un agujero concéntrico de Ø1.8 mm.
+   * Usando las referencias de centros de pilares provistas por `top_cuts.dxf`, dibuja círculos concéntricos de Ø5.5 mm.
+   * Extrúyelos hacia **abajo** en modo **Join** hasta apoyar en el PCB (Z=5.6 en top-case-local). Haz un agujero concéntrico de Ø2.7 mm (rosca M3 self-tap).
 
 ---
 

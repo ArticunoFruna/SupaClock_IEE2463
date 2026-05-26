@@ -54,6 +54,7 @@ typedef struct {
 
     /* Display */
     uint16_t display_off_default_s;/**< Default auto-off (override por NVS) */
+    uint8_t  display_brightness_pct;/**< Brillo de backlight cuando display está on, 0-100 */
 
     const char *name;
 } power_profile_t;
@@ -107,6 +108,11 @@ uint16_t power_get_display_off_s(power_mode_t mode);
  * @brief Configura el auto-off de pantalla para un modo y persiste en NVS.
  */
 esp_err_t power_set_display_off_s(power_mode_t mode, uint16_t seconds);
+
+/**
+ * @brief Brillo de display configurado para el modo dado (0-100).
+ */
+uint8_t power_get_display_brightness(power_mode_t mode);
 
 /**
  * @brief Helper: nombre legible del modo.

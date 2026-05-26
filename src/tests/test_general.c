@@ -746,7 +746,7 @@ static void build_ui(void) {
 
 void gui_task(void *pvParameter) {
     vTaskDelay(pdMS_TO_TICKS(1500));
-    st7789_set_brightness(100);
+    st7789_set_brightness(power_get_display_brightness(power_get_mode()));
     backlight_on = true;
 
     /* Frames de inactividad acumulados (frame ≈ 33 ms) */
@@ -759,7 +759,7 @@ void gui_task(void *pvParameter) {
                 action_taken = true;
                 inactivity_counter_ds = 0;
                 if (!backlight_on) {
-                    st7789_set_brightness(100);
+                    st7789_set_brightness(power_get_display_brightness(power_get_mode()));
                     backlight_on = true;
                 } else {
                     handle_button(ev);

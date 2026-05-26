@@ -78,8 +78,8 @@
  *
  *     ┌───────────────┐
  *     │ 1  GPIO1  D0  │ ← ECG_OUT          (ADC1_CH0)
- *     │ 2  GPIO2  D1  │ ← ECG_SDN
- *     │ 3  GPIO3  D2  │ ← BLK_PWM          (LEDC)
+ *     │ 2  GPIO2  D1  │ ← BLK_PWM          (LEDC)
+ *     │ 3  GPIO3  D2  │ ← ECG_SDN          (Strapping pin JTAG)
  *     │ 4  GPIO4  D3  │ ← SPI_DC
  *     │ 5  GPIO5  D4  │ ← I2C_SDA
  *     │ 6  GPIO6  D5  │ ← I2C_SCL
@@ -111,7 +111,7 @@
 
 /* ───── AD8232 ECG ───── */
 #define SUPA_PIN_ECG_OUT        1      /* ADC1_CH0 (S3) */
-#define SUPA_PIN_ECG_SDN        2
+#define SUPA_PIN_ECG_SDN        2     /* Pin de shutdown del ECG, activo alto para simplificar el control */
 #define SUPA_PIN_ECG_LO_PLUS    (-1)
 #define SUPA_PIN_ECG_LO_MINUS   (-1)
 #define SUPA_ADC_CHANNEL_ECG    ADC_CHANNEL_0
