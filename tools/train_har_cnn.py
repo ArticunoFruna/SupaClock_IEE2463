@@ -97,19 +97,27 @@ def load_data(data_dir):
     return np.array(X), np.array(y)
 
 def build_model():
-    """ Construye la arquitectura CNN 1D + GAP + DENSE propuesta en el informe """
+    """ Construye una arquitectura CNN 1D más robusta y de mayor capacidad para el ESP32-S3 """
     model = models.Sequential([
         layers.InputLayer(input_shape=(WINDOW_SIZE, NUM_CHANNELS)),
         
-        # Capa Convolucional 1
-        layers.Conv1D(filters=16, kernel_size=3, activation='relu', padding='same'),
+        # Capa Convolucional 1 (32 filtros, kernel 5 para mayor campo receptivo temporal)
+        layers.Conv1D(filters=32, kernel_size=5, activation='relu', padding='same'),
         layers.MaxPooling1D(pool_size=2),
         
-        # Capa Convolucional 2
-        layers.Conv1D(filters=32, kernel_size=3, activation='relu', padding='same'),
+        # Capa Convolucional 2 (64 filtros, kernel 5)
+        layers.Conv1D(filters=64, kernel_size=5, activation='relu', padding='same'),
+        layers.MaxPooling1D(pool_size=2),
+
+        # Capa Convolucional 3 (128 filtros, kernel 3)
+        layers.Conv1D(filters=128, kernel_size=3, activation='relu', padding='same'),
         
-        # Global Average Pooling (GAP) - Clave para reducir parámetros vs Flatten
+        # Global Average Pooling (GAP) - Reduce la dimensión temporal
         layers.GlobalAveragePooling1D(),
+        
+        # Capa Densa intermedia para aprender combinaciones de características no lineales
+        layers.Dense(64, activation='relu'),
+        layers.Dropout(0.3),
         
         # Capa Densa Final (Softmax)
         layers.Dense(len(CLASSES), activation='softmax')
@@ -120,7 +128,7 @@ def build_model():
                   metrics=['accuracy'])
     return model
 
-def convert_to_tflite_and_c(model, filename_tflite, filename_c):
+def convert_to_tflite_and_c(model, filename_tflite, filename_c, filename_lib_c=None):
     print("\n--- Conversión TFLite Micro ---")
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     
@@ -150,9 +158,41 @@ def convert_to_tflite_and_c(model, filename_tflite, filename_c):
                 f.write("\n")
         f.write("\n};\n")
 
+    if filename_lib_c:
+        lib_dir = os.path.dirname(filename_lib_c)
+        if os.path.isdir(lib_dir):
+            print(f"Generando código C en: {filename_lib_c}")
+            with open(filename_lib_c, 'w') as f:
+                f.write("/* Archivo generado automáticamente por train_har_cnn.py */\n")
+                f.write("#include <stdint.h>\n\n")
+                f.write(f"const unsigned int har_model_tflite_len = {len(tflite_model)};\n")
+                f.write("const unsigned char har_model_tflite[] = {\n")
+                for i, byte in enumerate(tflite_model):
+                    f.write(f"0x{byte:02x}, ")
+                    if (i + 1) % 12 == 0:
+                        f.write("\n")
+                f.write("\n};\n")
+
 def main():
+    import argparse
     print("=== SupaClock HAR Pipeline (CNN 1D) ===")
-    data_dir = os.path.dirname(os.path.abspath(__file__))
+    parser = argparse.ArgumentParser(description="Entrenamiento del modelo HAR CNN 1D")
+    parser.add_argument('--data_dir', type=str, default=None, help="Directorio que contiene los archivos CSV de datos")
+    args = parser.parse_args()
+    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if args.data_dir:
+        data_dir = args.data_dir
+    else:
+        # Fallback a data_ml en el directorio raíz del proyecto si existe
+        parent_dir = os.path.dirname(script_dir)
+        possible_data_ml = os.path.join(parent_dir, 'data_ml')
+        if os.path.isdir(possible_data_ml):
+            data_dir = possible_data_ml
+        else:
+            data_dir = script_dir
+            
+    print(f"Buscando datos en: {data_dir}")
     
     # 1. Cargar y procesar datos
     X, y = load_data(data_dir)
@@ -186,15 +226,20 @@ def main():
         plt.ylabel('Métrica')
         plt.legend(loc='best')
         plt.grid(True)
-        plt.savefig(os.path.join(data_dir, 'har_training_history.png'))
+        plt.savefig(os.path.join(script_dir, 'har_training_history.png'))
         print("Gráfica de entrenamiento guardada.")
     except Exception as e:
         print(f"No se pudo guardar la gráfica: {e}")
     
     # 4. Exportar a TFLite Micro y código C
-    tflite_path = os.path.join(data_dir, 'har_model.tflite')
-    cc_path = os.path.join(data_dir, 'har_model_data.cc')
-    convert_to_tflite_and_c(model, tflite_path, cc_path)
+    tflite_path = os.path.join(script_dir, 'har_model.tflite')
+    cc_path = os.path.join(script_dir, 'har_model_data.cc')
+    
+    # También exportar directamente a lib/har_cnn1d/har_model.c si existe la carpeta
+    parent_dir = os.path.dirname(script_dir)
+    lib_path = os.path.join(parent_dir, 'lib', 'har_cnn1d', 'har_model.c')
+    
+    convert_to_tflite_and_c(model, tflite_path, cc_path, lib_path)
     print("\n¡Pipeline finalizado exitosamente!")
 
 if __name__ == '__main__':

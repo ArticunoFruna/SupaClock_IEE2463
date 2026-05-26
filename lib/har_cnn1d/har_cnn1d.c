@@ -41,9 +41,9 @@ extern const unsigned char har_model_tflite[] __attribute__((weak));
 extern const unsigned int  har_model_tflite_len __attribute__((weak));
 
 /* ───────────── Tensor arena ─────────────
- * 24 kB cubre la red base (3 conv blocks INT8 + GAP + dense de 3 clases).
+ * Aumentado a 128 kB para soportar el modelo más robusto en PSRAM.
  * Si en PSRAM, se aloca con caps SPIRAM; si en SRAM, lo dejamos estático. */
-#define HAR_ARENA_BYTES    (24 * 1024)
+#define HAR_ARENA_BYTES    (128 * 1024)
 #if HAR_TENSOR_ARENA_IN_PSRAM
 static uint8_t *s_arena;
 #else
