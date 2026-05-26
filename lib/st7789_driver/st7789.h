@@ -4,24 +4,27 @@
 #include <stdint.h>
 #include "esp_err.h"
 #include "driver/spi_master.h"
+#include "supaclock_pinmap.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Pin definitions
-#define ST7789_MOSI_PIN  6
-#define ST7789_SCK_PIN   4
-#define ST7789_CS_PIN    5
-#define ST7789_DC_PIN    3
-#define ST7789_RST_PIN   7
-#define ST7789_BLK_PIN   21
+// Pin definitions (XIAO ESP32-S3 carrier v1 — ver supaclock_pinmap.h)
+#define ST7789_MOSI_PIN  SUPA_PIN_SPI_MOSI
+#define ST7789_SCK_PIN   SUPA_PIN_SPI_SCK
+#define ST7789_CS_PIN    SUPA_PIN_SPI_CS
+#define ST7789_DC_PIN    SUPA_PIN_SPI_DC
+#define ST7789_RST_PIN   SUPA_PIN_LCD_RST     /* -1 → soft-reset por SWRESET */
+#define ST7789_BLK_PIN   SUPA_PIN_LCD_BLK
 
 // ST7789 Config registers
 #define ST7789_SWRESET 0x01
+#define ST7789_SLPIN   0x10
 #define ST7789_SLPOUT  0x11
 #define ST7789_NORON   0x13
 #define ST7789_INVON   0x21
+#define ST7789_DISPOFF 0x28
 #define ST7789_DISPON  0x29
 #define ST7789_CASET   0x2A
 #define ST7789_RASET   0x2B

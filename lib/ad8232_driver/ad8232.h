@@ -4,21 +4,21 @@
 #include "esp_adc/adc_continuous.h"
 #include "esp_err.h"
 #include <stdint.h>
+#include "supaclock_pinmap.h"
 
-// ESP32-C3 ADC1 Channel 0 corresponds to GPIO 0
-#define AD8232_ADC_CHANNEL ADC_CHANNEL_0
-#define AD8232_ADC_UNIT ADC_UNIT_1
+// XIAO ESP32-S3: ECG_OUT → GPIO1 = ADC1_CH0 (ver supaclock_pinmap.h)
+#define AD8232_ADC_CHANNEL SUPA_ADC_CHANNEL_ECG
+#define AD8232_ADC_UNIT    SUPA_ADC_UNIT_ECG
 
 // Pin para Shutdown (SDN). Activo en BAJO (Low = Apagado, High = Encendido).
-// Ponlo a -1 si el pin SDN está conectado físicamente a 3.3V o no se usa.
-#define AD8232_SDN_PIN 2
+#define AD8232_SDN_PIN      SUPA_PIN_ECG_SDN
 
-// Pines de detección de "Leads Off" (LO+ y LO-). Activos en ALTO.
-// Pon a -1 si no se conectan a un GPIO del ESP32.
-#define AD8232_LO_PLUS_PIN -1
-#define AD8232_LO_MINUS_PIN -1
+// Pines de detección de "Leads Off" (LO+ y LO-). No cableados en carrier v1.
+#define AD8232_LO_PLUS_PIN  SUPA_PIN_ECG_LO_PLUS
+#define AD8232_LO_MINUS_PIN SUPA_PIN_ECG_LO_MINUS
 
-// Frecuencia de muestreo del hardware DMA (Mínimo 20 kHz en ESP32-C3)
+// Frecuencia de muestreo del hardware DMA. En ESP32-S3 el mínimo del
+// adc_continuous es 611 Hz; subimos a 20 kHz para decimar limpio.
 #define AD8232_HW_SAMPLE_FREQ_HZ 20000
 
 // Frecuencia de salida objetivo del ECG (ej. 500 Hz)

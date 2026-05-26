@@ -2,6 +2,8 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "esp_rom_gpio.h"
+#include "soc/gpio_sig_map.h"
 
 static const char *TAG = "GPIO_BUTTONS";
 
@@ -47,6 +49,13 @@ static btn_event_t q_pop(void) {
 }
 
 esp_err_t gpio_buttons_init(void) {
+    /* En XIAO ESP32-S3 BTN_NEXT=GPIO43 (U0TXD) y SPI_CS=GPIO44 (U0RXD).
+     * Si la consola se quedó en UART0, esos pines no están como GPIO.
+     * Forzamos el IO MUX a GPIO antes de configurarlos.
+     * (Inocuo si la consola ya está en USB-Serial-JTAG.) */
+    esp_rom_gpio_pad_select_gpio(BTN_NEXT_PIN);
+    esp_rom_gpio_connect_out_signal(BTN_NEXT_PIN, SIG_GPIO_OUT_IDX, false, false);
+
     gpio_config_t btn_cfg = {
         .intr_type    = GPIO_INTR_DISABLE,
         .mode         = GPIO_MODE_INPUT,
@@ -57,7 +66,9 @@ esp_err_t gpio_buttons_init(void) {
     esp_err_t err = gpio_config(&btn_cfg);
     if (err != ESP_OK) return err;
 
-    /* BMI160 INT1 — solo entrada, no usamos ISR todavía */
+    /* BMI160 INT1 — no cableada en el carrier v1 (BMI160_INT1_PIN = -1).
+     * Si en una rev futura se cablea, descomentar y poner el pin real. */
+#if BMI160_INT1_PIN >= 0
     gpio_config_t int_cfg = {
         .intr_type    = GPIO_INTR_DISABLE,
         .mode         = GPIO_MODE_INPUT,
@@ -66,6 +77,7 @@ esp_err_t gpio_buttons_init(void) {
         .pull_up_en   = GPIO_PULLUP_DISABLE,
     };
     gpio_config(&int_cfg);
+#endif
 
     ESP_LOGI(TAG, "Botones listos: NEXT=GPIO%d  SELECT=GPIO%d (activo-bajo, pull-up)",
              BTN_NEXT_PIN, BTN_SELECT_PIN);

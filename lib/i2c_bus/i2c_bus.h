@@ -5,11 +5,10 @@
 #include <stdint.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#include "supaclock_pinmap.h"
 
-#define I2C_MASTER_SCL_IO                                                      \
-  9 /*!< GPIO number used for I2C master clock (ESP32-C3) */
-#define I2C_MASTER_SDA_IO                                                      \
-  8 /*!< GPIO number used for I2C master data  (ESP32-C3) */
+#define I2C_MASTER_SCL_IO  SUPA_PIN_I2C_SCL  /*!< I2C SCL (XIAO ESP32-S3 GPIO6) */
+#define I2C_MASTER_SDA_IO  SUPA_PIN_I2C_SDA  /*!< I2C SDA (XIAO ESP32-S3 GPIO5) */
 #define I2C_MASTER_NUM                                                         \
   I2C_NUM_0 /*!< I2C master i2c port number, the number of i2c peripheral      \
                interfaces available will depend on the chip */

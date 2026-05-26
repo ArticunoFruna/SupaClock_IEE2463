@@ -4,17 +4,18 @@
 #include "esp_err.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "supaclock_pinmap.h"
 
-/* ══════════════════ Pines (ESP32-C3 SuperMini) ══════════════════
- * Usamos los dos únicos GPIOs libres que NO colisionan con UART0:
- *   GPIO 10 = BTN_NEXT    (avanza pantalla / scrollea menú)
- *   GPIO 1 = BTN_SELECT  (acción contextual: toggle ECG / activar ítem)
- * GPIO 20 queda reservado (UART0 RX). */
-#define BTN_NEXT_PIN    10
-#define BTN_SELECT_PIN  1
+/* ══════════════════ Pines (XIAO ESP32-S3 — carrier v1) ══════════════════
+ * BTN_NEXT  = GPIO43  (era U0TXD; consola se va a USB-Serial-JTAG)
+ * BTN_SELECT = GPIO8
+ * Ver supaclock_pinmap.h para el mapa completo.
+ */
+#define BTN_NEXT_PIN    SUPA_PIN_BTN_NEXT
+#define BTN_SELECT_PIN  SUPA_PIN_BTN_SELECT
 
-/* Pin del IMU INT1 (BMI160) — no es botón pero lo inicializamos aquí */
-#define BMI160_INT1_PIN -1
+/* INT1 del BMI160 — no cableado en el carrier v1 (HAR usa polling). */
+#define BMI160_INT1_PIN SUPA_PIN_BMI160_INT1
 
 /* ══════════════════ Eventos ══════════════════ */
 typedef enum {
