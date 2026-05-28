@@ -136,38 +136,6 @@
     {\scriptsize\textbf{Cambio clave:} la ruta del prototipo final se centra en XIAO ESP32-S3 + carrier propio + carcasa.}
 \end{frame}
 
-\begin{frame}{Arquitectura funcional mantenida}
-    \begin{columns}[T]
-        \column{0.42\textwidth}
-        \scriptsize
-        \begin{tabular}{l l}
-            \toprule
-            \textbf{Bloque} & \textbf{Interfaz} \\
-            \midrule
-            BMI160 IMU & I\textsuperscript{2}C \\
-            MAX30102 PPG/SpO\textsubscript{2} & I\textsuperscript{2}C \\
-            MAX30205 temperatura & I\textsuperscript{2}C \\
-            MAX17048 fuel gauge & I\textsuperscript{2}C \\
-            AD8232 ECG & ADC1 + DMA \\
-            ST7789 display & SPI \\
-            Botones & GPIO \\
-            \bottomrule
-        \end{tabular}
-        \vspace{0.25cm}
-        \begin{itemize}\itemsep0.08cm
-            \item Se conserva el particionado por drivers.
-            \item El cambio principal es el \textbf{mapa f\'isico de pines} y el soporte mec\'anico.
-        \end{itemize}
-        \column{0.58\textwidth}
-        \vspace{-0.25cm}
-        \begin{flushright}
-            \resizebox{1.02\linewidth}{!}{\input{../Entrega2/fig_bloques_lownivel.tex}}
-            \vspace{0.05cm}\newline
-            \scriptsize\textbf{Figura}: Bloques de hardware heredados del informe de avance.
-        \end{flushright}
-    \end{columns}
-\end{frame}
-
 \section{XIAO ESP32-S3}
 
 \begin{frame}{Implementaci\'on sobre Seeed XIAO ESP32-S3}
@@ -615,6 +583,40 @@
         \begin{block}{Meta de la siguiente iteraci\'on}
             \scriptsize Prototipo wearable cerrado: captura biom\'etrica, visualizaci\'on local y telemetr\'ia BLE desde el carrier XIAO S3.
         \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Arquitectura integrada y estado de avance (Entrega 3)}
+    \begin{columns}[T]
+        \column{0.42\textwidth}
+        \scriptsize
+        \begin{tabular}{l l}
+            \toprule
+            \textbf{Bloque} & \textbf{Interfaz / Estado} \\
+            \midrule
+            BMI160 IMU & I\textsuperscript{2}C / 100\% \\
+            MAX30102 PPG & I\textsuperscript{2}C / 95\% \\
+            MAX30205 Temp. & I\textsuperscript{2}C / 100\% \\
+            MAX17048 Fuel & I\textsuperscript{2}C / 100\% \\
+            AD8232 ECG & ADC1 / 100\% \\
+            ST7789 Display & SPI / 100\% \\
+            PCB Carrier v1 & listo / 100\% \\
+            App m\'ovil & Flutter / 90\% \\
+            TinyML CNN 1D & TFLite / 70\% \\
+            \bottomrule
+        \end{tabular}
+        \vspace{0.15cm}
+        \begin{itemize}\itemsep0.04cm
+            \item Integraci\'on f\'isica finalizada en la PCB.
+            \item Soporte de potencia y carga por la XIAO S3.
+        \end{itemize}
+        \column{0.58\textwidth}
+        \vspace{-0.25cm}
+        \begin{flushright}
+            \resizebox{1.02\linewidth}{!}{\input{fig_bloques_lownivel_e3.tex}}
+            \vspace{0.05cm}\newline
+            \scriptsize\textbf{Figura}: Arquitectura de hardware y estado de avance integrado para la Entrega 3.
+        \end{flushright}
     \end{columns}
 \end{frame}
 
