@@ -51,76 +51,7 @@ static uint8_t  s_arena[HAR_ARENA_BYTES] __attribute__((aligned(16)));
 #endif
 static size_t   s_arena_used;
 
-/* ───────────── Detector de caídas (heurística separada) ─────────────
- * Patrón clásico de 3 fases que la CNN no captura bien con ventanas de 2 s:
- *   1. Free-fall: |a| < 0.5 g durante > 80 ms
- *   2. Impact:    |a| > 3.0 g
- *   3. Stillness: |a| ≈ 1 g y giro < 30 dps durante > 1.5 s post-impacto
- *
- * Se alimenta con cada muestra (a 100 Hz). Costo: ~5 instrucciones/sample.
- */
-typedef enum { FALL_IDLE, FALL_FREEFALL, FALL_POST_IMPACT } fall_phase_t;
-static struct {
-    fall_phase_t phase;
-    uint32_t     freefall_count;
-    uint32_t     post_count;
-    bool         flag_event;     /* one-shot que setea s_last_result.fall_event */
-} s_fall;
-
-/* Para detectar caídas correctamente el BMI160 debe estar en rango ±8g
- * (3g a ±2g se clipea). LSB/g = 4096 a ±8g. La suma de 3 ejes² puede
- * llegar a ~3.2e9 → necesitamos int64_t para a2/g2. */
-#define G_TO_RAW_8G(g)   ((int64_t)((g) * 4096.0f))
-static inline bool fall_step(int16_t ax, int16_t ay, int16_t az,
-                              int16_t gx, int16_t gy, int16_t gz) {
-    int64_t a2 = (int64_t)ax * ax + (int64_t)ay * ay + (int64_t)az * az;
-    int64_t g2 = (int64_t)gx * gx + (int64_t)gy * gy + (int64_t)gz * gz;
-    /* Umbrales² evitan sqrt en hot path */
-    const int64_t freefall_th2 = G_TO_RAW_8G(0.5f) * G_TO_RAW_8G(0.5f);
-    const int64_t impact_th2   = G_TO_RAW_8G(3.0f) * G_TO_RAW_8G(3.0f);
-    const int64_t rest_lo2     = G_TO_RAW_8G(0.8f) * G_TO_RAW_8G(0.8f);
-    const int64_t rest_hi2     = G_TO_RAW_8G(1.2f) * G_TO_RAW_8G(1.2f);
-    const int64_t gyro_quiet2  = (int64_t)(30 * 16) * (30 * 16); /* ~30 dps² scaled */
-
-    switch (s_fall.phase) {
-        case FALL_IDLE:
-            if (a2 < freefall_th2) {
-                s_fall.freefall_count = 1;
-                s_fall.phase = FALL_FREEFALL;
-            }
-            break;
-        case FALL_FREEFALL:
-            if (a2 < freefall_th2) {
-                s_fall.freefall_count++;
-            } else if (a2 > impact_th2 && s_fall.freefall_count >= 8) {
-                /* 8 muestras @ 100 Hz = 80 ms de free-fall mínimo */
-                s_fall.phase = FALL_POST_IMPACT;
-                s_fall.post_count = 0;
-            } else {
-                s_fall.phase = FALL_IDLE;
-            }
-            break;
-        case FALL_POST_IMPACT:
-            if (a2 > rest_lo2 && a2 < rest_hi2 && g2 < gyro_quiet2) {
-                s_fall.post_count++;
-                if (s_fall.post_count >= 150) {  /* 1.5 s de quietud */
-                    s_fall.flag_event = true;
-                    s_fall.phase = FALL_IDLE;
-                    return true;
-                }
-            } else if (a2 > impact_th2) {
-                /* nuevo impacto → resetear conteo */
-                s_fall.post_count = 0;
-            }
-            /* timeout suave: si no llega quietud en 3 s, abortamos */
-            if (s_fall.post_count == 0 &&
-                ++s_fall.freefall_count > 300) {
-                s_fall.phase = FALL_IDLE;
-            }
-            break;
-    }
-    return false;
-}
+/* Detección de caídas integrada directamente en la red neuronal CNN-1D (Clase 3) */
 
 /* ───────────── Inferencia ─────────────
  * El intérprete TFLite-Micro vive en C++; aquí dejamos un *hook* que
@@ -134,7 +65,7 @@ extern bool har_runner_run(const int16_t window[HAR_WINDOW_SIZE][HAR_CHANNELS],
                            float probs[HAR_NUM_CLASSES]) __attribute__((weak));
 
 /* Fallback heurístico (usado mientras no haya modelo entrenado).
- * Clasifica por la varianza de |a| en la ventana. */
+ * Clasifica por la varianza de |a| en la ventana para las 4 clases. */
 static void heuristic_infer(float probs[HAR_NUM_CLASSES]) {
     int64_t mean_a2 = 0;
     int64_t var_a2  = 0;
@@ -153,10 +84,17 @@ static void heuristic_infer(float probs[HAR_NUM_CLASSES]) {
         var_a2 += (d * d) >> 20;  /* normaliza para evitar overflow */
     }
     float v = (float)var_a2 / HAR_WINDOW_SIZE;
-    /* Umbrales empíricos — sustituidos por la CNN cuando esté entrenada */
-    if (v < 50.0f)        { probs[0] = 0.9f; probs[1] = 0.08f; probs[2] = 0.02f; }
-    else if (v < 5000.0f) { probs[0] = 0.05f; probs[1] = 0.85f; probs[2] = 0.10f; }
-    else                  { probs[0] = 0.02f; probs[1] = 0.10f; probs[2] = 0.88f; }
+    /* Umbrales empíricos — sustituidos por la CNN cuando esté entrenada.
+     * Mapeo: 0: reposo, 1: caminata, 2: trote, 3: caída. */
+    if (v < 50.0f) {
+        probs[0] = 0.90f; probs[1] = 0.08f; probs[2] = 0.01f; probs[3] = 0.01f;
+    } else if (v < 5000.0f) {
+        probs[0] = 0.05f; probs[1] = 0.85f; probs[2] = 0.08f; probs[3] = 0.02f;
+    } else if (v < 20000.0f) {
+        probs[0] = 0.02f; probs[1] = 0.10f; probs[2] = 0.85f; probs[3] = 0.03f;
+    } else {
+        probs[0] = 0.05f; probs[1] = 0.05f; probs[2] = 0.10f; probs[3] = 0.80f;
+    }
 }
 
 static void run_inference_on_window(void) {
@@ -177,12 +115,11 @@ static void run_inference_on_window(void) {
     har_result_t r = {
         .state        = (har_state_t)argmax,
         .confidence   = probs[argmax],
-        .fall_event   = s_fall.flag_event,
+        .fall_event   = (argmax == HAR_STATE_FALL),
         .timestamp_us = esp_timer_get_time(),
     };
     memcpy(r.probs, probs, sizeof(probs));
     s_last_result = r;
-    s_fall.flag_event = false;  /* consumido */
 
     if (s_cb) s_cb(&r, s_cb_user);
 }
@@ -193,6 +130,11 @@ static void har_task(void *arg) {
     TickType_t period = pdMS_TO_TICKS(1000 / HAR_SAMPLE_RATE_HZ);
     TickType_t last = xTaskGetTickCount();
 
+    // Acumuladores estáticos para promediar cada 2 muestras físicas (100 Hz -> 50 Hz)
+    static int32_t s_acc_ax = 0, s_acc_ay = 0, s_acc_az = 0;
+    static int32_t s_acc_gx = 0, s_acc_gy = 0, s_acc_gz = 0;
+    static int s_acc_count = 0;
+
     while (1) {
         vTaskDelayUntil(&last, period);
         if (s_paused) continue;
@@ -202,20 +144,44 @@ static void har_task(void *arg) {
             continue;
         }
 
-        /* Push al ring */
-        s_ring[s_write_idx][0] = ax; s_ring[s_write_idx][1] = ay;
-        s_ring[s_write_idx][2] = az; s_ring[s_write_idx][3] = gx;
-        s_ring[s_write_idx][4] = gy; s_ring[s_write_idx][5] = gz;
-        s_write_idx = (s_write_idx + 1) % HAR_WINDOW_SIZE;
-        s_samples_since_inference++;
+        // Acumular muestras físicas
+        s_acc_ax += ax;
+        s_acc_ay += ay;
+        s_acc_az += az;
+        s_acc_gx += gx;
+        s_acc_gy += gy;
+        s_acc_gz += gz;
+        s_acc_count++;
 
-        /* Fall detector corre por muestra */
-        fall_step(ax, ay, az, gx, gy, gz);
+        // Promediar y procesar cada 2 muestras físicas (frecuencia efectiva de 50 Hz)
+        if (s_acc_count >= 2) {
+            int16_t avg_ax = s_acc_ax / 2;
+            int16_t avg_ay = s_acc_ay / 2;
+            int16_t avg_az = s_acc_az / 2;
+            int16_t avg_gx = s_acc_gx / 2;
+            int16_t avg_gy = s_acc_gy / 2;
+            int16_t avg_gz = s_acc_gz / 2;
 
-        /* Inferencia cada HOP muestras (1 s con HOP=100) */
-        if (s_samples_since_inference >= HAR_HOP_SIZE) {
-            s_samples_since_inference = 0;
-            run_inference_on_window();
+            // Resetear acumulador
+            s_acc_ax = 0; s_acc_ay = 0; s_acc_az = 0;
+            s_acc_gx = 0; s_acc_gy = 0; s_acc_gz = 0;
+            s_acc_count = 0;
+
+            /* Push al ring */
+            s_ring[s_write_idx][0] = avg_ax;
+            s_ring[s_write_idx][1] = avg_ay;
+            s_ring[s_write_idx][2] = avg_az;
+            s_ring[s_write_idx][3] = avg_gx;
+            s_ring[s_write_idx][4] = avg_gy;
+            s_ring[s_write_idx][5] = avg_gz;
+            s_write_idx = (s_write_idx + 1) % HAR_WINDOW_SIZE;
+            s_samples_since_inference++;
+
+            /* Inferencia cada HOP muestras (100 muestras / 50 Hz = 2 s) */
+            if (s_samples_since_inference >= HAR_HOP_SIZE) {
+                s_samples_since_inference = 0;
+                run_inference_on_window();
+            }
         }
     }
 }
@@ -227,7 +193,6 @@ esp_err_t har_cnn1d_init(har_result_cb_t cb, void *cb_user) {
     memset(s_ring, 0, sizeof(s_ring));
     s_write_idx = 0;
     s_samples_since_inference = 0;
-    memset(&s_fall, 0, sizeof(s_fall));
 
 #if HAR_TENSOR_ARENA_IN_PSRAM
     s_arena = (uint8_t *)heap_caps_aligned_alloc(16, HAR_ARENA_BYTES, MALLOC_CAP_SPIRAM);

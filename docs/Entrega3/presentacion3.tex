@@ -80,7 +80,7 @@
         \begin{itemize}\itemsep0.16cm
             \item Migraci\'on del banco de desarrollo al \textbf{Seeed XIAO ESP32-S3}.
             \item Cierre del \textbf{dise\~no de PCB carrier} para el prototipo.
-            \item Desarrollo de \textbf{carcasa param\'etrica en OpenSCAD}.
+            \item Desarrollo de \textbf{carcasa param\'etrica}.
             \item Integraci\'on con firmware ya validado: sensores, GUI, BLE, ECG y tareas FreeRTOS.
         \end{itemize}
         \column{0.45\textwidth}
@@ -96,12 +96,13 @@
 \begin{frame}{Índice}
     \Large
     \centering
-    \vspace{0.75cm}
-    \begin{enumerate}\itemsep0.35cm
+    \vspace{0.45cm}
+    \begin{enumerate}\itemsep0.25cm
         \item \textbf{Estado de la Entrega 2}
         \item \textbf{Implementaci\'on con XIAO ESP32-S3}
         \item \textbf{PCB final del prototipo}
-        \item \textbf{Carcasa param\'etrica en SCAD}
+        \item \textbf{Carcasa param\'etrica}
+        \item \textbf{Modelo de Machine Learning Edge}
         \item \textbf{Pruebas y siguientes pasos}
     \end{enumerate}
 \end{frame}
@@ -128,11 +129,11 @@
             \item Capacitores externos entregan el pulso inicial de potencia requerido por el ESP32-C3 al encender.
             \item Nueva ESP32-S3 validada en la proto para avanzar hacia el carrier final.
             \item PCB de dos caras: top con display, ECG y botones; bottom con PPG, temperatura y pads ECG.
-            \item Carcasa SCAD orientada a fijar PCB, electrodos, sensor \'optico, placa t\'ermica y correa.
+            \item Carcasa orientada a fijar PCB, electrodos, sensor \'optico, placa t\'ermica y correa.
         \end{itemize}
     \end{columns}
     \vspace{0.12cm}
-    {\scriptsize\textbf{Cambio clave:} la ruta del prototipo final se centra en XIAO ESP32-S3 + carrier propio + carcasa SCAD.}
+    {\scriptsize\textbf{Cambio clave:} la ruta del prototipo final se centra en XIAO ESP32-S3 + carrier propio + carcasa.}
 \end{frame}
 
 \begin{frame}{Arquitectura funcional mantenida}
@@ -209,7 +210,7 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Bring-up esperado del XIAO S3}
+\begin{frame}{Pruebas de Validación del XIAO S3}
     \begin{columns}[T]
         \column{0.50\textwidth}
         \footnotesize
@@ -226,14 +227,9 @@
         \footnotesize
         \textbf{Riesgos tratados desde dise\~no}
         \begin{itemize}\itemsep0.12cm
-            \item GPIO43/44 quedan usados por bot\'on y chip-select, por lo que la consola debe ir por USB-Serial-JTAG.
-            \item BMI160 INT1 no queda cableado en carrier v1; HAR y podometr\'ia operan por polling/FIFO.
-            \item El carrier deja VBUS sin conectar: alimentaci\'on y carga quedan centralizadas en el XIAO.
+            \item Menor cantidad de pines disponibles, lo cual nos obligó a quitar el pin de reset de la pantalla.
+            \item El modo \textit{light-sleep} tuvo que ser reconfigurado.
         \end{itemize}
-        \vspace{0.15cm}
-        \begin{alertblock}{Criterio}
-            \scriptsize No se cambia la arquitectura de firmware hasta comprobar equivalencia funcional con el prototipo C3.
-        \end{alertblock}
     \end{columns}
 \end{frame}
 
@@ -256,7 +252,7 @@
         \end{block}
         \column{0.52\textwidth}
         \centering
-        \includegraphics[page=1,width=0.95\linewidth]{SupaClock_Carrier_v1_pcb_placement.pdf}
+        \includegraphics[page=1,width=2\linewidth]{SupaClock_Carrier_v1_pcb_placement.pdf}
         \vspace{0.05cm}\newline
         \scriptsize\textbf{Figura}: Placement de la PCB carrier v1.
     \end{columns}
@@ -295,7 +291,7 @@
             \node[block, below=0.35cm of s3] (pcb) {Carrier PCB v1};
             \node[block, below left=0.45cm and -0.05cm of pcb] (top) {Top: display\\ECG\\botones};
             \node[block, below right=0.45cm and -0.05cm of pcb] (bottom) {Bottom: PPG\\temp\\ECG pads};
-            \node[block, below=1.25cm of pcb, fill=accent!10, draw=accent] (case) {Carcasa SCAD\\alineaci\'on mec\'anica};
+            \node[block, below=1.25cm of pcb, fill=accent!10, draw=accent] (case) {Carcasa \\alineaci\'on mec\'anica};
             \draw[arr] (s3) -- (pcb);
             \draw[arr] (pcb) -- (top);
             \draw[arr] (pcb) -- (bottom);
@@ -331,9 +327,9 @@
     \end{columns}
 \end{frame}
 
-\section{Carcasa SCAD}
+\section{Carcasa}
 
-\begin{frame}{Dise\~no de carcasa en OpenSCAD}
+\begin{frame}{Dise\~no de carcasa}
     \begin{columns}[T]
         \column{0.48\textwidth}
         \footnotesize
@@ -346,14 +342,11 @@
             \item Bottom con ventanas para PPG, temperatura y contactos ECG.
         \end{itemize}
         \vspace{0.15cm}
-        \begin{block}{Ventaja de SCAD}
-            \scriptsize Las cotas relevantes quedan parametrizadas: dimensiones, radios, lugs, cutouts, altura de caja y ubicaci\'on de elementos.
-        \end{block}
         \column{0.52\textwidth}
         \centering
         \includegraphics[width=0.96\linewidth]{render_v2_assembly_hero.png}
         \vspace{0.05cm}\newline
-        \scriptsize\textbf{Figura}: Ensamble conceptual generado desde los archivos SCAD.
+        \scriptsize\textbf{Figura}: Ensamble conceptual generado.
     \end{columns}
 \end{frame}
 
@@ -397,6 +390,170 @@
         \begin{block}{Resultado}
             \scriptsize La carcasa ya no es s\'olo envolvente: participa en la calidad de medici\'on biom\'etrica.
         \end{block}
+    \end{columns}
+\end{frame}
+
+\section{Machine Learning Edge}
+
+\begin{frame}{Evoluci\'on del Procesamiento Edge (C3 vs. S3)}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \scriptsize
+        \textbf{Restricciones en la ESP32-C3}
+        \begin{itemize}\itemsep0.1cm
+            \item \textbf{CPU}: Single-core RISC-V a 160\,MHz. Carece de extensiones vectoriales/SIMD por hardware.
+            \item \textbf{Memoria}: SRAM muy limitada. Despu\'es de inicializar NimBLE y LVGL, el heap disponible era de tan s\'olo $\sim$99\,KB.
+            %\item \textbf{Inferencia}: Demora entre 50 y 200\,ms, forzando un cuello de botella que bloqueaba la GUI y causaba desconexiones en la transmisi\'on BLE.
+            \item \textbf{Modelo}: Restringido a un tama\~no $<30$\,KB de Flash y $\leq 10$\,KB de SRAM para no agotar el heap.
+        \end{itemize}
+        
+        \column{0.50\textwidth}
+        \scriptsize
+        \textbf{Oportunidades con Seeed XIAO S3}
+        \begin{itemize}\itemsep0.1cm
+            \item \textbf{CPU}: Dual-core Xtensa LX7 a 240\,MHz con FPU e instrucciones vectoriales dedicadas (\textbf{ESP-NN}).
+            \item \textbf{Memoria}: 8\,MB Flash y 8\,MB de \textbf{PSRAM} externa octal.
+            %\item \textbf{Inferencia}: Reducida a \textbf{5--20\,ms} gracias a la aceleraci\'on SIMD.
+            \item \textbf{Concurrencia}: La inferencia corre as\'incronamente en el \textbf{Core 1}, aislando la ejecuci\'on de la GUI y la telemetr\'ia BLE que corren en el \textbf{Core 0}.
+            \item \textbf{Modelo}: Permite una arquitectura profunda ($\sim$58\,KB cuantizada) usando un Tensor Arena de 128\,KB alocado en PSRAM.
+        \end{itemize}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Arquitectura del Modelo de ML (CNN 1D)}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \scriptsize
+        \textbf{Dise\~no de la Red Convolucional}
+        \begin{itemize}\itemsep0.08cm
+            \item \textbf{Entrada}: Tensor de \((200 \times 6)\) correspondiente a aceler\'ometro y giroscopio (ejes $X, Y, Z$).
+            \item \textbf{Capas Convolucionales}: 3 capas Conv1D con filtros progresivos (32, 64, 128) y kernels de tama\~no 5 y 3 para capturar patrones inerciales temporales.
+            \item \textbf{Pooling \& Regularizaci\'on}: Global Average Pooling (GAP) para colapsar la dimensi\'on temporal y evitar sobreajuste, m\'as Dropout de 0.3 en la capa densa.
+            \item \textbf{Salida}: Softmax de 4 clases:
+                \begin{enumerate}\scriptsize\itemsep0.02cm
+                    \item \textbf{Reposo} (estado estacionario)
+                    \item \textbf{Caminar} (patr\'on c\'iclico de baja frecuencia)
+                    \item \textbf{Correr} (patr\'on c\'iclico de alta frecuencia)
+                    \item \textbf{Ca\'ida} (evento de impacto y aceleraci\'on extrema)
+                \end{enumerate}
+        \end{itemize}
+        
+        \column{0.52\textwidth}
+        \centering
+        \begin{tikzpicture}[
+            layer/.style={draw, rectangle, rounded corners=2pt, align=center, fill=softgray, minimum height=0.48cm, font=\tiny, inner sep=2pt},
+            input/.style={layer, fill=main!20, minimum width=2.4cm},
+            pool/.style={layer, fill=accent!15, minimum width=1.6cm},
+            gap/.style={layer, fill=orange!20, minimum width=1.2cm},
+            dense/.style={layer, fill=purple!15, minimum width=1.8cm},
+            output/.style={layer, fill=main!30, minimum width=1.8cm, font=\tiny\bfseries},
+            arrow/.style={-Stealth, thick, draw=main}
+        ]
+            \node[input] (in) {IMU Raw Window\\(200 samples $\times$ 6 ch)};
+            \node[layer, right=0.2cm of in] (c1) {Conv1D (x32)\\Kernel 5};
+            \node[pool, right=0.2cm of c1] (p1) {MaxPool 1D\\Pool: 2};
+            
+            \node[layer, below=0.4cm of p1] (c2) {Conv1D (x64)\\Kernel 5};
+            \node[pool, left=0.2cm of c2] (p2) {MaxPool 1D\\Pool: 2};
+            \node[layer, left=0.2cm of p2] (c3) {Conv1D (x128)\\Kernel 3};
+            
+            \node[gap, below=0.4cm of c3] (gap) {Global Avg\\Pooling (GAP)};
+            \node[dense, right=0.2cm of gap] (d1) {Dense (x64)\\+ Dropout (0.3)};
+            \node[output, right=0.2cm of d1] (out) {Softmax\\(4 clases)};
+
+            \draw[arrow] (in) -- (c1);
+            \draw[arrow] (c1) -- (p1);
+            \draw[arrow] (p1) -- ++(0,-0.4) -| (c2);
+            \draw[arrow] (c2) -- (p2);
+            \draw[arrow] (p2) -- (c3);
+            \draw[arrow] (c3) -- ++(0,-0.4) -| (gap);
+            \draw[arrow] (gap) -- (d1);
+            \draw[arrow] (d1) -- (out);
+        \end{tikzpicture}
+        \vspace{0.15cm}
+        \begin{block}{Par\'ametros Temporales}
+            \tiny
+            \textbf{Ventana (200 muestras a 50\,Hz)}: Representa \textbf{4.0\,s} de registro f\'isico continuo. Permite aislar ciclos de marcha y tramos de ca\'ida.\\
+            \textbf{Traslape (50\% / 100 muestras)}: Desliza la ventana cada \textbf{2.0\,s}. Mantiene la historia inercial de la ventana anterior para continuidad y reduce la latencia de respuesta del reloj.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Pipeline de Datos e Integraci\'on en Firmware}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \scriptsize
+        \textbf{Flujo del Procesamiento Local}
+        \begin{itemize}\itemsep0.08cm
+            \item \textbf{Muestreo}: El IMU BMI160 opera a una frecuencia f\'isica de 100\,Hz.
+            \item \textbf{Downsampling}: Un acumulador en la \texttt{har\_task} promedia cada 2 muestras f\'isicas consecutivas, generando una se\~nal filtrada a \textbf{50\,Hz}.
+            \item \textbf{Ring Buffer}: Las muestras a 50\,Hz ingresan a un buffer circular est\'atico de 2.4\,KB en SRAM para evitar fragmentar memoria.
+            \item \textbf{Normalizaci\'on}: Escalamiento a flotantes dividiendo los valores enteros crudos por 32768.0 (\(\pm 32768\) a \([-1.0, 1.0]\)).
+            \item \textbf{Inferencia as\'incrona}: El int\'erprete TFLite Micro ejecuta la inferencia a trav\'es de un blob binario compilado en el firmware (\texttt{har\_model.c}).
+            \item \textbf{Alocaci\'on}: Tensor Arena de 128\,KB asignado en \textbf{PSRAM} mediante \texttt{MALLOC\_CAP\_SPIRAM}.
+        \end{itemize}
+        
+        \column{0.52\textwidth}
+        \centering
+        \begin{tikzpicture}[
+            block/.style={draw, rectangle, rounded corners=2pt, align=center, fill=softgray, minimum height=0.55cm, minimum width=1.8cm, font=\tiny, inner sep=2pt},
+            process/.style={block, fill=main!10},
+            device/.style={block, fill=main!20, font=\tiny\bfseries},
+            arrow/.style={-Stealth, thick, draw=main}
+        ]
+            \node[device] (imu) {IMU BMI160\\100 Hz};
+            \node[process, right=0.3cm of imu] (avg) {Promediado / 2\\(Filtro 50 Hz)};
+            \node[process, below=0.4cm of avg] (ring) {Ring Buffer\\(2.4 KB SRAM)};
+            \node[process, left=0.3cm of ring] (norm) {Normalizaci\'on\\($[-1.0, 1.0]$)};
+            \node[block, fill=accent!15, below=0.4cm of norm] (tflite) {TFLite Micro\\(128 KB PSRAM)};
+            \node[block, fill=main!30, right=0.3cm of tflite] (res) {Clasificaci\'on\\(har\_result\_t)};
+
+            \draw[arrow] (imu) -- (avg);
+            \draw[arrow] (avg) -- (ring);
+            \draw[arrow] (ring) -- (norm);
+            \draw[arrow] (norm) -- (tflite);
+            \draw[arrow] (tflite) -- (res);
+        \end{tikzpicture}
+        \vspace{0.15cm}
+        \begin{alertblock}{Ventaja de la Clase Ca\'ida Integrada}
+            \scriptsize
+            Al clasificar la ca\'ida directamente dentro del softmax del modelo entrenado, se delega al aprendizaje profundo la capacidad de reconocer perfiles complejos de aceleraci\'on-giroscopio, eliminando el ajuste manual de heur\'isticas r\'igidas de impacto y free-fall.
+        \end{alertblock}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Evoluci\'on Futura del Modelo de ML}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \scriptsize
+        \textbf{Opciones de Robustez del Modelo}
+        \begin{itemize}\itemsep0.12cm
+            \item \textbf{Fusi\'on PPG + IMU}:
+                \begin{itemize}\scriptsize\itemsep0.05cm
+                    \item Es viable incorporar la se\~nal del fotodetector (MAX30102) como una entrada adicional al modelo convolucional.
+                    \item Integrar variables del ritmo card\'iaco y variabilidad (HRV) como entrada de apoyo permite hacer la clasificaci\'on m\'as robusta frente a falsos positivos.
+                    \item Ayuda a discriminar ca\'idas reales de movimientos bruscos cotidianos mediante el contexto auton\'omico card\'iaco.
+                \end{itemize}
+            \item \textbf{Calibraci\'on y Personalizaci\'on}:
+                \begin{itemize}\scriptsize\itemsep0.05cm
+                    \item Habilitar un proceso de calibraci\'on local ``en caliente'' para ajustar umbrales de activaci\'on espec\'ificos según el peso y patrón de marcha del usuario.
+                \end{itemize}
+        \end{itemize}
+        
+        \column{0.50\textwidth}
+        \scriptsize
+        \textbf{Dataset y Entrenamiento Continuo}
+        \begin{itemize}\itemsep0.12cm
+            \item \textbf{Captura de Datos Reales}:
+                \begin{itemize}\scriptsize\itemsep0.05cm
+                    \item Uso continuo del recorder de Flutter (\texttt{csv\_recorder.dart}) y la app de telemetr\'ia (\texttt{supaclock\_monitor.py}) para almacenar trazas.
+                    \item Ampliaci\'on del dataset de entrenamiento a m\'as sujetos de prueba para mejorar la generalizaci\'on de la red neuronal.
+                \end{itemize}
+            \item \textbf{Optimizaci\'on de Pesos}:
+                \begin{itemize}\scriptsize\itemsep0.05cm
+                    \item Explorar t\'ecnicas de cuantizaci\'on selectiva e introducci\'on de pesos dispersos (pruning) para reducir a\'un m\'as la huella del modelo en Flash, buscando bajar de los actuales $\sim$58\,KB.
+                \end{itemize}
+        \end{itemize}
     \end{columns}
 \end{frame}
 
@@ -465,7 +622,7 @@
     \centering
     \vspace{1.25cm}
     {\Huge \color{main} \textbf{Demostraci\'on / Discusi\'on}}\\[0.6cm]
-    {\Large XIAO ESP32-S3 + PCB carrier + carcasa SCAD}\\[0.4cm]
+    {\Large XIAO ESP32-S3 + PCB carrier + carcasa}\\[0.4cm]
     \footnotesize
     Ruta de bring-up \textbar{} puntos de riesgo \textbar{} fabricaci\'on \textbar{} pruebas de unidad integrada
 \end{frame}

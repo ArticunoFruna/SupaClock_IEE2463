@@ -5,25 +5,19 @@
  *
  * Entrada:
  *   - 6 canales (ax, ay, az, gx, gy, gz) en raw int16 desde bmi160_read_*.
- *   - Sampleo a 100 Hz, ventana de 2 s (200 muestras) con 50 % de solape
- *     → 1 inferencia por segundo.
+ *   - Muestreo del IMU a 100 Hz, promediando cada 2 muestras consecutivas para
+ *     alimentar el modelo a 50 Hz, con una ventana de 200 muestras (4.0 s)
+ *     y 50 % de traslape (100 muestras) → 1 inferencia cada 2 segundos.
  *
  * Salida:
- *   - 3 clases de actividad continua:
- *       HAR_STATE_RESTING / HAR_STATE_WALKING / HAR_STATE_RUNNING
- *   - 1 evento puntual (no estado):
- *       HAR_EVENT_FALL  (free-fall → impacto → quietud, ventana de ~1.2 s)
- *
- * La detección de caída funciona en paralelo a la CNN principal (head
- * separado) porque las caídas son transitorias y muy desbalanceadas:
- * unirlas en un softmax único degrada las 3 clases continuas. Ver el
- * doc docs/s3_power.md para la justificación arquitectural.
+ *   - 4 clases de clasificación del modelo:
+ *       HAR_STATE_RESTING / HAR_STATE_WALKING / HAR_STATE_RUNNING / HAR_STATE_FALL
  *
  * Memoria:
  *   - Ring buffer de 200×6 int16 = 2.4 kB en SRAM interna.
  *   - Modelo INT8 (.tflite) embebido como `extern const uint8_t har_model_tflite[]`;
- *     pesos+activaciones ≈ 30–60 kB. Tensor arena ≈ 24 kB. Todo cabe en SRAM,
- *     pero queda configurable a PSRAM si crece (ver `HAR_TENSOR_ARENA_IN_PSRAM`).
+ *     pesos+activaciones ≈ 58 kB. Tensor arena ≈ 128 kB. Todo cabe en SRAM,
+ *     pero queda alocado en PSRAM (ver `HAR_TENSOR_ARENA_IN_PSRAM`).
  *
  * Thread model:
  *   - Una sola task (`har_task`) pinned a core 1, prio 4.
@@ -41,11 +35,12 @@ extern "C" {
 #endif
 
 /* ───────────── Parámetros del modelo ───────────── */
-#define HAR_SAMPLE_RATE_HZ     100
-#define HAR_WINDOW_SIZE        200      /* 2 s @ 100 Hz */
-#define HAR_HOP_SIZE           100      /* 50 % solape  → 1 inferencia/seg */
+#define HAR_SAMPLE_RATE_HZ     100      /* Muestreo físico a 100 Hz */
+#define HAR_MODEL_RATE_HZ      50       /* Frecuencia del modelo a 50 Hz (promedio de 2 muestras) */
+#define HAR_WINDOW_SIZE        200      /* Ventana de 200 muestras (4.0 s @ 50 Hz) */
+#define HAR_HOP_SIZE           100      /* Traslape del 50 % (100 muestras / 2.0 s) */
 #define HAR_CHANNELS           6        /* ax,ay,az,gx,gy,gz */
-#define HAR_NUM_CLASSES        3        /* resting / walking / running */
+#define HAR_NUM_CLASSES        4        /* resting / walking / running / fall */
 
 /* Si está a 1, la tensor arena del intérprete vive en PSRAM (recomendado
  * si el modelo crece o si compartes SRAM con LVGL DMA buffers). */
@@ -59,6 +54,7 @@ typedef enum {
     HAR_STATE_RESTING = 0,
     HAR_STATE_WALKING = 1,
     HAR_STATE_RUNNING = 2,
+    HAR_STATE_FALL = 3,
 } har_state_t;
 
 typedef struct {
