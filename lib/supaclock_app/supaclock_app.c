@@ -29,6 +29,10 @@
 
 static const char *TAG = "SUPA_APP";
 
+static inline uint32_t now_ms(void) {
+    return (uint32_t)(esp_timer_get_time() / 1000ULL);
+}
+
 /* ───────────────────────── Mutexes ───────────────────────── */
 static SemaphoreHandle_t xGuiSemaphore;
 /* El estado de sensores vive en lib/app_state (struct + mutex + now_ms). */
@@ -43,6 +47,7 @@ static uint32_t last_activity_ms = 0;
  * traza). El backlight tiene su propio lock dentro de st7789. */
 #if CONFIG_PM_ENABLE
 static esp_pm_lock_handle_t s_ecg_pm_lock = NULL;
+#endif
 
 /* ───────────────────────── Acciones de sistema para la UI ─────────────────
  * La UI llama estos callbacks (registrados con ui_set_actions) para acciones
@@ -57,6 +62,7 @@ static void on_power_off(void) {
     esp_sleep_enable_ext1_wakeup_io((1ULL << BTN_SELECT_PIN), ESP_EXT1_WAKEUP_ANY_LOW);
 #else
     esp_deep_sleep_enable_gpio_wakeup((1ULL << BTN_SELECT_PIN), ESP_GPIO_WAKEUP_GPIO_LOW);
+#endif
     esp_deep_sleep_start();
 }
 
@@ -149,6 +155,7 @@ void ecg_task(void *pvParameter) {
                 is_dma_running = false;
 #if CONFIG_PM_ENABLE
                 if (s_ecg_pm_lock) esp_pm_lock_release(s_ecg_pm_lock);
+#endif
             }
             vTaskDelay(pdMS_TO_TICKS(500)); /* Si no hay ECG, dormir profundamente este hilo */
             chunk_idx = 0; sum = 0; count = 0;
@@ -156,6 +163,7 @@ void ecg_task(void *pvParameter) {
         } else if (!is_dma_running) {
 #if CONFIG_PM_ENABLE
             if (s_ecg_pm_lock) esp_pm_lock_acquire(s_ecg_pm_lock);
+#endif
             ad8232_start_dma();
             is_dma_running = true;
         }
@@ -479,10 +487,12 @@ void perf_monitor_task(void *pvParameter) {
         char runtime_buffer[1024];
         vTaskGetRunTimeStats(runtime_buffer);
         ESP_LOGI("PERF", "=== Uso de CPU ===\n%s", runtime_buffer);
+#endif
 
 #if CONFIG_PM_PROFILING
         ESP_LOGI("PERF", "=== Power Manager Locks ===");
         esp_pm_dump_locks(stdout);   
+#endif
         
         vTaskDelay(pdMS_TO_TICKS(10000));
     }
@@ -502,6 +512,7 @@ void supaclock_app_run(void) {
 #else
         .max_freq_mhz = 160,
         .min_freq_mhz = 10,
+#endif
         .light_sleep_enable = true
     };
     if (esp_pm_configure(&pm_config) == ESP_OK) {
@@ -511,6 +522,7 @@ void supaclock_app_run(void) {
         ESP_LOGW(TAG, "ECG PM lock no se pudo crear — light sleep podría meter ruido al ECG");
         s_ecg_pm_lock = NULL;
     }
+#endif
 
     /* Bajar verbosidad del stack BLE (tags más comunes) */
     esp_log_level_set("NimBLE",     ESP_LOG_WARN);
