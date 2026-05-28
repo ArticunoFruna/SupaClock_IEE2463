@@ -20,7 +20,7 @@ import numpy as np
 # ============================================================================
 W = 98.0
 L = 79.0
-H = 22.0
+H = 25.0
 r_vert = 12.0
 r_chamfer = 1.5
 taper = 2.0
@@ -30,9 +30,9 @@ pcb_off_y = 6.0
 pcb_thickness = 1.6
 altura_base = 2.0
 altura_total_bottom = altura_base + grosor_pared   # 4
-altura_top = H - altura_total_bottom               # 18
+altura_top = H - altura_total_bottom               # 21
 
-standoff_od = 4.0
+standoff_od = 7.0
 standoff_id = 1.8
 
 cut_max30102 = (17.0, 22.0)
@@ -46,19 +46,19 @@ pos_max30205 = (45.0+pcb_off_x, 17.0+pcb_off_y)
 electrodes = [(12.0+pcb_off_x,31.5+pcb_off_y),(65.5+pcb_off_x,32.0+pcb_off_y),
               (43.5+pcb_off_x, 4.0+pcb_off_y)]
 
-display_center = (53.78+pcb_off_x, 35.0+pcb_off_y)
+display_center = (44.28+pcb_off_x, 38.5+pcb_off_y)
 display_size = (28.0, 34.0)
 btn_y_list = [15.375+pcb_off_y, 27.875+pcb_off_y]
 btn_z = pcb_thickness + 1.9
 btn_d = 4.0
 usb_y = 48.0+pcb_off_y
-usb_z = pcb_thickness + 11.0
+usb_z = pcb_thickness + 13.0
 usb_size = (10.0, 4.0)
-jack_x = 13.525+pcb_off_x
-jack_z = pcb_thickness + 3.0
+jack_y = 16.586+pcb_off_y
+jack_z = pcb_thickness + 12.6
 jack_d = 6.5
 
-lug_strap_w = 22.0
+lug_strap_w = 20.0
 lug_thickness = 5.0
 lug_protrude = 7.0
 lug_z_bot = 5.0    # top-case-local
@@ -610,6 +610,10 @@ def page_top_side(pdf):
     # USB-C cutout (rectangle Y x Z)
     draw_rect(ax, usb_y, usb_z, usb_size[0], usb_size[1], scale, offset)
 
+    # Jack hole on the opposite wall (-X wall, projected as hidden)
+    draw_circle(ax, jack_y, jack_z, jack_d, scale, offset, lw=LW_HIDDEN, linestyle='--')
+    center_mark(ax, jack_y, jack_z, jack_d, scale, offset)
+
     # Lugs (4) - project onto YZ plane
     # In this elevation, we see lugs from the side. Both -Y and +Y lugs are visible
     # The -Y lug extends from Y=0 outward to Y=-7
@@ -668,6 +672,10 @@ def page_top_side(pdf):
     label_point(ax, usb_y, usb_z, scale, offset,
                 "USB-C 10x4", leader_offset=(15, -8))
 
+    label_point(ax, jack_y, jack_z, scale, offset,
+                f"Jack 3.5mm (hidden, pared izq)\nØ{jack_d:.1f}, Y={jack_y:.2f}, Z={jack_z:.1f}",
+                leader_offset=(-15, -12))
+
     # Lug spring bar position
     label_point(ax, -lug_protrude + lug_thickness/2,
                 (lug_z_bot+lug_z_top)/2, scale, offset,
@@ -719,9 +727,12 @@ def page_top_front(pdf):
             [scale*altura_top + offset[1], scale*altura_top + offset[1]],
             'k', linewidth=LW_OUTLINE)
 
-    # Jack hole (Ø6.5)
-    draw_circle(ax, jack_x, jack_z, jack_d, scale, offset)
-    center_mark(ax, jack_x, jack_z, jack_d, scale, offset)
+    # Jack hole projection (hidden rectangle on the left wall)
+    draw_rect(ax, grosor_pared/2, jack_z, grosor_pared, jack_d, scale, offset, lw=LW_HIDDEN, linestyle='--')
+    # Center line for the jack hole
+    ax.plot([scale*(-3) + offset[0], scale*(grosor_pared+3) + offset[0]],
+            [scale*jack_z + offset[1], scale*jack_z + offset[1]],
+            color='black', linewidth=LW_CENTER, linestyle=(0, (4, 2, 1, 2)))
 
     # Lugs visible (4 lugs project onto this view)
     # Two on -Y (visible front-on) and two on +Y (hidden behind)
@@ -747,13 +758,9 @@ def page_top_front(pdf):
     dim_v(ax, 0, altura_top, -3, f"{altura_top:.0f}",
           scale, offset, dx=4, side='left')
 
-    # Jack
-    dim_h(ax, 0, jack_x, altura_top + 2, f"X={jack_x:.2f}",
-          scale, offset, dy=4)
-    dim_v(ax, 0, jack_z, jack_x + 5, f"Z={jack_z:.1f}",
-          scale, offset, dx=3, side='right')
-    label_point(ax, jack_x, jack_z, scale, offset,
-                f"Jack 3.5mm\nØ{jack_d:.1f}", leader_offset=(-10, 12))
+    # Jack (hidden, on left wall)
+    label_point(ax, grosor_pared/2, jack_z, scale, offset,
+                f"Cutout Jack 3.5mm (pared izq)\nØ{jack_d:.1f}, Z={jack_z:.1f}", leader_offset=(15, 12))
 
     # Lug positions
     xc_l = W/2 - lug_center_sep/2
@@ -769,7 +776,7 @@ def page_top_front(pdf):
 
     ax.text(13, 35, "NOTAS:\n"
                     "1. Z=0 en esta vista = seam (top-case-local)\n"
-                    "2. Jack 3.5mm Ø6.5 atraviesa pared -Y (frontal)\n"
+                    "2. Jack 3.5mm Ø6.5 atraviesa pared -X (izquierda, oculto)\n"
                     "3. Los 4 lugs son visibles en este alzado (2 al frente, 2 atras\n"
                     "   se proyectan sobre el mismo X)\n"
                     "4. Las paredes laterales muestran el taper (2mm inset arriba)",

@@ -27,7 +27,7 @@ altura_base    = 2.0;
 // entra DESDE ABAJO (cabeza apoyada en la cara exterior del piso), atraviesa
 // el piso, el standoff y la PCB, y rosca self-tap en el pilar del top case.
 // Por eso aqui standoff_id = 3.2 (clearance) y no 2.7 (self-tap).
-standoff_od         = 5.5;    // diametro exterior (>= cabeza M3 ~5.5mm)
+standoff_od         = 7.0;    // diametro exterior (>= cabeza M3 ~7.0mm)
 standoff_id         = 3.2;    // diametro interior = clearance M3
 mh_clearance_d      = 3.2;    // through-hole en el piso (M3 clearance)
 

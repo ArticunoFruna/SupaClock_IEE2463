@@ -32,17 +32,17 @@ pcb_off_x      = (outer_x - pcb_x) / 2;   // = 6.5
 pcb_off_y      = (outer_y - pcb_y) / 2;   // = 6.0
 
 // Alturas (mismo que V1)
-H_total        = 22.0;
+H_total        = 25.0;
 altura_base    = 2.0;
 altura_total_bottom = altura_base + grosor_pared;   // = 4 (bottom case)
 altura_top     = H_total - altura_total_bottom;     // = 18 (top case)
 
 // Standoffs / pilares
-standoff_od    = 5.5;   // >= cabeza M3 ~5.5mm
+standoff_od    = 7.0;   // Aumentado de 5.5 a 7.0 para mayor robustez
 standoff_id    = 2.7;   // rosca M3 self-tap en plastico
 
 // ---------------------- DISPLAY ----------------------------------------------
-display_pos    = [53.78, 35.0];   // PCB-local Y-up
+display_pos    = [44.28, 38.5];   // PCB-local Y-up
 display_w      = 28.0;
 display_h      = 34.0;
 
@@ -58,19 +58,19 @@ btn_z_above_pcb = 1.9;
 usb_pos_y       = 48.0;
 usb_width_y     = 10.0;
 usb_height_z    = 4.0;
-usb_z_above_pcb = 11.0;
+usb_z_above_pcb = 13.0;
 
 // ---------------------- JACK 3.5 mm ------------------------------------------
 jack_x         = 13.525;
 jack_d         = 6.5;
-jack_z_above_pcb = 3.0;
+jack_z_above_pcb = 12.6;
 
 // ---------------------- LUGS (mejora #4) -------------------------------------
 // lug_strap_w = ANCHO DE LA CORREA = distancia LIBRE entre caras INTERIORES
 // de los 2 lugs del mismo lado (donde se mete la correa). Es lo que importa
 // cuando compras la correa: si es de 22mm, este parametro debe ser 22.
 // La separacion center-to-center se calcula como lug_strap_w + lug_thickness.
-lug_strap_w    = 22.0;    // ancho libre entre lugs para la correa
+lug_strap_w    = 20.0;    // ancho libre entre lugs para la correa (Galaxy Watch 4)
 lug_thickness  = 5.0;     // espesor del lug a lo largo de X
 lug_protrude   = 7.0;     // cuanto sale del case en +Y/-Y
 lug_anchor_depth = 5.0;   // cuanto se mete el lug dentro del case. Generoso
@@ -222,10 +222,10 @@ difference() {
             rotate([0, 90, 0])
                 cylinder(h = wall_cutter_depth, d = btn_hole_d);
 
-    // Jack 3.5 mm (pared inferior). Cutter inicia FUERA del case (y = -4) y entra
-    // hasta r_vert = 12mm dentro, cubriendo toda la pared curva.
-    translate([jack_x + pcb_off_x, -4, jack_z])
-        rotate([-90, 0, 0])
+    // Jack 3.5 mm (pared izquierda). Cutter inicia FUERA del case (x = -4) y entra
+    // hacia la derecha, cubriendo toda la pared curva.
+    translate([-4, 16.586 + pcb_off_y, jack_z])
+        rotate([0, 90, 0])
             cylinder(h = wall_cutter_depth, d = jack_d);
 
     // USB-C (pared derecha). Mismo principio: inicia en x = outer_x - r_vert.
@@ -240,13 +240,45 @@ difference() {
 // la pared exterior curva, eliminando el gap por chamfer/taper.
 all_lugs();
 
-// Pilares internos en las 4 esquinas, apoyando sobre la cara superior del PCB
+// Pilares internos en las 4 esquinas, apoyando sobre la cara superior del PCB.
+// Cada pilar se conecta solidamente a las paredes laterales con costillas (ribs)
+// para evitar que se quiebren por fatiga o torque al atornillar.
 pillar_h = ceiling_z - pcb_thickness;
-for (p = mh_positions) {
-    translate([p[0] + pcb_off_x, p[1] + pcb_off_y, pcb_thickness])
-        difference() {
-            cylinder(h = pillar_h, d = standoff_od);
-            translate([0, 0, -eps])
-                cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+rib_w = 6.0; // Espesor de las costillas de refuerzo
+
+module reinforced_pillar(p) {
+    px = p[0] + pcb_off_x;
+    py = p[1] + pcb_off_y;
+    
+    difference() {
+        union() {
+            // Cilindro principal del pilar
+            translate([px, py, pcb_thickness])
+                cylinder(h = pillar_h, d = standoff_od);
+            
+            // Costilla de refuerzo hacia la pared X
+            if (p[0] < pcb_x / 2) {
+                translate([grosor_pared, py - rib_w/2, pcb_thickness])
+                    cube([px - grosor_pared, rib_w, pillar_h]);
+            } else {
+                translate([px, py - rib_w/2, pcb_thickness])
+                    cube([(outer_x - grosor_pared) - px, rib_w, pillar_h]);
+            }
+            
+            // Costilla de refuerzo hacia la pared Y
+            if (p[1] < pcb_y / 2) {
+                translate([px - rib_w/2, grosor_pared, pcb_thickness])
+                    cube([rib_w, py - grosor_pared, pillar_h]);
+            } else {
+                translate([px - rib_w/2, py, pcb_thickness])
+                    cube([rib_w, (outer_y - grosor_pared) - py, pillar_h]);
+            }
         }
+        
+        // Agujero roscado central pasante
+        translate([px, py, pcb_thickness - eps])
+            cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+    }
 }
+
+for (p = mh_positions) reinforced_pillar(p);

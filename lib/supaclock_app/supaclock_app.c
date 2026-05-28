@@ -218,9 +218,10 @@ void imu_task(void *pvParameter) {
             max30102_set_motion_level((uint8_t)jerk);
             prev_ax = imu_raw[0]; prev_ay = imu_raw[1]; prev_az = imu_raw[2];
 
+            bool is_sport = (power_get_mode() == POWER_MODE_SPORT);
             uint32_t new_steps = step_algo_update(&sw_pedometer,
                 imu_raw[0], imu_raw[1], imu_raw[2],
-                imu_raw[3], imu_raw[4], imu_raw[5], now);
+                imu_raw[3], imu_raw[4], imu_raw[5], now, is_sport);
 
             /* Envío IMU directo (no agregado): SPORT 50Hz, NORMAL 25Hz, SAVER 12.5Hz */
             if (app_state_imu_tx_enabled()) {

@@ -78,14 +78,14 @@
         Esta presentaci\'on consolida los avances posteriores a Entrega 2 y ordena el trabajo hacia el prototipo integrado.
         \vspace{0.25cm}
         \begin{itemize}\itemsep0.16cm
-            \item Migraci\'on del banco de desarrollo al \textbf{Seeed XIAO ESP32-S3}.
+            \item Migraci\'on de ESP32 C3 \textbf{Seeed XIAO ESP32-S3}.
             \item Cierre del \textbf{dise\~no de PCB carrier} para el prototipo.
-            \item Desarrollo de \textbf{carcasa param\'etrica}.
+            \item Desarrollo de \textbf{carcasa}.
             \item Integraci\'on con firmware ya validado: sensores, GUI, BLE, ECG y tareas FreeRTOS.
         \end{itemize}
         \column{0.45\textwidth}
         \centering
-        \includegraphics[width=0.78\linewidth]{supaclock_logo.png}
+        \includegraphics[width=0.78\linewidth]{bosquejo.jpeg}
         \vspace{0.3cm}
         \begin{block}{Foco}
             \scriptsize Pasar de subsistemas validados en protoboard a una unidad wearable ensamblable, repetible y testeable.
@@ -96,12 +96,13 @@
 \begin{frame}{Índice}
     \Large
     \centering
-    \vspace{0.45cm}
-    \begin{enumerate}\itemsep0.25cm
-        \item \textbf{Estado de la Entrega 2}
+    \vspace{0.35cm}
+    \begin{enumerate}\itemsep0.15cm
+        \item \textbf{Estado del Proyecto e Hitos Entrega 2}
         \item \textbf{Implementaci\'on con XIAO ESP32-S3}
         \item \textbf{PCB final del prototipo}
         \item \textbf{Carcasa param\'etrica}
+        \item \textbf{Aplicaci\'on m\'ovil en Flutter}
         \item \textbf{Modelo de Machine Learning Edge}
         \item \textbf{Pruebas y siguientes pasos}
     \end{enumerate}
@@ -117,9 +118,9 @@
         \begin{itemize}\itemsep0.03cm
             \item FreeRTOS separa ECG, IMU, PPG, GUI, BLE y sistema.
             \item I\textsuperscript{2}C con mutex para BMI160, MAX30102, MAX30205 y MAX17048.
-            \item ECG AD8232 por ADC/DMA; Pan-Tompkins validado offline.
-            \item LVGL sobre ST7789 con navegaci\'on multipantalla.
-            \item Deep sleep, wake-up por IMU, sensores low-power y BLE segmentado.
+            \item ECG AD8232 por ADC/DMA; Pan-Tompkins validado offline en la app.
+            \item LVGL sobre ST7789 con navegaci\'on multipantalla pulida.
+            \item Deep sleep, sensores low-power y telemetr\'ia BLE mejorada para mejor consumo.
         \end{itemize}
         \column{0.50\textwidth}
         \scriptsize
@@ -127,13 +128,48 @@
         \begin{itemize}\itemsep0.03cm
             \item ESP32-C3 valid\'o drivers, pero qued\'o justo en potencia, memoria y margen de ML.
             \item Capacitores externos entregan el pulso inicial de potencia requerido por el ESP32-C3 al encender.
-            \item Nueva ESP32-S3 validada en la proto para avanzar hacia el carrier final.
+            \item Nueva ESP32-S3 validada.
             \item PCB de dos caras: top con display, ECG y botones; bottom con PPG, temperatura y pads ECG.
             \item Carcasa orientada a fijar PCB, electrodos, sensor \'optico, placa t\'ermica y correa.
         \end{itemize}
     \end{columns}
     \vspace{0.12cm}
     {\scriptsize\textbf{Cambio clave:} la ruta del prototipo final se centra en XIAO ESP32-S3 + carrier propio + carcasa.}
+\end{frame}
+
+\begin{frame}{Cumplimiento de Compromisos de Entrega 2 (Hito 50\%)}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        En la Entrega 2 se definieron 5 hitos clave para el 50\,\% del proyecto. A continuación se detalla su estado de cumplimiento actual:
+        \vspace{0.2cm}
+        \begin{itemize}\itemsep0.15cm
+            \item \textbf{Validaci\'on S3 con drivers actuales}: \textcolor{accent}{\textbf{100\,\% Completo}} \\
+            Todos los drivers de sensores y pantalla migrados y validados en la Seeed S3.
+            \item \textbf{PCB Carrier v1}: \textcolor{accent}{\textbf{100\,\% Completo}} \\
+            Diseño de 2 capas KiCad, todo funcionando.
+            \item \textbf{Pod\'ometro por FFT (ESP-DSP)}: \textcolor{orange}{\textbf{70\,\% Avanzado}} \\
+            \alert{\textbf{Logro central}}: Migración exitosa de umbral temporal a dominio frecuencia mediante FFT a 50\,Hz acelerada por hardware.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \footnotesize
+        \begin{itemize}\itemsep0.15cm
+            \item \textbf{Dataset de actividades reales (HAR)}: \textcolor{orange}{\textbf{En curso}} \\
+            Captura activa utilizando la herramienta \texttt{capture\_c3} y el grabador local CSV de la App en Flutter.
+            \item \textbf{Entrenamiento y cuantizaci\'on CNN 1D}: \textcolor{orange}{\textbf{70\,\% Avanzado}} \\
+            Modelo convolucional diseñado (3 capas Conv1D + GAP + Dense). Intérprete TFLite Micro integrado y alocado en PSRAM externa.
+        \end{itemize}
+        \vspace{0.4cm}
+        \begin{block}{Balance}
+            \scriptsize El proyecto cumpli\'o rigurosamente los compromisos de hardware y algoritmo central (FFT), dejando encausado el dataset para el modelo de ML.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Carta Gantt de Avances}
+    \begin{center}
+        \includegraphics[width=0.95\linewidth]{gantt.jpeg}
+    \end{center}
 \end{frame}
 
 \section{XIAO ESP32-S3}
@@ -204,24 +240,33 @@
 
 \begin{frame}{Dise\~no final de PCB para prototipo}
     \begin{columns}[T]
-        \column{0.48\textwidth}
+        \column{0.45\textwidth}
         \footnotesize
         \textbf{Carrier SupaClock v1}
-        \begin{itemize}\itemsep0.12cm
+        \begin{itemize}\itemsep0.08cm
             \item PCB propia para integrar el XIAO ESP32-S3 con display, sensores, ECG y botones.
-            \item Dise\~no orientado a fabricaci\'on local/laboratorio: 2 capas, reglas LPKF y componentes manejables.
-            \item Proyecto KiCad separado en \texttt{hardware/SupaClock\_Carrier}.
-            \item Mapa de pines congelado y sincronizado con firmware.
+            \item Dise\~no de 2 capas, ruteado bajo reglas de fabricaci\'on local (LPKF).
+            \item Proyecto KiCad completo en \texttt{hardware/SupaClock\_Carrier}.
         \end{itemize}
         \vspace{0.15cm}
-        \begin{block}{Avance}
-            \scriptsize El carrier pasa a ser la fuente f\'isica de integraci\'on: ya no se depende del protoboard para posicionamiento ni cableado.
+        \begin{block}{Avance f\'isico}
+            \scriptsize El carrier pasa a ser el avance más importante de integraci\'on, garantizando repetibilidad el\'ectrica y alineaci\'on mec\'anica.
         \end{block}
-        \column{0.52\textwidth}
+        \column{0.55\textwidth}
         \centering
-        \includegraphics[page=1,width=2\linewidth]{SupaClock_Carrier_v1_pcb_placement.pdf}
-        \vspace{0.05cm}\newline
-        \scriptsize\textbf{Figura}: Placement de la PCB carrier v1.
+        \begin{minipage}{0.49\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{pcb_front-1.png}
+            \scriptsize\textbf{Cara Top} (Display/ECG)
+        \end{minipage}%
+        \hfill%
+        \begin{minipage}{0.49\textwidth}
+            \centering
+            \includegraphics[width=\linewidth]{pcb_back-1.png}
+            \scriptsize\textbf{Cara Bottom} (PPG/Temp)
+        \end{minipage}
+        \vspace{0.3cm}
+        \scriptsize\textbf{Figura}: Trazado y ruteado de cobre (Top y Bottom) del Carrier v1.
     \end{columns}
 \end{frame}
 
@@ -277,13 +322,12 @@
         \includegraphics[width=0.48\linewidth]{foto_pcb_trasera.jpeg}
         \vspace{0.12cm}
 
-        \scriptsize\textbf{Antes}: protoboard/perfboard para validar sensores y firmware.
+        \scriptsize\textbf{Antes}: PCB antigua para validar sensores y firmware.
         \column{0.50\textwidth}
         \footnotesize
         \textbf{Ahora}
         \begin{itemize}\itemsep0.12cm
             \item Las interfaces ya est\'an formalizadas en esquem\'atico y PCB.
-            \item Se elimina incertidumbre de cableado manual.
             \item El dise\~no permite probar interferencias reales de montaje: sensor-piel, caja, botones, display y BLE.
             \item La siguiente validaci\'on relevante es de \textbf{unidad cerrada}, no s\'olo de subsistema.
         \end{itemize}
@@ -357,6 +401,106 @@
         \begin{block}{Resultado}
             \scriptsize La carcasa ya no es s\'olo envolvente: participa en la calidad de medici\'on biom\'etrica.
         \end{block}
+    \end{columns}
+\end{frame}
+
+\section{Aplicaci\'on M\'ovil}
+
+\begin{frame}{Aplicaci\'on M\'ovil: Decisiones de Arquitectura}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \footnotesize
+        \textbf{Local-First \& In-Device Processing}
+        \begin{itemize}\itemsep0.1cm
+            \item \textbf{Cero backend cost}: El procesamiento pesado (QRS Pan-Tompkins para ECG, HRV, agregaci\'on diaria y alertas) corre 100\,\% en el tel\'efono.
+            \item \textbf{No Cloud Functions}: Eliminaci\'on absoluta de costos de c\'omputo en la nube.
+        \end{itemize}
+        \vspace{0.15cm}
+        \textbf{Almacenamiento Eficiente}
+        \begin{itemize}\itemsep0.15cm
+            \item \textbf{Persistencia h\'ibrida}: Base de datos local Hive sincronizada de manera as\'incrona hacia Cloud Firestore.
+            \item \textbf{Manejo de se\~nales crudas}: Los archivos crudos de IMU y ECG se empaquetan en CSV con compresi\'on \textbf{gzip} directos a Firebase Storage.
+        \end{itemize}
+        \column{0.52\textwidth}
+        \scriptsize
+        \begin{block}{Esquema de Almacenamiento Sincronizado}
+            \centering
+            \begin{tikzpicture}[
+                node/.style={draw=main, rounded corners=2pt, fill=softgray, font=\tiny, align=center, minimum width=2.2cm, minimum height=0.5cm},
+                arrow/.style={-Stealth, thick, draw=main}
+            ]
+                \node[node, fill=accent!15] (hive) at (0,1.5) {Base Local Hive\\(Fast/Local-first)};
+                \node[node] (firestore) at (-1.4,0) {Cloud Firestore\\(Usuarios, M\'etricas)};
+                \node[node] (storage) at (1.4,0) {Firebase Storage\\(ECG/IMU .csv.gz)};
+                
+                \draw[arrow] (hive) -- node[left, font=\tiny\bfseries] {sync} (firestore);
+                \draw[arrow] (hive) -- node[right, font=\tiny\bfseries] {upload} (storage);
+            \end{tikzpicture}
+        \end{block}
+        \vspace{0.1cm}
+        \fcolorbox{main}{main!10}{\parbox{0.96\linewidth}{\scriptsize
+            \textbf{Storage Paths}:\\
+            \texttt{users/\{uid\}/ecg/\{sessionId\}.csv.gz} (ECG Spot-check)\\
+            \texttt{users/\{uid\}/imu/\{recId\}.csv.gz} (Dev raw recordings)
+        }}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Doble Perfil de Interfaz: Cl\'inico vs. Desarrollador}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{Foco en el Usuario}
+        \begin{itemize}\itemsep0.1cm
+            \item \textbf{Dashboard simplificado}: Muestra el estado actual del reloj, bater\'ia y datos biom\'etricos.
+            \item \textbf{Spot-Check (Medir ahora)}: Captura en vivo de HR/SpO\textsubscript{2} y 30\,s de ECG continuo en reposo.
+            \item \textbf{Historial y tendencias}: Visualizaci\'on de datos diarios agregados sincronizados en Firestore.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{Modo Desarrollador}
+        \begin{itemize}\itemsep0.1cm
+            \item \textbf{Gráficos en tiempo real}: Visualizaci\'on directa de las formas de onda IMU y ECG crudas del reloj.
+            \item \textbf{CSV Recorder local}: Permite grabar y etiquetar clases de actividad f\'isica (\textit{caminar, correr, etc.}), reemplazando el script de monitoreo Python para alimentar el dataset ML.
+        \end{itemize}
+        \vspace{0.25cm}
+        \fcolorbox{accent}{accent!10}{\parbox{0.96\linewidth}{\scriptsize
+            \textbf{Portabilidad del Tooling}: Los archivos CSV grabados por la app de Flutter tienen id\'entica estructura que \texttt{supaclock\_monitor.py}, permitiendo la reutilizaci\'on del pipeline de entrenamiento Python.
+        }}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Protocolo BLE NimBLE \& Filtro de Calidad}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \footnotesize
+        \textbf{Canales de Comunicaci\'on BLE}
+        \vspace{0.1cm}
+        
+        \scriptsize
+        \begin{tabular}{l c l}
+            \toprule
+            \textbf{Caracter\'istica} & \textbf{Flujo} & \textbf{Funci\'on / Cadencia} \\
+            \midrule
+            \texttt{0xFF01} & Reloj \(\to\) App & IMU continuo (12.5--50\,Hz) \\
+            \texttt{0xFF02} & Reloj \(\to\) App & TLV Biometr\'ia agregada (1\,s) \\
+            \texttt{0xFF03} & Reloj \(\to\) App & ECG continuous raw (500\,Hz) \\
+            \texttt{0xFF04} & App \(\to\) Reloj & Cmd RX (\texttt{0x01}: ON, \texttt{0x00}: OFF) \\
+            \bottomrule
+        \end{tabular}
+        
+        \vspace{0.2cm}
+        \footnotesize
+        El protocolo \textbf{TLV} (Type-Length-Value) permite empaquetar de forma compacta m\'ultiples sensores heterog\'eneos y timestamps en un solo paquete BLE, reduciendo el overhead de radio.
+        
+        \column{0.52\textwidth}
+        \footnotesize
+        \textbf{Filtro de Calidad (Quality Gate)}
+        \begin{itemize}\itemsep0.1cm
+            \item \textbf{Protecci\'on contra falsos positivos}: Como el wearable actual está en protoboard, el contacto sensor-piel puede tener imperfecciones.
+            \item \textbf{Byte de Calidad del TLV}: Cada m\'etrica transmitida del firmware posee un byte de calidad. La App solo archiva y eval\'ua alertas si la calidad es \(\ge 60\).
+            \item \textbf{Ventana de Estabilidad}: Una alerta cl\'inica requiere que el valor an\'omalo persista por al menos \textbf{60\,s} antes de gatillar una notificaci\'on local, filtrando picos transitorios.
+        \end{itemize}
     \end{columns}
 \end{frame}
 
@@ -482,10 +626,6 @@
             \draw[arrow] (tflite) -- (res);
         \end{tikzpicture}
         \vspace{0.15cm}
-        \begin{alertblock}{Ventaja de la Clase Ca\'ida Integrada}
-            \scriptsize
-            Al clasificar la ca\'ida directamente dentro del softmax del modelo entrenado, se delega al aprendizaje profundo la capacidad de reconocer perfiles complejos de aceleraci\'on-giroscopio, eliminando el ajuste manual de heur\'isticas r\'igidas de impacto y free-fall.
-        \end{alertblock}
     \end{columns}
 \end{frame}
 
@@ -501,10 +641,6 @@
                     \item Integrar variables del ritmo card\'iaco y variabilidad (HRV) como entrada de apoyo permite hacer la clasificaci\'on m\'as robusta frente a falsos positivos.
                     \item Ayuda a discriminar ca\'idas reales de movimientos bruscos cotidianos mediante el contexto auton\'omico card\'iaco.
                 \end{itemize}
-            \item \textbf{Calibraci\'on y Personalizaci\'on}:
-                \begin{itemize}\scriptsize\itemsep0.05cm
-                    \item Habilitar un proceso de calibraci\'on local ``en caliente'' para ajustar umbrales de activaci\'on espec\'ificos según el peso y patrón de marcha del usuario.
-                \end{itemize}
         \end{itemize}
         
         \column{0.50\textwidth}
@@ -515,10 +651,6 @@
                 \begin{itemize}\scriptsize\itemsep0.05cm
                     \item Uso continuo del recorder de Flutter (\texttt{csv\_recorder.dart}) y la app de telemetr\'ia (\texttt{supaclock\_monitor.py}) para almacenar trazas.
                     \item Ampliaci\'on del dataset de entrenamiento a m\'as sujetos de prueba para mejorar la generalizaci\'on de la red neuronal.
-                \end{itemize}
-            \item \textbf{Optimizaci\'on de Pesos}:
-                \begin{itemize}\scriptsize\itemsep0.05cm
-                    \item Explorar t\'ecnicas de cuantizaci\'on selectiva e introducci\'on de pesos dispersos (pruning) para reducir a\'un m\'as la huella del modelo en Flash, buscando bajar de los actuales $\sim$58\,KB.
                 \end{itemize}
         \end{itemize}
     \end{columns}
@@ -566,9 +698,8 @@
         \scriptsize
         \textbf{Prototipo funcional}
         \begin{enumerate}\itemsep0.08cm
-            \item Limpiar el dise\~no del prototipo hasta dejarlo completamente funcional y alineado con requisitos.
-            \item Cerrar DRC/ERC del carrier y validar rails, encendido y consumo en la unidad ensamblada.
-            \item Repetir bring-up por subsistema con la ESP32-S3 montada en la proto.
+            \item Pulir el dise\~no del prototipo hasta dejarlo completamente funcional y alineado con requisitos.
+            \item Cerrar validación del carrier y validar rutas, encendido y consumo en la unidad ensamblada.
         \end{enumerate}
         \column{0.48\textwidth}
         \scriptsize

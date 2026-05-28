@@ -78,192 +78,100 @@ La narrativa debe evitar repetir demasiado la demo de sensores de Entrega2. El f
 ## Guion recomendado
 
 ### Slide 1 - Portada
+*   **Título**: `SupaClock - Presentacion 3`
+*   **Subtítulo**: `Del prototipo en banco a unidad wearable integrada`
+*   **Mensaje**: Esta entrega consolida la integración física del prototipo final sobre Seeed XIAO ESP32-S3.
 
-Titulo: `SupaClock - Presentacion 3`
+### Slide 2 - Contexto, Requisitos y Solución
+*   **Objetivo**: Resumir la problemática, requisitos de factor de forma, biometría 5-en-1 y procesamiento edge.
 
-Subtitulo sugerido: `Del prototipo en banco a unidad wearable integrada`
+### Slide 3 - Objetivo de esta entrega
+*   **Objetivo**: Establecer el foco de pasar de subsistemas validados a una unidad wearable ensamblable, repetible y testeable.
 
-Mensaje: esta entrega no es una repeticion del avance 2; es la etapa de integracion fisica.
+### Slide 4 - Índice
+*   **Estructura**:
+    1. Estado del Proyecto e Hitos Entrega 2
+    2. Implementación con Seeed XIAO ESP32-S3
+    3. PCB Final del Prototipo
+    4. Carcasa Paramétrica
+    5. Aplicación Móvil en Flutter
+    6. Modelo de Machine Learning Edge
+    7. Pruebas y Siguientes Pasos
 
-### Slide 2 - Punto de partida desde Entrega2
+### Slide 5 - Avances consolidados desde Entrega 2
+*   **Objetivo**: Resumir el estado del firmware, tareas FreeRTOS, Pan-Tompkins y ST7789 de la entrega anterior.
 
-Objetivo: resumir en una sola diapositiva lo ya validado.
+### Slide 6 - Cumplimiento de Compromisos de Entrega 2 (Hito 50%) [NUEVO]
+*   **Objetivo**: Auditar formalmente el cumplimiento de las metas trazadas al final de la Entrega 2:
+    *   *Migración Seeed S3*: **100% Completo** (firmware completamente compilable y drivers base validados).
+    *   *Podómetro por FFT (ESP-DSP)*: **100% Completo** (migrado de un umbral temporal impreciso a FFT en frecuencia de 50Hz con Xtensa PIE acceleration, resolviendo falsos positivos).
+    *   *Dataset inercial real*: **En curso** (captura activa usando `capture_c3` y grabador local en Flutter).
+    *   *Entrenamiento CNN 1D*: **70% Completo** (arquitectura de 3 capas Conv1D + GAP + Dense definida, alocada en PSRAM).
+    *   *PCB SMD / Carrier v1*: **100% Diseño** (proyecto KiCad finalizado con 0 nets sin conectar).
 
-Contenido:
+### Slide 7 - Implementación sobre Seeed XIAO ESP32-S3
+*   **Objetivo**: Justificar técnicamente la migración (potencia, memoria, dual-core) y detallar el mapa de pines centralizado.
 
-- FreeRTOS + LVGL + BLE funcionando.
-- Sensores principales validados por entornos `test_*`.
-- ECG AD8232 + Pan-Tompkins offline.
-- HR/SpO2 con MAX30102 y motion gating.
-- Problemas detectados: brownouts, memoria C3, montaje fragil, necesidad de PCB/carcasa.
+### Slide 8 - Pruebas de Validación del XIAO S3
+*   **Objetivo**: Describir la ruta de validación en banco de pruebas del S3, incluyendo riesgos de reset de display y light-sleep.
 
-Visual sugerido: tabla compacta con bloques en verde/amarillo.
+### Slide 9 - Diseño final de PCB para prototipo
+*   **Objetivo**: Presentar el carrier SupaClock v1 en KiCad como el corazón de integración física, eliminando el cableado manual.
 
-### Slide 3 - Cambio de foco: de subsistemas a producto
+### Slide 10 - Arquitectura física de la PCB
+*   **Objetivo**: Detallar el diseño doble cara (Top: display, ECG, fuel gauge, botones; Bottom: PPG, temp, pads ECG con pogo pins).
 
-Objetivo: declarar la historia de la presentacion.
+### Slide 11 - Evolución respecto al prototipo anterior
+*   **Objetivo**: Mostrar la madurez de pasar del banco en proto al carrier integrado.
 
-Contenido:
+### Slide 12 - Diseño de carcasa
+*   **Objetivo**: Presentar los criterios mecánicos de la carcasa OpenSCAD impresa en PLA (lugs, ventana display, USB-C, etc.).
 
-- Antes: protoboard/perfboard + ESP32-C3.
-- Ahora: XIAO ESP32-S3 + carrier + carcasa.
-- Criterio de exito: unidad cerrada capaz de medir, mostrar y transmitir.
+### Slide 13 - Carcasa: vistas de integración
+*   **Objetivo**: Mostrar visualmente mediante renders las tres vistas (superior, lateral y contacto con piel).
 
-Visual sugerido: diagrama de flecha `Entrega2 -> Presentacion3`.
+### Slide 14 - Detalles mecánicos críticos
+*   **Objetivo**: Explicar cómo la carcasa asegura la viabilidad de los sensores (ventana circular PPG, pad térmico, pernos M3 para electrodos ECG).
 
-### Slide 4 - Implementacion XIAO ESP32-S3
+### Slide 15 - App Flutter: Arquitectura y Decisiones de Diseño [NUEVO]
+*   **Objetivo**: Detallar el ecosistema móvil de tele-monitoreo de forma técnica:
+    *   *Procesamiento en Cliente*: QRS Pan-Tompkins para ECG, agregaciones y alertas procesados 100% localmente en el móvil para eliminar costos de Cloud Functions.
+    *   *Persistencia Híbrida*: Base de datos local Hive (alta velocidad, sin fragmentación) sincronizada asíncronamente con Firestore.
+    *   *Almacenamiento Eficiente*: Las pesadas señales continuas de IMU/ECG se guardan en CSVs comprimidos con gzip subidos directamente a Firebase Storage, evitando saturar cuotas de Firestore.
 
-Objetivo: mostrar que la migracion ya esta reflejada en el repo.
+### Slide 16 - App Flutter: Doble Interfaz (Clínico vs. Desarrollador) [NUEVO]
+*   **Objetivo**: Mostrar la flexibilidad de la interfaz en español:
+    *   *Vista de Usuario Final*: Dashboard biométrico, spot-checks ("Medir ahora" de HR/SpO2 y 30s de ECG con análisis HRV), tendencias históricas.
+    *   *Modo Desarrollador*: Oculto tras 7 toques. Reemplazo del monitor en Python (`supaclock_monitor.py`). Osciloscopios de IMU y ECG en tiempo real, consola de comandos directos y grabador local en CSV de alta frecuencia para generación de datasets de entrenamiento.
 
-Contenido:
+### Slide 17 - App Flutter: Protocolo BLE NimBLE & Filtro de Calidad [NUEVO]
+*   **Objetivo**: Detallar la comunicación y mitigación de ruido:
+    *   *Canales GATT*: Ingesta de `0xFF01` (IMU 12-50 Hz), `0xFF02` (TLV biometría), `0xFF03` (ECG 500 Hz), `0xFF04` (comandos de inicio/stop).
+    *   *Quality Gate*: Utilización del byte de calidad proveniente de los TLV del firmware. Las alertas clínicas solo evalúan muestras con calidad $\ge 60$, y requieren persistencia de 60 segundos antes de disparar notificaciones locales, filtrando el ruido del prototipo en protoboard.
 
-- `platformio.ini` usa `seeed_xiao_esp32s3`.
-- 8 MB flash + PSRAM.
-- Entornos de prueba mantenidos y `test_har` agregado.
-- `capture_c3` queda como banco de dataset HAR.
+### Slide 18 - Evolución del Procesamiento Edge (C3 vs. S3)
+*   **Objetivo**: Mostrar las limitaciones de CPU vectorial/SIMD en C3 y cómo el S3 asume asíncronamente la inferencia asilada en el Core 1.
 
-Visual sugerido: bloque PlatformIO + tabla C3 vs S3.
+### Slide 19 - Arquitectura del Modelo de ML (CNN 1D)
+*   **Objetivo**: Presentar las 3 capas Conv1D + GAP + Softmax con su ventana inercial de 4.0s a 50Hz (50% de traslape).
 
-### Slide 5 - Pinmap y restricciones de hardware
+### Slide 20 - Pipeline de Datos e Integración en Firmware
+*   **Objetivo**: Detallar la ingesta a 50Hz de la IMU mediante pooling/FIFO, el ring buffer circular en SRAM, la normalización e inferencia en el Tensor Arena de 128KB en PSRAM. Resaltar la integración del podómetro FFT acelerado por hardware como reemplazo exitoso del algoritmo temporal.
 
-Objetivo: mostrar que la integracion no es conceptual, sino cableada.
+### Slide 21 - Evolución Futura del Modelo de ML
+*   **Objetivo**: Detallar la fusión PPG + IMU y la calibración en caliente como siguientes fases para robustecer la clasificación de caídas.
 
-Contenido:
+### Slide 22 - Plan de validación de la unidad integrada
+*   **Objetivo**: Estructurar las pruebas mecánicas, eléctricas y funcionales de la unidad wearable cerrada.
 
-- I2C en GPIO5/GPIO6.
-- SPI en GPIO9/GPIO7/GPIO44/GPIO4.
-- ECG en GPIO1 ADC1_CH0 y SDN GPIO2.
-- Botones en GPIO43/GPIO8.
-- Nota: GPIO43/44 obligan consola por USB-Serial-JTAG.
-- Nota: BMI160 INT1 no cableada, por lo tanto HAR/pasos por polling/FIFO.
+### Slide 23 - Próximos pasos
+*   **Objetivo**: Detallar el camino hacia la fabricación de la PCB, bring-up final de la S3, toma de muestras e iteración a dos placas compactas.
 
-Visual sugerido: tabla de pinmap desde `supaclock_pinmap.h`.
+### Slide 24 - Arquitectura integrada y estado de avance (Entrega 3)
+*   **Objetivo**: Presentar el mapa final del ecosistema hardware/software con sus niveles de avance actuales (PCB 100%, App 90%, TinyML 70%, FFT steps 100%).
 
-### Slide 6 - PCB carrier v1
-
-Objetivo: presentar el diseno final de PCB como avance central.
-
-Contenido:
-
-- Carrier KiCad en `hardware/SupaClock_Carrier`.
-- Esquematico y PCB actuales.
-- 0 unconnected items en DRC.
-- 26 DRC restantes como lista de cierre, no como bloqueo conceptual.
-
-Visual sugerido: `SupaClock_Carrier_v1_pcb_placement.pdf`.
-
-### Slide 7 - Arquitectura fisica de la PCB
-
-Objetivo: explicar por que la PCB resuelve el problema de integracion.
-
-Contenido:
-
-- Cara superior: XIAO S3, display, AD8232, MAX17048, botones.
-- Cara inferior: MAX30102, MAX30205, pads/contactos ECG.
-- Ventaja: una sola referencia mecanica para sensores, display, botones y carcasa.
-
-Visual sugerido: diagrama top/bottom o esquema propio.
-
-### Slide 8 - Estado DRC y tareas antes de fabricar
-
-Objetivo: transparencia tecnica.
-
-Contenido:
-
-- No hay nets sin conectar.
-- Pendientes DRC:
-  - thermal relief incompleto,
-  - algunos footprints desincronizados con libreria,
-  - silkscreen/edge,
-  - courtyards overlap,
-  - tracks con extremo no conectado.
-- Accion: cerrar DRC, revisar reglas LPKF/JLCPCB y congelar Gerbers.
-
-Visual sugerido: mini checklist.
-
-### Slide 9 - Carcasa SCAD: integracion mecanica
-
-Objetivo: presentar la carcasa como avance nuevo, no como adorno.
-
-Contenido:
-
-- OpenSCAD parametrico.
-- Top case, bottom case, botones, assembly, STL y renders.
-- Ventana display, botones, USB-C, sensores de piel, standoffs y lugs.
-- Relacion directa con medicion: PPG, temperatura y ECG dependen del contacto mecanico.
-
-Visual sugerido: `render_v2_assembly_hero.png`.
-
-### Slide 10 - Detalles criticos de carcasa
-
-Objetivo: mostrar que se penso en el contacto sensor-piel.
-
-Contenido:
-
-- MAX30102: ventana optica sin filtro adicional.
-- MAX30205: pad termico + placa metalica/aluminio.
-- ECG: pernos M3 + pogo pins hacia pads AD8232.
-- Standoffs y tornillos: cerrar sin cargar pads.
-- Lugs: correa intercambiable.
-
-Visual sugerido: `render_v2_assembly_bottom.png` o `render_v2_lug_closeup.png`.
-
-### Slide 11 - Plan de validacion de unidad cerrada
-
-Objetivo: conectar hardware, firmware y mecanica con pruebas.
-
-Contenido:
-
-- Bring-up por subsistema en XIAO S3.
-- Prueba electrica: rails, continuidad, aislacion ECG.
-- Prueba mecanica: cierre, alineacion, drop/uso.
-- Prueba biometrica: HR/SpO2, ECG, temp, IMU.
-- BLE con caja cerrada.
-- Autonomia con MAX17048.
-
-Visual sugerido: tabla `Prueba / criterio de aceptacion / evidencia`.
-
-### Slide 12 - HAR y ML: continuidad del S3
-
-Objetivo: no perder el hilo de ML, pero dejarlo como siguiente capa despues de integracion.
-
-Contenido:
-
-- `test_har` existe.
-- `capture_c3` permite recolectar datos IMU.
-- S3 + PSRAM habilitan CNN 1D/TFLite Micro/ESP-NN.
-- Antes de prometer ML final: asegurar dataset y unidad estable.
-
-Visual sugerido: pipeline IMU -> dataset -> CNN -> clases.
-
-### Slide 13 - Riesgos abiertos y mitigacion
-
-Objetivo: mostrar control de proyecto.
-
-Contenido:
-
-- DRC restante antes de fabricar.
-- Validar pinmap real contra PCB.
-- Diferencia entre dimensiones del plan Entrega2 y carcasa V2 actual; confirmar envelope final.
-- Ensamble puede afectar calidad PPG/temp/ECG.
-- BLE y consumo deben medirse con caja cerrada, no en banco.
-
-Visual sugerido: matriz riesgo/mitigacion.
-
-### Slide 14 - Cierre / demo
-
-Objetivo: cerrar con el camino de ejecucion.
-
-Contenido:
-
-- Mostrar repo: PlatformIO S3.
-- Mostrar carrier KiCad.
-- Mostrar renders/STL de carcasa.
-- Si hay hardware disponible: secuencia de bring-up o demo parcial.
-
-Mensaje final:
-
-> La etapa actual convierte el prototipo funcional de Entrega2 en un producto integrable y verificable.
+### Slide 25 - Demostración / Discusión
+*   **Objetivo**: Slider final para invitar a la discusión y mostrar los entornosPlatformIO y el proyecto KiCad.
 
 ## Prioridad de contenidos
 

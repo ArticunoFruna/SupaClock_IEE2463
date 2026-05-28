@@ -34,13 +34,13 @@ pcb_off_x      = (outer_x - pcb_x) / 2;   // = 6.5
 pcb_off_y      = (outer_y - pcb_y) / 2;   // = 6.0
 
 // Alturas
-H_total        = 22.0;            // altura total del case ensamblado
+H_total        = 25.0;            // altura total del case ensamblado
 altura_base    = 2.0;             // altura interior del bottom (= V1)
 altura_total   = altura_base + grosor_pared;   // = 4
 
 // Standoffs (el tornillo M3 entra desde la cara exterior del piso, atraviesa
 // piso + standoff + PCB y rosca self-tap en el pilar del top case).
-standoff_od    = 5.5;   // >= cabeza M3 ~5.5mm
+standoff_od    = 7.0;   // Aumentado de 5.5 a 7.0 para mayor robustez
 standoff_id    = 3.2;   // clearance M3 (no self-tap aqui)
 mh_clearance_d = 3.2;   // through-hole en el piso bajo cada standoff
 

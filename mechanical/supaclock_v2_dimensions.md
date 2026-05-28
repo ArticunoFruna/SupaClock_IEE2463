@@ -26,7 +26,7 @@ Origen: esquina INFERIOR-IZQUIERDA-FRENTE del envelope exterior
 
 - **Bottom case**: Z = 0 a Z = 4 (la cara Z=0 toca la piel)
 - **Seam (union)**: plano horizontal en Z = 4
-- **Top case**: Z = 4 a Z = 22 (en frame top-case-local: Z=0 a Z=18)
+- **Top case**: Z = 4 a Z = 25 (en frame top-case-local: Z=0 a Z=21)
 
 Conversion PCB-local <-> case-local:
 ```
@@ -45,7 +45,7 @@ son slices horizontales de esta forma.
 |---|---|---|
 | Ancho (X) | 98.0 mm | base. Top esta INSET por `taper` |
 | Largo (Y) | 79.0 mm | base. Top esta INSET por `taper` |
-| Alto (Z) | 22.0 mm | total ensamblado |
+| Alto (Z) | 25.0 mm | total ensamblado |
 | r_vert | 12.0 mm | radio de las 4 esquinas verticales |
 | r_chamfer | 1.5 mm | chamfer en Z=0 (inferior) y Z=22 (superior) |
 | taper | 2.0 mm | reduccion lineal del radio del cilindro de esquina entre Z=0 y Z=22 |
@@ -56,7 +56,7 @@ son slices horizontales de esta forma.
    luego `Sketch > Fillet` con radio 12 en las 4 esquinas. → contorno
    inferior.
 
-2. **Sketch en XY plane offset Z=22**: rectangulo (98−2×taper)×(79−2×taper)
+2. **Sketch en XY plane offset Z=25**: rectangulo (98−2×taper)×(79−2×taper)
    = 94×75, con fillet de radio (12 − taper) = 10. → contorno superior.
 
 3. **Loft** entre los dos sketches → solido tapered.
@@ -107,17 +107,17 @@ En el frame LOCAL del top case (Z=0 = seam):
 
 | Feature | Posicion (X,Y) | Z (local top) | Dimensiones | Notas |
 |---|---|---|---|---|
-| Cavidad | toda | 0 — 16 | abierta abajo | open base = seam, ceiling Z=16 a Z=18 |
-| Techo | toda | 16 — 18 | 2mm grosor | con ventana del display |
-| Pilar P1 | (10.0, 69.5) | 1.6 — 16 | Ø5.5mm OD, Ø2.7mm ID | apoya sobre cara superior del PCB |
-| Pilar P2 | (88.0, 69.5) | 1.6 — 16 | Ø5.5mm OD, Ø2.7mm ID | idem |
-| Pilar P3 | (10.0, 9.5) | 1.6 — 16 | Ø5.5mm OD, Ø2.7mm ID | idem |
-| Pilar P4 | (88.0, 9.5) | 1.6 — 16 | Ø5.5mm OD, Ø2.7mm ID | idem |
-| **Ventana display** | centro (60.28, 41.0) | 15 — 18 | **28 × 34 mm** | atraviesa el techo |
+| Cavidad | toda | 0 — 19 | abierta abajo | open base = seam, ceiling Z=19 a Z=21 |
+| Techo | toda | 19 — 21 | 2mm grosor | con ventana del display |
+| Pilar P1 | (10.0, 69.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | apoya sobre cara superior del PCB |
+| Pilar P2 | (88.0, 69.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | idem |
+| Pilar P3 | (10.0, 9.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | idem |
+| Pilar P4 | (88.0, 9.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | idem |
+| **Ventana display** | centro (50.78, 44.5) | 18 — 21 | **28 × 34 mm** | atraviesa el techo |
 | Boton SW1 | (96, 21.375, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
 | Boton SW2 | (96, 33.875, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
-| **USB-C** | (96, 54, 12.6) | 12.6 ± 2 | **10 × 4 mm** rect | atraviesa pared +X, eje a lo largo de X |
-| Jack 3.5mm | (20.025, 0, 4.6) | 4.6 ± 3.25 | Ø6.5mm | atraviesa pared −Y, eje a lo largo de Y |
+| **USB-C** | (96, 54, 14.6) | 14.6 ± 2 | **10 × 4 mm** rect | atraviesa pared +X, eje a lo largo de X |
+| **Jack 3.5mm** | (0, 22.586, 14.2) | 14.2 ± 3.25 | **Ø6.5mm** | atraviesa pared −X (izquierda), eje a lo largo de X |
 
 Las coordenadas de boton/USB/jack son: (X del centro del agujero EN la pared
 INTERIOR, Y/Z del centro del agujero). El agujero atraviesa los 2mm de pared.
@@ -139,19 +139,19 @@ Forma desde el costado: rectangulo recto.
 | Overlap con el case (Y) | 1.0 mm (para union limpia con la pared) |
 | Spring bar Ø | **1.8 mm** (estandar 1.5mm + holgura) |
 | Spring bar pasante? | Si, atraviesa todo el lug a lo largo de X |
-| Ancho de correa libre | **22 mm** (gap entre caras interiores de los lugs) |
-| Separacion center-to-center | 27 mm (= 22 + 5) |
+| Ancho de correa libre | **20 mm** | gap entre caras interiores de los lugs |
+| Separacion center-to-center | 25 mm (= 20 + 5) |
 
 ### Posicion exacta de cada lug (centro del cilindro vertical de la punta)
 
 ```
 Lugs lado -Y (delante):
-  L1:  X = 35.5,  Y = -4.5   (Y_outer_ctr = 0 - (7 - 5/2) = -4.5)
-  L2:  X = 62.5,  Y = -4.5
+  L1:  X = 36.5,  Y = -4.5   (Y_outer_ctr = 0 - (7 - 5/2) = -4.5)
+  L2:  X = 61.5,  Y = -4.5
 
 Lugs lado +Y (atras):
-  L3:  X = 35.5,  Y = 83.5   (Y_outer_ctr = 79 + (7 - 5/2) = 83.5)
-  L4:  X = 62.5,  Y = 83.5
+  L3:  X = 36.5,  Y = 83.5   (Y_outer_ctr = 79 + (7 - 5/2) = 83.5)
+  L4:  X = 61.5,  Y = 83.5
 
 Centros de los spring bar holes: mismos (X,Y) que arriba, a Z = 10 en
 frame top-case-local (= Z = 14 absoluto).
@@ -283,12 +283,12 @@ Si replicas el case en Fusion y quieres verificar que esta correcto, mide:
 | Verificacion | Valor esperado |
 |---|---|
 | Ancho exterior maximo (Z=0) | 98.0 |
-| Ancho exterior maximo (Z=22) | 94.0 (= 98 - 2*taper) |
-| Distancia entre lugs (inner-to-inner, mismo lado) | 22.0 |
+| Ancho exterior maximo (Z=25) | 94.0 (= 98 - 2*taper) |
+| Distancia entre lugs (inner-to-inner, mismo lado) | 20.0 |
 | Distancia entre standoffs MH1-MH2 | 78.0 (= 88 - 10) |
 | Distancia entre standoffs MH1-MH3 | 60.0 (= 69.5 - 9.5) |
-| Distancia desde piso (Z=0) al centro del display | 17 (= 4 + 1.6 + 11.4 aprox) |
-| Distancia desde piso al centro USB-C | 16.6 (= 4 + 1.6 + 11) |
+| Distancia desde piso (Z=0) al centro del display | 20.0 (= 4 + 1.6 + 14.4 aprox) |
+| Distancia desde piso al centro USB-C | 18.6 (= 4 + 1.6 + 13.0) |
 | Volumen aproximado del case completo (sin componentes) | ~110 cm³ |
 
 ---

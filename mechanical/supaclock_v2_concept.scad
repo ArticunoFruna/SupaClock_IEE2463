@@ -17,7 +17,7 @@ eps = 0.01;
 // ----------------------------- DIMENSIONES BASE ------------------------------
 W = 90;             // ancho exterior (X) - mismo que V1
 L = 71;             // largo exterior (Y) - mismo que V1
-H = 22;             // alto total - mismo que V1 ensamblado
+H = 25;             // alto total - mismo que V1 ensamblado
 
 // ----------------------------- MEJORAS ---------------------------------------
 r_vert    = 10.0;   // (1) radio de las esquinas verticales
@@ -25,7 +25,7 @@ r_chamfer = 1.5;    // (2) radio del chamfer superior e inferior
 taper     = 1.5;    // (5) inset del top respecto del bottom (por lado)
 
 // ----------------------------- LUGS (4) --------------------------------------
-lug_strap_w   = 22.0;   // ancho de la correa (Apple Watch 44mm = 22mm)
+lug_strap_w   = 20.0;   // ancho de la correa (Galaxy Watch 4 = 20mm)
 lug_thickness = 4.0;    // espesor del lug a lo largo de X
 lug_protrude  = 7.0;    // cuanto sobresale el lug fuera del case
 lug_z_top     = H - 3;  // top del lug (3mm bajo el techo)
@@ -52,11 +52,11 @@ btn_hole_d      = 4.0;
 usb_y_pcb       = 48.0;
 usb_w_y         = 10.0;
 usb_h_z         = 4.0;
-usb_z_above_pcb = 11.0;
+usb_z_above_pcb = 13.0;
 
 jack_x_pcb       = 13.525;
 jack_d           = 6.5;
-jack_z_above_pcb = 3.0;
+jack_z_above_pcb = 12.6;
 
 // =============================================================================
 // MODULOS
@@ -143,10 +143,10 @@ module usb_cutout() {
 
 module jack_cutout() {
     abs_z_offset = bottom_h + pcb_thickness;
-    translate([pcb_off_x + jack_x_pcb,
-               -3,
+    translate([-3,
+               pcb_off_y + 16.586,
                abs_z_offset + jack_z_above_pcb])
-        rotate([-90, 0, 0])
+        rotate([0, 90, 0])
             cylinder(h = 10, d = jack_d);
 }
 

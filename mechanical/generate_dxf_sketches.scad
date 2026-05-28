@@ -41,7 +41,7 @@ electrode_positions = [
     [43.5 + pcb_off_x,  4.0 + pcb_off_y]  // E3 (50.0, 10.0)
 ];
 
-display_center = [53.78 + pcb_off_x, 35.0 + pcb_off_y]; // (60.28, 41.0)
+display_center = [44.28 + pcb_off_x, 38.5 + pcb_off_y]; // (50.78, 44.5)
 display_size   = [28.0, 34.0];
 
 // Lugs

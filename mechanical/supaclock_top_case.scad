@@ -32,10 +32,10 @@ pcb_thickness  = 1.6;    // FR4 estandar
 //     => superficie del display ~Z = 11.6mm
 // Componente mas alto = USB-C (~14.1). Con clearance 1.5mm + grosor_pared 2mm
 // => altura_top minima = 17.6 => uso 18 para holgura.
-altura_top     = 18.0;
+altura_top     = 21.0;
 
 // Standoffs / pilares internos del top case
-standoff_od    = 5.5;    // diametro exterior del pilar (>= cabeza M3 ~5.5mm)
+standoff_od    = 7.0;    // diametro exterior del pilar (>= cabeza M3 ~7.0mm)
 standoff_id    = 2.7;    // diametro del agujero pasante (rosca M3 self-tap)
 
 // ----------------- VENTANA DEL DISPLAY ST7789 1.69" --------------------------
@@ -47,7 +47,7 @@ standoff_id    = 2.7;    // diametro del agujero pasante (rosca M3 self-tap)
 // Modulo tipico 240x280 (1.69"): body ~30 x 38 mm, area activa ~28 x 34 mm.
 // La ventana se hace sobre el area activa (no el body completo) para tapar
 // los bezels del modulo y que solo se vea pantalla por fuera.
-display_pos    = [53.78, 35.0];   // centro del area activa (PCB-local Y-up)
+display_pos    = [44.28, 38.5];   // centro del area activa (PCB-local Y-up)
 display_w      = 28.0;             // ancho de la ventana (X)
 display_h      = 34.0;             // alto de la ventana (Y, en direccion del body)
 
@@ -74,7 +74,7 @@ btn_z_above_pcb = 1.9;                 // altura del centro del cuerpo sobre la 
 usb_pos_y       = 48.0;                // PCB-local Y del centro del USB-C
 usb_width_y     = 10.0;                // ancho del cut a lo largo de Y (USB-C ~9mm)
 usb_height_z    = 4.0;                 // alto del cut a lo largo de Z (USB-C ~3.2mm)
-usb_z_above_pcb = 11.0;                // altura del centerline USB-C sobre la PCB
+usb_z_above_pcb = 13.0;                // altura del centerline USB-C sobre la PCB
 
 // ----------------- JACK 3.5 mm para AD8232 (RA/LA/RL via cable) --------------
 // J13 (1x03) esta en PCB-local Y-up (13.525, 7.475), cerca de la arista
@@ -84,7 +84,7 @@ usb_z_above_pcb = 11.0;                // altura del centerline USB-C sobre la P
 // de la PCB (asumiendo jack panel-mount estandar acoplado por cable a J13).
 jack_x         = 13.525;               // X (PCB-local) del centro del jack, sobre J13
 jack_d         = 6.5;                  // diametro del agujero pasante en la pared
-jack_z_above_pcb = 3.0;                // altura del eje del jack sobre la PCB
+jack_z_above_pcb = 12.6;                // altura del eje del jack sobre la PCB
 
 // ----------------- AGUJEROS DE MONTAJE (MH1..MH4) ----------------------------
 mh_positions = [
@@ -138,9 +138,9 @@ difference() {
             rotate([0, 90, 0])
                 cylinder(h = grosor_pared + 2 * eps, d = btn_hole_d);
 
-    // Orificio para el jack 3.5 mm (atraviesa la pared inferior, eje a lo largo de +Y)
-    translate([jack_x + pcb_off_x, -eps, jack_z])
-        rotate([-90, 0, 0])
+    // Orificio para el jack 3.5 mm (atraviesa la pared izquierda, eje a lo largo de +X)
+    translate([-eps, 16.586 + pcb_off_y, jack_z])
+        rotate([0, 90, 0])
             cylinder(h = grosor_pared + 2 * eps, d = jack_d);
 
     // Cutout USB-C en la pared derecha (rectangular, atraviesa grosor_pared)
@@ -156,12 +156,45 @@ difference() {
 //    standoffs del bottom case (por debajo) y estos pilares (por arriba).
 //    Se anaden DESPUES del difference para que queden como solido nuevo
 //    dentro de la cavidad interior.
+// Pilares internos en las 4 esquinas, apoyando sobre la cara superior del PCB.
+// Cada pilar se conecta solidamente a las paredes laterales con costillas (ribs)
+// para evitar que se quiebren por fatiga o torque al atornillar.
 pillar_h = ceiling_z - pcb_thickness;
-for (p = mh_positions) {
-    translate([p[0] + pcb_off_x, p[1] + pcb_off_y, pcb_thickness])
-        difference() {
-            cylinder(h = pillar_h, d = standoff_od);
-            translate([0, 0, -eps])
-                cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+rib_w = 6.0; // Espesor de las costillas de refuerzo
+
+module reinforced_pillar(p) {
+    px = p[0] + pcb_off_x;
+    py = p[1] + pcb_off_y;
+    
+    difference() {
+        union() {
+            // Cilindro principal del pilar
+            translate([px, py, pcb_thickness])
+                cylinder(h = pillar_h, d = standoff_od);
+            
+            // Costilla de refuerzo hacia la pared X
+            if (p[0] < pcb_x / 2) {
+                translate([grosor_pared, py - rib_w/2, pcb_thickness])
+                    cube([px - grosor_pared, rib_w, pillar_h]);
+            } else {
+                translate([px, py - rib_w/2, pcb_thickness])
+                    cube([(outer_x - grosor_pared) - px, rib_w, pillar_h]);
+            }
+            
+            // Costilla de refuerzo hacia la pared Y
+            if (p[1] < pcb_y / 2) {
+                translate([px - rib_w/2, grosor_pared, pcb_thickness])
+                    cube([rib_w, py - grosor_pared, pillar_h]);
+            } else {
+                translate([px - rib_w/2, py, pcb_thickness])
+                    cube([rib_w, (outer_y - grosor_pared) - py, pillar_h]);
+            }
         }
+        
+        // Agujero roscado central pasante
+        translate([px, py, pcb_thickness - eps])
+            cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+    }
 }
+
+for (p = mh_positions) reinforced_pillar(p);
