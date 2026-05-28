@@ -7,8 +7,8 @@ from tensorflow.keras import layers, models
 import matplotlib.pyplot as plt
 
 # Parámetros del modelo y ventana
-WINDOW_SIZE = 128  # 128 muestras (aprox 2.56s a 50Hz)
-OVERLAP = 64       # 50% solapamiento
+WINDOW_SIZE = 200  # 200 muestras (aprox 4.0s a 50Hz)
+OVERLAP = 100      # 50% solapamiento
 NUM_CHANNELS = 6   # ax, ay, az, gx, gy, gz
 CLASSES = {'rest': 0, 'walk': 1, 'run': 2, 'fall': 3}
 
