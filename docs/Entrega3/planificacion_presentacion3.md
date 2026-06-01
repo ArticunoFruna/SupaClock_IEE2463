@@ -101,7 +101,7 @@ La narrativa debe evitar repetir demasiado la demo de sensores de Entrega2. El f
 ### Slide 5 - Avances consolidados desde Entrega 2
 *   **Objetivo**: Resumir el estado del firmware, tareas FreeRTOS, Pan-Tompkins y ST7789 de la entrega anterior.
 
-### Slide 6 - Cumplimiento de Compromisos de Entrega 2 (Hito 50%) [NUEVO]
+### Slide 6 - Cumplimiento de Compromisos de Entrega 2 (Hito 60%) [NUEVO]
 *   **Objetivo**: Auditar formalmente el cumplimiento de las metas trazadas al final de la Entrega 2:
     *   *Migración Seeed S3*: **100% Completo** (firmware completamente compilable y drivers base validados).
     *   *Podómetro por FFT (ESP-DSP)*: **100% Completo** (migrado de un umbral temporal impreciso a FFT en frecuencia de 50Hz con Xtensa PIE acceleration, resolviendo falsos positivos).
