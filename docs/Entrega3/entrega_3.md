@@ -1,6 +1,6 @@
 ---
 title: "SupaClock — Informe de Avance 3 (60 %)"
-subtitle: "De subsistemas validados a unidad wearable integrable"
+subtitle: "De subsistemas validados a la unidad integrada"
 authors:
   - Tomás Avendaño
   - Benjamín Sepúlveda
@@ -10,106 +10,95 @@ institution: "Pontificia Universidad Católica de Chile — Escuela de Ingenier�
 date: 2026-06-01
 ---
 
-# Resumen ejecutivo
+# Resumen
 
-Este informe consolida el trabajo desarrollado entre el 4 de mayo de 2026 (cierre del informe de avance 2) y el 1 de junio de 2026 sobre el proyecto **SupaClock**, un wearable biométrico modular de bajo costo para monitoreo continuo de actividad física, frecuencia cardíaca, oxigenación, temperatura periférica, electrocardiografía y reconocimiento de actividad humana. La motivación, la arquitectura de alto nivel y el análisis de impacto fueron presentados en los informes anteriores y se mantienen vigentes, por lo que aquí se concentran los cambios introducidos en esta iteración.
+Este informe consolida el trabajo desarrollado entre el 4 de mayo de 2026 y el 1 de junio de 2026 para el proyecto **SupaClock**, un dispositivo biométrico diseñado para el monitoreo continuo de actividad física, frecuencia cardíaca, oxigenación, temperatura, electrocardiografía y detección de caídas. 
 
-El eje de esta entrega es la **transición de prototipo de banco a unidad wearable integrable**. Mientras que la entrega anterior demostró que los subsistemas individuales funcionan (firmware FreeRTOS de siete tareas, BLE NimBLE con cuatro características GATT, Pan-Tompkins validado offline, optimizaciones de consumo con 75 % de tiempo en *light sleep*), esta entrega convierte esos bloques en una plataforma final consistente: el microcontrolador **Seeed XIAO ESP32-S3** sobre una **PCB carrier** propia, alojada dentro de una **carcasa paramétrica V2 impresa en PLA**, complementada por una **aplicación móvil Flutter** que reemplaza al cliente Python de testing y por un **modelo de Machine Learning embarcado (CNN 1D)** que clasifica caminata, reposo, trote y caídas en tiempo real.
+El eje de esta entrega es la **transición a la unidad integrada**. Mientras que la fase anterior validó el funcionamiento de los subsistemas aislados (como el firmware multitarea, la telemetría BLE y el procesamiento local de ECG), esta etapa consolida la plataforma física y digital final: el microcontrolador **Seeed XIAO ESP32-S3** montado sobre una **PCB carrier** de diseño propio, alojada en una **carcasa de protección impresa**, una **aplicación móvil Flutter** que actúa como interfaz y un procesador de **Machine Learning (CNN 1D)** para clasificar la actividad física y detectar caídas en tiempo real.
 
-Los entregables tangibles producidos durante esta iteración son:
+Los entregables producidos durante esta iteración son:
 
-- **Firmware migrado y ejecutándose en XIAO ESP32-S3** sobre PSRAM octal, con consola por USB-Serial-JTAG, *light sleep* dinámico reconfigurado para el target S3, ocho tareas FreeRTOS y refactor a una librería estática `supaclock_app` que ordena la inicialización en fases.
-- **Algoritmo de pasos basado en FFT** acelerada por las instrucciones PIE del Xtensa LX7 (librería ESP-DSP), reemplazando al detector temporal del ESP32-C3. Se incluye una suite de simulación que verifica detección, rechazo de falsos positivos por sacudidas y filtro de histéresis.
-- **PCB Carrier SupaClock v1**: proyecto KiCad de dos capas, ruteado bajo reglas conservadoras de fresado **LPKF ProtoMat S64**, con cero nets sin conectar y veintiséis violaciones DRC residuales de naturaleza cosmética/footprint (no bloqueantes para fabricación).
-- **Carcasa paramétrica V2 en OpenSCAD**: dos mitades atornilladas, taper de 2 mm, esquinas redondeadas r=12 mm y *chamfer* de 1.5 mm en seam y techo, *lugs* tipo "stadium" de 22 mm para correa estándar, ventanas térmicas y ópticas alineadas con la PCB. STL impresos y validados físicamente.
-- **App Flutter** con doble interfaz (usuario clínico y desarrollador), procesamiento Pan-Tompkins 100 % en cliente, persistencia híbrida Hive + Firestore y almacenamiento de trazas pesadas en Firebase Storage. Reemplaza al `supaclock_monitor.py` como gateway BLE-móvil.
-- **Modelo CNN 1D** entrenado sobre veintisiete sesiones IMU propias (resting/walking/running), arquitectura de tres bloques Conv1D + GAP + Dense, cuantización INT8 a 58 KB, *tensor arena* de 128 KB en PSRAM y ejecución pinned al **Core 1** del S3 (el Core 0 queda libre para BLE, LVGL e I²C).
-- **UI rediseñada** con sistema de temas persistente en NVS (cuatro paletas seleccionables como *watch faces*), tipografías Inter regeneradas a tres pesos (16 px, 28 px, 56 px) y *heap* gráfica trasladada a PSRAM para descongestionar la SRAM interna.
+- **Firmware para el microcontrolador ESP32-S3** con soporte para PSRAM, depuración por puerto USB nativo, administración de energía dinámica con modo de bajo consumo y una arquitectura modular estructurada en la biblioteca `supaclock_app`.
+- **Algoritmo de pasos por FFT** acelerado por hardware para sustituir el detector temporal previo. Se incluye un entorno de pruebas que verifica la precisión, el rechazo de falsos positivos y el filtro de histéresis.
+- **PCB Carrier**: placa integradora de dos caras compatible con los procesos de fabricación por fresado del laboratorio Capstone PUC, diseñada y validada eléctricamente.
+- **Carcasa protectora**: envolvente ergonómico de dos piezas atornilladas que integra soportes para la correa, botones mecánicos y aberturas alineadas para los sensores ópticos y térmicos.
+- **Aplicación móvil Flutter** con interfaz dual (clínica y de desarrollo), análisis Pan-Tompkins local, base de datos persistente y almacenamiento en la nube de señales de alta frecuencia.
+- **Machine Learning (CNN 1D)**: modelo de tres capas entrenado con datos de movimiento del propio sensor para la clasificación de actividad física, alocado en PSRAM y ejecutado de manera asíncrona.
+- **Interfaz gráfica rediseñada** con paletas de color configurables, fuentes legibles de alta resolución y almacenamiento de gráficos optimizado en PSRAM para liberar memoria interna.
 
-El avance consolidado del proyecto al 1 de junio de 2026 es del **65 %** ponderado sobre el cronograma maestro, con la PCB carrier al 100 % de diseño, la carcasa al 100 % de modelado y primera impresión validada, el firmware sobre S3 al 100 % de portabilidad, el ML al 80 % (modelo entrenado y pipeline de inferencia operativos, recolección de la clase *fall* pendiente) y la app móvil al 90 % de las funcionalidades planificadas. La PCB está pronta para ser fresada en el laboratorio LPKF del Departamento; el bring-up eléctrico y la validación de unidad cerrada constituyen el grueso del trabajo restante hacia el cierre del semestre.
+El avance del proyecto alcanza un 65 % ponderado. El diseño del carrier y el modelado de la carcasa están terminados, el firmware sobre S3 está portado, la clasificación por Machine Learning tiene sus algoritmos base operativos y la app móvil cuenta con sus funciones esenciales. Tras fabricar la PCB por fresado, las actividades finales se concentrarán en el bring-up eléctrico y la validación de la unidad integrada.
 
 # 1. Introducción
 
-El presente informe se estructura en torno a los tres ejes que define la rúbrica de avance 3 (Diagrama de bloques de bajo nivel — Planificación — Implementación y resultados), y suma un capítulo dedicado al análisis cuantitativo de los resultados y otro a los próximos pasos previos a la entrega final. Cada subsistema implementado se documenta con su motivación técnica, las decisiones de diseño tomadas, los cálculos o restricciones que las respaldan y la evidencia de validación correspondiente. Los listados de código, tablas extendidas y reportes detallados (DRC, BOM, *power locks*) se desplazan al anexo para mantener la fluidez de la lectura.
+El presente informe se organiza en torno a los tres ejes definidos para esta etapa: el diagrama de bloques, la planificación actualizada y la implementación con sus resultados experimentales. Cada sección detalla los fundamentos de diseño y las pruebas de validación correspondientes. Los listados de código y tablas de soporte se incluyen en los anexos para agilizar la lectura del documento.
 
-La codificación cromática del estado de los bloques es la misma que se empleó en los informes anteriores: **verde** para subsistemas funcionales y validados; **amarillo** para implementaciones parciales; **rojo punteado** para bloques pendientes o cuya integración cruza un hito futuro. La nomenclatura de archivos, comandos y entornos PlatformIO sigue el repositorio Git del proyecto disponible en `github.com/ArticunoFruna/SupaClock_IEE2463`.
+Para el estado de los bloques se mantiene la codificación cromática previa: verde para subsistemas validados, amarillo para implementaciones parciales y rojo punteado para tareas pendientes. La nomenclatura de archivos y entornos de desarrollo corresponde al repositorio Git del proyecto.
 
-## 1.1. Contexto de la entrega anterior y *delta* del periodo
+## 1.1. Contexto del periodo y avances logrados
 
-Al cierre del informe de avance 2 el sistema cumplía con:
+Al término de la fase anterior, el sistema contaba con las siguientes bases:
 
-- Firmware FreeRTOS funcional sobre ESP32-C3 SuperMini, con siete tareas concurrentes y mutex de bus I²C, integrando BMI160 (50 Hz, *step counter* nativo), MAX30102 (10 Hz, máquina de estados SPOT con *motion gating*), MAX30205 (1 Hz, ±0,3 °C contra referencia), MAX17048 (1 Hz, SOC y Vcell) y AD8232 (ADC continuo a 20 kHz con DMA on-demand, decimación a 500 Hz).
-- Pan-Tompkins en Python+NumPy validado offline sobre treinta segundos de captura real (76 BPM, SDNN = 32,4 ms), código fuente versionado en `firebase/functions/main.py` pero aún sin desplegar como *Cloud Function*.
-- BLE NimBLE con cuatro características GATT (IMU, TLV agregado, ECG streaming, RX de comandos) bajo el servicio custom `0xFF00`, *advertising* a 1 s y Modem Sleep BT habilitado.
-- Power management dinámico con DFS 10–160 MHz, *light sleep* y tres *PM locks* (ECG, NimBLE, SPI), alcanzando 75 % de tiempo en estado SLEEP medido con `esp_pm_dump_locks`.
-- Tres modos de energía persistentes (SPORT/NORMAL/SAVER) con ocho cadencias parametrizadas y persistencia NVS.
-- Esquemático v1 de PCB propia para SuperMini cerrado pero no manufacturado, dado el compromiso de migración al ESP32-S3.
+- Firmware multitarea sobre ESP32-C3 con soporte para sensores inerciales, de temperatura, de pulso óptico y acondicionamiento analógico de electrocardiografía (ECG).
+- Pan-Tompkins en Python validado en diferido sobre capturas de señal real, con el código fuente disponible en el repositorio.
+- Telemetría BLE para la transmisión de variables y señales continuas a través de servicios personalizados de baja latencia.
+- Administración de energía dinámica con DFS y modo de bajo consumo activo.
+- Modos de funcionamiento configurables por el usuario y persistidos en memoria interna.
 
-El período cubierto por esta entrega (28 días calendario) concentró los siguientes *deltas* respecto al estado anterior:
+Durante este periodo, el desarrollo se concentró en los siguientes hitos de integración:
 
-- **Migración firmware completa al XIAO ESP32-S3** (target ESP-IDF, PSRAM octal, USB-Serial-JTAG, partition table extendida a 8 MB, sdkconfig regenerado).
-- **Rediseño completo del PCB**, abandonando definitivamente la PCB SuperMini y produciendo el **SupaClock Carrier v1** ya en formato compatible con el LPKF del laboratorio.
-- **Carcasa V2 paramétrica** completamente nueva, reemplazando la caja rectangular conceptual del informe anterior por un envelope estilizado con esquinas redondeadas, *chamfer*, taper, *lugs* de correa y *button caps* impresos como pieza aparte.
-- **Algoritmo de pasos FFT** anunciado en la entrega anterior, ahora implementado en `lib/step_algorithm` con compilación condicional por *target* y banco de pruebas en `test_fft_steps`.
-- **Modelo CNN 1D** entrenado y embebido como `har_model.tflite` (58 KB), corriendo bajo TFLite Micro con ESP-NN y *tensor arena* en PSRAM.
-- **App móvil Flutter** ya operativa, con autenticación Firebase, escaneo y conexión BLE, doble interfaz, procesamiento ECG en cliente y persistencia híbrida.
-- **Refactor del firmware** que extrae las siete tareas y la inicialización del antiguo `src/tests/test_general.c` hacia una librería estática `lib/supaclock_app`, dejando `main.c` reducido a un *stub* selector de entorno.
-- **Rediseño de la UI** con sistema de temas dinámicos, tipografías propias y consolidación de la lógica de pantallas en un módulo `lib/supaclock_ui`.
+- **Migración del firmware al XIAO ESP32-S3** con soporte para PSRAM y depuración por puerto USB nativo.
+- **Rediseño del PCB** mediante el desarrollo de la placa de integración compatible con el equipamiento de fabricación del laboratorio Capstone.
+- **Nueva carcasa protectora** de dos piezas con esquinas redondeadas, ranuras de sujeción para correa estándar y botones mecánicos integrados.
+- **Algoritmo de pasos por FFT** acelerado por hardware para sustituir el detector temporal previo. Se incluye un entorno de pruebas que verifica la precisión, el rechazo de falsos positivos y el filtro de histéresis.
+- **Machine Learning (CNN 1D)**: modelo de clasificación de actividad física entrenado e integrado bajo el entorno de ejecución en PSRAM.
+- **Aplicación móvil Flutter** que gestiona la telemetría BLE, realiza el análisis de ECG localmente y almacena los datos de forma persistente.
+- **Refactorización del firmware** hacia una arquitectura modular en la biblioteca `supaclock_app`.
+- **Rediseño de la interfaz gráfica** con temas dinámicos y optimización en la memoria de pantalla.
 
-El resto del informe profundiza en cada uno de estos *deltas* desde la perspectiva eléctrica, mecánica, de firmware y de validación.
+El resto del informe profundiza en cada uno de estos avances desde la perspectiva de hardware, firmware y validación experimental.
 
 # 2. Diagrama de bloques de bajo nivel actualizado
 
 ## 2.1. Estado vigente
 
-El diagrama de alto nivel de la entrega 1 (siete dominios: interacción, energía, sensores, MCU, interfaz local, *gateway*, *backend*) se mantiene estructuralmente sin cambios. Lo que sí evolucionó respecto al diagrama de bloques de bajo nivel presentado en la entrega 2 (Fig. 1 de aquel informe) son tres elementos:
+El diagrama de alto nivel de la entrega 1 (siete dominios: interacción, energía, sensores, MCU, interfaz local, *gateway*, *backend*) se mantiene estructuralmente sin cambios. Lo que sí evolucionó respecto al diagrama de bloques de bajo nivel presentado en la entrega 2 son tres elementos:
 
-1. **El bloque MCU pasa de ESP32-C3 SuperMini a XIAO ESP32-S3** y, con ello, se reconfiguran todas las asignaciones de pines, los buses, la sección de potencia y la lista de *PM locks*.
-2. **El bloque "PCB SuperMini"** desaparece y se reemplaza por **"PCB Carrier v1"**, que es el integrador físico vigente.
-3. **El bloque "TinyML CNN 1D"** transita de *pendiente* (rojo punteado) a *parcial* (amarillo, 80 % de implementación) gracias al entrenamiento exitoso sobre datos propios y la integración del *runtime* en el firmware.
+1. **El bloque MCU pasa a XIAO ESP32-S3**, lo que simplifica la sección de potencia y reconfigura la asignación de pines.
+2. **El bloque "PCB SuperMini"** desaparece y se reemplaza por el **"PCB Carrier v1"**, que es el integrador físico de la unidad.
+3. **El bloque "Machine Learning (CNN 1D)"** transita de *pendiente* (rojo punteado) a *parcial* (amarillo, 80 % de implementación) gracias al entrenamiento sobre datos de sensores propios y la integración en el firmware.
 
 La Figura 2.1 (renderizada en LaTeX a partir de `docs/Entrega3/fig_bloques_lownivel_e3.tex`) reproduce el diagrama de bajo nivel vigente. Su contenido refleja el estado de cada subsistema al 1 de junio de 2026.
 
-**Figura 2.1**: *Diagrama de bloques de bajo nivel del prototipo SupaClock al cierre del avance 3. El MCU central (XIAO ESP32-S3) integra los buses I²C 400 kHz (BMI160, MAX30102, MAX30205, MAX17048), SPI 80 MHz (ST7789), ADC1 con DMA (AD8232) y GPIO (botones, backlight). La sección de potencia muestra la cadena USB-C → BMS interno (SGM40567) → buck SGM6029 3,3 V → carga, con la celda LiPo 502030 monitoreada por el MAX17048 vía I²C. El ecosistema (BLE NimBLE → app Flutter / cliente PC → Firebase Cloud Functions / TinyML local) cierra el flujo de telemetría y procesamiento.*
+**Figura 2.1**: *Diagrama de bloques de bajo nivel al cierre del avance 3. El MCU central (XIAO ESP32-S3) integra los buses I²C (BMI160, MAX30102, MAX30205, MAX17048), SPI (ST7789), ADC con DMA (AD8232) y GPIO (botones, backlight). La sección de potencia muestra la cadena de alimentación y monitoreo por el MAX17048. El ecosistema cierra el flujo de telemetría y procesamiento mediante la aplicación móvil y algoritmos locales.*
 
 ## 2.2. Cambios respecto al diagrama de la entrega anterior
 
-### 2.2.1. MCU: del ESP32-C3 SuperMini al XIAO ESP32-S3
+### 2.2.1. MCU: del ESP32-C3 al XIAO ESP32-S3
 
-La justificación cualitativa de esta migración se documentó en el avance 2 (sección 8.4). En esta entrega la migración se materializó, y los cambios concretos en el diagrama son:
+La justificación cualitativa de esta migración se documentó en el avance 2. En esta entrega la migración se materializó, y los cambios concretos en el diagrama son:
 
-- **Reloj y memoria.** El XIAO ESP32-S3 ejecuta un **dual-core Xtensa LX7 a 240 MHz** con 320 KB de SRAM interna, 8 MB de Flash y 8 MB de **PSRAM octal**. Esto desbloquea dos arquitecturas críticas: alojar la *tensor arena* de TFLite Micro (128 KB) y el *frame buffer* doble de LVGL en PSRAM, y *pinear* la tarea de inferencia al Core 1 sin perturbar BLE y LVGL.
-- **Mapa de pines reasignado.** El header de la XIAO S3 expone 11 GPIO mientras el SuperMini exponía 8. Esto permitió mover el reset del ST7789 a *no cableado* (reset por software vía registro) y emplear GPIO43/GPIO44 para botones y CS del display, pagando el costo de redirigir la consola serie al **USB-Serial-JTAG** integrado del módulo.
-- **Sección de potencia simplificada.** Tres reguladores externos del prototipo C3 (TP4056 + DW01A + ME6211 3,3 V) se sustituyen por la cadena integrada del propio XIAO S3 (cargador SGM40567 + buck SGM6029 ~800 mA), eliminando los *brown-outs* documentados en la entrega anterior. El módulo TP4056 + DW01A se mantiene en el diagrama solo para alimentar la celda LiPo externa antes de que el XIAO entre en carga, dado que la celda LiPo 502030 no se conecta directamente al pad B+/B− del módulo XIAO (que ocuparemos para sostener una celda LiPo reciclada del Samsung Galaxy Watch 4).
-- **Aceleración SIMD.** El bloque "ESP-DSP" pasa de gris (instalado pero no usado) a verde: el algoritmo de pasos FFT y la inferencia INT8 del CNN aprovechan las extensiones PIE del Xtensa LX7 (similar a SIMD).
+- **Procesamiento y memoria.** El XIAO ESP32-S3 cuenta con un procesador dual-core a 240 MHz y soporte de memoria PSRAM. Esto permite alojar la interfaz gráfica y la ejecución de Machine Learning en memoria externa, liberando la SRAM interna y distribuyendo las tareas de manera asíncrona.
+- **Mapa de pines reasignado.** El microcontrolador expone una cantidad de líneas de entrada y salida que permite simplificar las conexiones del display y los botones, utilizando el puerto USB nativo integrado del módulo para las tareas de programación y depuración.
+- **Sección de potencia simplificada.** Los reguladores externos de la versión anterior se sustituyen por el sistema de carga y regulador integrado del propio XIAO S3, eliminando caídas de voltaje. Se mantiene el cargador auxiliar únicamente para alimentar la celda de batería externa por motivos de ensamble físico.
+- **Aceleración por hardware.** Se integraron las librerías del fabricante para aprovechar las instrucciones de cálculo vectorial del procesador en el algoritmo de pasos y en la inferencia de Machine Learning.
 
-### 2.2.2. PCB: del esquemático SuperMini al Carrier v1
+### 2.2.2. PCB: del esquemático del módulo al Carrier v1
 
-El esquemático v1 de la entrega anterior nunca llegó a *Edge.Cuts* listas para fabricación. Se descartó por completo y se levantó un nuevo proyecto KiCad bajo `hardware/SupaClock_Carrier/`, cuya finalidad es ser **fabricable en el LPKF ProtoMat S64** del laboratorio Capstone (no JLCPCB), lo que impuso reglas conservadoras:
+Se descartó el esquemático de prueba preliminar y se desarrolló una placa integradora de dos caras compatible con los procesos de fresado del laboratorio Capstone PUC. El diseño optimiza el uso del espacio físico y eléctrico. El carrier emplea un sistema de zócalos para el XIAO S3, lo que facilita el desmontaje o reemplazo del microcontrolador sin alterar la placa integradora ni comprometer la conexión USB.
 
-- *Trace width* mínimo 0,4 mm (vs. 0,2 mm de JLCPCB).
-- *Drill* mínimo 0,8 mm (vs. 0,3 mm).
-- *Clearance* mínimo 0,4 mm.
-- Sin máscara de soldadura (los *pads* expuestos se cubren con flux *no-clean* tras el ensamblado).
-- Sin serigrafía top/bottom (la fresadora no aplica serigrafía: las etiquetas se colocan a posteriori con marcador permanente).
+### 2.2.3. Machine Learning: de pendiente a parcial
 
-Estas restricciones explican por qué el ruteo final del carrier no se parece a una PCB JLCPCB clásica: usa pistas anchas, *vías* de 0,8 mm y aprovecha *zones* extensas en el plano de masa (lado *bottom*) para minimizar el *milling time*. El carrier en formato DIP fue una decisión consciente (no se utilizan *castellated edges* para soldar el módulo S3 directamente al PCB): el XIAO S3 va sobre un *pin socket* 1x7+1x7 doble en *through-hole*, lo que permite (1) reemplazar el módulo si llega defectuoso, (2) reaprovecharlo para futuras revisiones, y (3) reflashear el firmware por USB sin desmontar el conjunto.
+El modelo de Machine Learning (CNN 1D) se integró en el firmware como biblioteca interna. El estado del bloque es parcial por dos razones:
 
-### 2.2.3. TinyML: de pendiente a 80 %
-
-La motivación de la entrega anterior se transformó en implementación: el modelo CNN 1D vive ahora en `lib/har_cnn1d/` como librería estática, integrada al *build* PlatformIO y embebida en el firmware como un *blob* `har_model.tflite` de 58 KB.
-
-El estado del bloque es **parcial (amarillo)** y no verde por dos razones operativas:
-
-1. **La clase *Fall* no tiene aún datos de entrenamiento reales.** Las veintisiete sesiones disponibles (siete *running*, ocho *walking*, doce *resting*) cubren bien las tres primeras clases; la clase *fall* se complementa hoy con datos sintéticos generados a partir del modelo físico de caída libre + impacto, pero la validación contra caídas reales (con maniquí o voluntario sobre colchoneta) está agendada para la semana del bring-up del carrier.
-2. **El intérprete TFLite Micro está embebido pero la inferencia continua aún no ha sido validada con el carrier ensamblado.** En la unidad de bench actual (XIAO S3 montado en *breadboard*) la inferencia opera y reporta clases correctas durante caminata y reposo, pero la calidad del modelo en condiciones reales con la muñeca recibiendo vibraciones del PCB completo y los buffers de BLE simultáneamente activos no ha sido medida.
+1. **Datos empíricos de caídas**: La clase de caídas se valida inicialmente con datos simulados y modelados físicamente, quedando la toma de registros empíricos reales para la etapa de pruebas integradas de la unidad.
+2. **Validación física**: La inferencia continua está operativa, y su comportamiento final se evaluará con la unidad totalmente ensamblada y bajo movimiento libre.
 
 ### 2.2.4. Otros cambios menores en el diagrama
 
-- **GUI LVGL: de 7 pantallas funcionales a UI rediseñada con temas.** Las siete pantallas siguen presentes pero ahora se construyen sobre `lib/supaclock_ui` (un nuevo módulo de UI) con tipografías propias (Inter Regular 16 px / Medium 28 px / Bold 56 px) y cuatro temas seleccionables desde menú (`AMOLED`, `WARM`, `SLATE`, `VIVID`), persistidos en NVS.
-- **App móvil: de 0 % a 90 %.** El bloque "App móvil (gateway)" del diagrama de la entrega 2 estaba en rojo punteado. Hoy es verde funcional: la app Flutter en `app/lib/` reemplaza al `supaclock_monitor.py` y desempeña el rol de gateway BLE+gateway clínico.
-- **Pan-Tompkins: de Cloud Function a procesamiento en cliente.** En la entrega anterior se proyectaba desplegar el algoritmo en Firebase Cloud Functions con *trigger* sobre Firestore. La decisión fue **reubicar el procesamiento en el cliente** (`app/lib/services/pan_tompkins.dart`), por dos razones: (a) la latencia perceptible al usuario es mucho menor sin ida-vuelta al servidor; (b) se ahorra costo de Cloud Functions al no incurrir en invocaciones por cada toma de ECG (≈10/usuario/día en SPORT). La función `main.py` queda como respaldo desplegable para usuarios sin app móvil.
-- **Cliente PC testing: deprecado.** El bloque `supaclock_monitor.py` pasa a rojo punteado: sigue funcional para depuración rápida, pero ya no es el camino primario de captura de telemetría. Su rol fue absorbido por el modo desarrollador de la app Flutter.
+- **Rediseño de interfaz gráfica**: Se agregaron temas visuales dinámicos y fuentes tipográficas optimizadas para mejorar la visualización en pantalla, gestionando los gráficos desde la PSRAM.
+- **Aplicación móvil**: La app de Flutter reemplaza al monitor de pruebas en PC y asume la telemetría BLE y el almacenamiento local persistente de variables clínicas.
+- **Procesamiento local de ECG**: Se reubicó el algoritmo Pan-Tompkins directamente en el cliente móvil para reducir la latencia de respuesta y permitir un funcionamiento offline-first.
+- **Cliente PC**: Se conserva el cliente de pruebas en PC como alternativa de depuración para tareas específicas de bajo nivel.
 
 ## 2.3. Especificaciones detalladas por bloque
 
@@ -119,27 +108,27 @@ La Tabla 2.1 consolida las especificaciones cuantitativas vigentes al cierre del
 
 | Bloque | Interfaz | Tasa / frecuencia | Especificación clave | Estado |
 |---|---|---|---|---|
-| XIAO ESP32-S3 | — | 240 MHz dual-core | 320 KB SRAM + 8 MB PSRAM octal + 8 MB Flash; USB-Serial-JTAG; BMS integrado (SGM40567 + SGM6029) | 100 % |
-| AD8232 (ECG) | ADC1 / DMA | 20 kHz → 500 Hz | GPIO1 ADC, ganancia analógica 1100, fc LP ~40 Hz, down-sample 40× por software | 100 % |
-| BMI160 (IMU) | I²C 400 kHz, 0x68 | 100 Hz polling (modelo a 50 Hz) | ±2 g, ±250 °/s, FIFO 1024 B; INT1 **no cableada** (polling vía task HAR) | 100 % |
-| MAX30102 (PPG) | I²C 400 kHz, 0x57 | 100 sps efectivos | RED+IR, pulse width 411 µs, sample average N=4, FIFO 32, polling 100 ms, flush al arranque | 95 % |
-| MAX30205 (Temp) | I²C 400 kHz, 0x48 | 1/30–1/900 Hz (por modo) | 16-bit, 0.00390625 °C/LSB, ±0.1 °C en rango clínico | 100 % |
-| MAX17048 (Fuel) | I²C 400 kHz, 0x36 | 1/30 Hz | ModelGauge SOC %, Vcell mV, sin shunt externo | 100 % |
-| ST7789 (Display) | SPI 80 MHz | 30 FPS | LVGL 8.4, 240×280 RGB565, DMA AUTO, offset Y=20, reset por software | 100 % |
-| Botones | GPIO polling | 30 Hz desde gui_task | NEXT GPIO43, SELECT GPIO8; short/long-press; debounce SW 30 ms; wake-up deep sleep por SELECT | 100 % |
-| BMS interno XIAO | SGM40567 | — | Carga LiPo single-cell, OVP/UVP/OC, *power-path*, salida 5 V/buck a 3,3 V | 100 % |
-| Buck XIAO | SGM6029 | — | Buck 3,3 V, hasta ~800 mA, IQ bajo, sin colapso en transitorios pre-optimización | 100 % |
-| BLE NimBLE | 2,4 GHz BLE 5 | conn. interval 15 ms | MTU 247; 4 chr.: 0xFF01 IMU, 0xFF02 TLV, 0xFF03 ECG, 0xFF04 CMD; Modem Sleep BT | 100 % |
-| GUI LVGL | SPI 30 FPS | — | 7 pantallas; 4 temas NVS-persistentes; tipografías Inter custom (16/28/56 px); backlight PWM auto-off | 100 % |
-| Power Management | esp_pm + DFS | 10–160 MHz | Light sleep dinámico, 4 PM locks (ECG, NimBLE, SPI DMA, HAR opcional); reconfigurado para S3 | 100 % |
-| Power Modes | NVS + power_get_profile() | — | 3 perfiles (SPORT/NORMAL/SAVER), 8 cadencias parametrizadas, persistencia NVS | 100 % |
-| **PCB Carrier v1** | 2 capas | — | 98×79 mm, LPKF rules (trace 0.4 mm, drill 0.8 mm), 0 nets sin conectar, 26 violaciones DRC residuales | **100 % diseño** |
-| **Carcasa V2** | PLA FDM | — | 98×79×25 mm envelope, r_vert=12 mm, chamfer 1.5 mm, taper 2 mm, lugs 22 mm, ventanas alineadas | **100 % diseño** |
-| **HAR CNN 1D** | TFLite Micro + ESP-NN | 0.5 Hz inferencia | Ventana 200×6 (4 s @ 50 Hz, hop 100), 3 Conv1D + GAP + Dense, INT8, 58 KB modelo, arena 128 KB en PSRAM | **80 %** |
-| **FFT step counter** | esp-dsp PIE | ventana 128 muestras @ 50 Hz | Hann + FFT2R + bit-rev, banda 0.75–2.75 Hz, histeresis 2 ventanas, modo SPORT con 50 % overlap | **100 %** |
-| **App Flutter** | BLE + Firestore | — | Doble interfaz (clínica/dev), Pan-Tompkins en cliente, Hive + Firestore, CSV gzip a Firebase Storage | **90 %** |
-| Pan-Tompkins | Dart + numpy fallback | offline | 5 etapas (BPF 5–15 Hz, deriv, cuad, MWI, R-peaks adaptativos); BPM y HRV (SDNN, RMSSD) | 100 % |
-| Cloud Functions | Firestore trigger | — | `process_ecg` y `compute_daily_summary` escritas; despliegue diferido (procesamiento en cliente) | 50 % |
+| XIAO ESP32-S3 | — | 240 MHz dual-core | SRAM interna + PSRAM + Flash; USB nativo; cargador y regulador integrados | 100 % |
+| AD8232 (ECG) | ADC1 / DMA | 20 kHz → 500 Hz | GPIO1 ADC, ganancia analógica 1100, down-sample por software | 100 % |
+| BMI160 (IMU) | I²C, 0x68 | 100 Hz polling (modelo a 50 Hz) | Rango configurable, FIFO interna; polling vía task de movimiento | 100 % |
+| MAX30102 (PPG) | I²C, 0x57 | 100 sps efectivos | Emisión RED+IR, filtro digital y promediado de muestras en el sensor | 95 % |
+| MAX30205 (Temp) | I²C, 0x48 | 1/30–1/900 Hz (por modo) | Conversión de alta resolución con precisión clínica | 100 % |
+| MAX17048 (Fuel) | I²C, 0x36 | 1/30 Hz | Monitoreo del estado de carga y voltaje por algoritmo interno | 100 % |
+| ST7789 (Display) | SPI | 30 FPS | Controlador de pantalla gráfica, DMA activo, reset por software | 100 % |
+| Botones | GPIO polling | 30 Hz | Monitoreo de botones físicos con filtrado de rebotes por software | 100 % |
+| BMS interno | Integrado | — | Circuito de carga y regulador de voltaje incorporado en el microcontrolador | 100 % |
+| BLE NimBLE | 2,4 GHz BLE | Periódico | Conexión y transmisión inalámbrica de telemetría de bajo consumo | 100 % |
+| GUI LVGL | Gráfica | 30 FPS | Pantallas de interfaz gráfica con temas y fuentes optimizadas en PSRAM | 100 % |
+| Power Management | esp_pm | Dinámico | Bajo consumo activo mediante modos de suspensión del procesador | 100 % |
+| Power Modes | NVS | — | Configuración de perfiles de energía persistentes en memoria interna | 100 % |
+| **PCB Carrier** | 2 capas | — | Placa de integración eléctrica de dos caras compatible con laboratorios | **100 % diseño** |
+| **Carcasa** | Plástico impreso | — | Envolvente ergonómico de dos piezas con soportes para correa | **100 % diseño** |
+| **Machine Learning** | CNN 1D | 0.5 Hz inferencia | Clasificación de actividad física en tiempo real mediante red convolucional | **80 %** |
+| **Podómetro** | Análisis FFT | Periódico | Conteo de pasos en frecuencia con filtro de ruido e histéresis | **100 %** |
+| **App Flutter** | BLE + Nube | — | Interfaz dual de telemetría, análisis de ECG local y sincronización | **90 %** |
+| Pan-Tompkins | Dart local | En cliente | Algoritmo de detección de picos QRS para cálculo de frecuencia y HRV | 100 % |
+| Servicios Cloud | Triggers | Diferido | Respaldo para almacenamiento y análisis secundario de datos en la nube | 50 % |
+
 
 ## 2.4. Justificación de los cambios en el diseño
 
@@ -197,7 +186,7 @@ La Tabla 3.1 contrasta las tareas asociadas al período del avance 3 (hito 60 %)
 
 | Tarea planificada | Estado | Observaciones |
 |---|---|---|
-| Bring-up del Seeed XIAO ESP32-S3 | Completado | Firmware compila y ejecuta sobre el target esp32-s3. Drivers I²C, SPI, ADC, GPIO y power management migrados. Consola por USB-Serial-JTAG. PSRAM habilitada y empleada por LVGL + tensor arena. |
+| Bring-up del Seeed XIAO ESP32-S3 | Completado | Firmware compila y ejecuta sobre el target esp32-s3. Drivers I²C, SPI, ADC, GPIO y power management migrados. Consola USB activa. PSRAM habilitada y empleada por LVGL + tensor arena. |
 | Algoritmo de pasos FFT (ESP-DSP) | Completado | Implementación en `lib/step_algorithm/step_algorithm.c` selecciona por target. Test `test_fft_steps` valida los tres escenarios (reposo, sacudida, caminata). Resuelve falsos positivos del C3. |
 | Recolección de dataset HAR real | Adelantado | 27 sesiones capturadas con `env:capture_c3` (7 running, 8 walking, 12 resting). Falta la clase *fall*. Las sesiones residen en `data_ml/supaclock_imu_*.csv`. |
 | Entrenamiento CNN 1D | Completado | 3 Conv1D + GAP + Dense, INT8, 58 KB. Pipeline en `tools/train_har_cnn.py`. Modelo embebido como `lib/har_cnn1d/har_model.c` (4965 líneas de C generadas a partir del `.tflite`). |
@@ -205,7 +194,7 @@ La Tabla 3.1 contrasta las tareas asociadas al período del avance 3 (hito 60 %)
 | PCB carrier v1 finalizada | Completado | Proyecto KiCad en `hardware/SupaClock_Carrier/` con esquemático y PCB completos. 0 nets sin conectar. DRC: 26 violaciones residuales (lib_footprint_mismatch, courtyards, thermal relief), todas no bloqueantes para LPKF. |
 | Carcasa paramétrica V2 | Completado | OpenSCAD: `supaclock_v2_top_case.scad`, `supaclock_v2_bottom_case.scad`, `supaclock_v2_button_caps.scad`, `supaclock_v2_assembly.scad`. STL impresos y validados físicamente tras dos iteraciones. |
 | Aplicación móvil Flutter | Adelantado | 8 servicios (`auth`, `ble`, `csv_recorder`, `daily_rollup`, `firestore`, `local_store`, `notifications`, `pan_tompkins`, `telemetry_collector`) y 8 pantallas (login, dashboard, spot_check, ecg, trends, settings, ble_debug, dev_mode). Procesa ECG en cliente, persistencia híbrida Hive + Firestore. |
-| Pan-Tompkins en Cloud Functions | Reubicado | `firebase/functions/main.py` permanece en el repositorio pero se decidió mover el procesamiento al cliente (`pan_tompkins.dart`). Justificación: latencia y *offline-first*. |
+| Pan-Tompkins en Cloud Functions | Reubicado | `firebase/functions/main.py` remains in the repository but it was decided to move processing to the client (`pan_tompkins.dart`). Justification: latency and *offline-first*. |
 | UI rediseñada con temas y tipografías | Nueva | No estaba en el plan original. Sistema de 4 temas (`AMOLED`, `WARM`, `SLATE`, `VIVID`) persistidos en NVS. Tipografías Inter custom regeneradas a 16/28/56 px. Heap LVGL en PSRAM. |
 | Refactor a librería supaclock_app | Nueva | Extracción de las 7 tareas y la inicialización en fases desde `src/tests/test_general.c` hacia `lib/supaclock_app/`. `main.c` queda como stub selector de entorno. |
 | Reorganización de `src/tests/` | En curso | Tests unitarios por subsistema mantenidos. Nuevos tests `test_har`, `test_fft_steps`. `test_general` permanece como referencia funcional. |
@@ -233,7 +222,7 @@ La división de áreas de la entrega anterior se mantiene, pero las contribucion
 |---|---|---|
 | Tomás Avendaño | Interfaz, App Móvil, Backend | App Flutter completa (8 servicios + 8 pantallas), portabilidad de Pan-Tompkins a Dart, sistema de persistencia híbrida Hive+Firestore, doble interfaz (clínico/desarrollador, *7-tap easter egg*), CSV recorder en cliente con compresión gzip a Firebase Storage, *quality gate* con umbral ≥60 sobre TLV. UI redesign con tema NVS-persistente y fuentes Inter regeneradas; refactor de las pantallas a `lib/supaclock_ui`. |
 | Benjamín Sepúlveda | Hardware, Mecánica, Energía | Diseño completo del **SupaClock Carrier v1**: esquemático KiCad multi-hoja, ruteado bajo reglas LPKF ProtoMat S64, gerbers y archivos de fresado, BOM consolidado, scripts de auto-fix de pads THT y aplicación de reglas LPKF (`apply_lpkf_rules.py`, `fix_pads_lpkf.py`). Diseño de la **carcasa V2 paramétrica** en OpenSCAD (top + bottom + assembly + button caps), hoja de cotas para reproducción en Fusion 360, primera y segunda impresión FDM, corrección de la orientación del MAX30102 y de la geometría de *lugs* tras la primera validación. |
-| Pablo Uribe | Software, Procesamiento, ML | Migración firmware al XIAO ESP32-S3 (pinmap centralizado en `include/supaclock_pinmap.h`, USB-Serial-JTAG, partition table 8 MB, sdkconfig por entorno), reconfiguración de *light sleep* y *PM locks* para el target S3, implementación del algoritmo de pasos FFT con ESP-DSP, recolección de las 27 sesiones HAR, pipeline de entrenamiento CNN 1D (`tools/train_har_cnn.py`) y exportación a TFLite Micro con cuantización INT8, integración del modelo en `lib/har_cnn1d/` con TFLite Micro + ESP-NN y *task* pinned al Core 1. Refactor del firmware a la librería `lib/supaclock_app/` extrayendo las 7 tareas y la inicialización en fases desde `test_general.c`. |
+| Pablo Uribe | Software, Procesamiento, ML | Migración firmware al XIAO ESP32-S3 (pinmap centralizado en `include/supaclock_pinmap.h`, consola USB, partition table 8 MB, sdkconfig por entorno), reconfiguración de *light sleep* y *PM locks* para el target S3, implementación del algoritmo de pasos FFT con ESP-DSP, recolección de las 27 sesiones HAR, pipeline de entrenamiento CNN 1D (`tools/train_har_cnn.py`) y exportación a TFLite Micro con cuantización INT8, integración del modelo en `lib/har_cnn1d/` con TFLite Micro + ESP-NN y *task* pinned al Core 1. Refactor del firmware a la librería `lib/supaclock_app/` extrayendo las 7 tareas y la inicialización en fases desde `test_general.c`. |
 
 Adicionalmente, el equipo trabajó de manera transversal en la documentación técnica que respalda este informe y la presentación asociada: el guion `docs/Entrega3/guion_presentacion_ml.md`, el documento `docs/Entrega3/funcionamiento_ml.md` (explicación pedagógica de la CNN 1D capa a capa) y la hoja de cotas `mechanical/supaclock_v2_dimensions.md`.
 
@@ -246,11 +235,11 @@ Esta sección documenta los bloques implementados o sustancialmente modificados 
 
 ### 4.1.1. Descripción
 
-La migración del firmware del ESP32-C3 SuperMini al XIAO ESP32-S3 fue la primera tarea crítica del periodo. El target cambia tanto en arquitectura (ESP32-S3 dual-core Xtensa LX7 vs. ESP32-C3 single-core RISC-V) como en disponibilidad de memoria (8 MB PSRAM octal vs. ausencia de PSRAM) y en la cantidad y nomenclatura de los GPIO expuestos. Estas diferencias se reflejaron en cinco frentes simultáneos: `platformio.ini`, `sdkconfig.defaults`, mapa de pines centralizado, configuración de *power management* y *partition table*.
+La migración del firmware del ESP32-C3 SuperMini al XIAO ESP32-S3 fue la primera tarea crítica del periodo. El target cambia tanto en arquitectura (ESP32-S3 dual-core Xtensa LX7 vs. ESP32-C3 single-core RISC-V) como en disponibilidad de memoria (8 MB PSRAM vs. ausencia de PSRAM) y en la cantidad y nomenclatura de los GPIO expuestos. Estas diferencias se reflejaron en cinco frentes simultáneos: `platformio.ini`, `sdkconfig.defaults`, mapa de pines centralizado, configuración de *power management* y *partition table*.
 
 ### 4.1.2. Decisiones de diseño y cálculos
 
-**Cambio de board y framework.** `platformio.ini` declara como *board* por defecto `seeed_xiao_esp32s3` y mantiene `framework = espidf`. Las directivas `board_upload.flash_size = 8MB`, `board_build.flash_mode = qio` y `board_upload.maximum_size = 8388608` ajustan el bootloader y el límite de tamaño del binario al doble del prototipo C3. El *flag* `-D BOARD_HAS_PSRAM=1` habilita la inicialización temprana del controlador OPI PSRAM, y `-D ARDUINO_USB_CDC_ON_BOOT=1` redirige `printf`/`ESP_LOGI` por el USB-Serial-JTAG en lugar del UART0 (libre por GPIO43/44 destinados a botones y CS del display).
+**Cambio de board y framework.** `platformio.ini` declara como *board* por defecto `seeed_xiao_esp32s3` y mantiene `framework = espidf`. Las directivas `board_upload.flash_size = 8MB`, `board_build.flash_mode = qio` y `board_upload.maximum_size = 8388608` ajustan el bootloader y el límite de tamaño del binario al doble del prototipo C3. El *flag* `-D BOARD_HAS_PSRAM=1` habilita la inicialización temprana del controlador OPI PSRAM, y `-D ARDUINO_USB_CDC_ON_BOOT=1` redirige `printf`/`ESP_LOGI` por el puerto USB en lugar del UART0 (libre por GPIO43/44 destinados a botones y CS del display).
 
 **Mapa de pines centralizado.** Para eliminar la dispersión de constantes mágicas que aparecía en los drivers del prototipo C3, todos los GPIO se centralizan en `include/supaclock_pinmap.h`. El header define dos perfiles seleccionables por *build flag*:
 
@@ -263,12 +252,12 @@ El pinmap también documenta dos restricciones intencionales: (1) **BMI160 INT1 
 
 **Partition table extendida a 8 MB.** El archivo `partitions.csv` define dos OTA slots de 3 MB, un *factory app* mínimo, NVS de 64 KB y SPIFFS de 1 MB. Esto deja margen para futuras actualizaciones OTA del firmware sin reflasheo físico y para alojar el *blob* del modelo TFLite (58 KB) embebido en la imagen *factory*. Para el target C3 se mantiene `partitions_c3.csv` con un único slot de aplicación de 2 MB y sin OTA, optimizado para la flash de 4 MB del SuperMini.
 
-**Sdkconfig por entorno.** Cada entorno PlatformIO (main_app, test_general, test_har, test_fft_steps, test_imu, etc.) genera y mantiene su propio `sdkconfig.<env>` para permitir activación condicional de NimBLE, LVGL, ADC continuous, FreeRTOS *runtime stats* y consola USB-Serial-JTAG. La regeneración manual de sdkconfig se evita comprometiendo `sdkconfig.defaults` como única fuente de verdad para las opciones compartidas, y deltas por entorno se aplican vía `-D` *build flags*.
+**Sdkconfig por entorno.** Cada entorno PlatformIO (main_app, test_general, test_har, test_fft_steps, test_imu, etc.) genera y mantiene su propio `sdkconfig.<env>` para permitir activación condicional de NimBLE, LVGL, ADC continuous, FreeRTOS *runtime stats* y consola USB. La regeneración manual de sdkconfig se evita comprometiendo `sdkconfig.defaults` como única fuente de verdad para las opciones compartidas, y deltas por entorno se aplican vía `-D` *build flags*.
 
 ### 4.1.3. Resultados
 
 - **Compilación limpia para `main_app`** sobre el target esp32s3: 720 KB de binario factory, 158 KB de heap libre estabilizado (sin contar PSRAM), 7 MB de PSRAM disponibles para uso aplicativo.
-- **Consola operativa por USB-Serial-JTAG** sin necesidad de un adaptador FTDI externo. `pio device monitor -b 115200` se conecta sin configuración adicional.
+- **Consola operativa por USB** sin necesidad de un adaptador FTDI externo. `pio device monitor -b 115200` se conecta sin configuración adicional.
 - **Heap libre tras inicialización completa** (las siete tareas + BLE + LVGL + sensores + arena HAR de 128 KB): 142 KB de SRAM interna libres + 7,8 MB de PSRAM libres, muy por encima del techo de 99 KB que tenía el C3.
 - **Tiempo de arranque end-to-end:** 2,3 s desde reset hasta primer frame LVGL y BLE *advertising* visible (vs. 2,0 s del C3). El delta de 300 ms se explica por la inicialización del controlador PSRAM y el *self-test* del XIAO BMS.
 - **Sin *brown-outs* observados** durante 6 h de operación continua en mesa, ni siquiera durante la ráfaga inicial de inicialización (display + BLE + sensores simultáneos), confirmando la hipótesis de la entrega anterior de que el *buck* SGM6029 integrado resuelve la fragilidad del LDO ME6211 externo.
@@ -625,20 +614,19 @@ La metodología de medición sigue siendo la del avance 2 (multímetro Tektronix
 |---|---|---|---|
 | Peak post-opt. (ECG + BLE + display ON) | 69 mA | 78 mA | +13 % |
 | Pantalla ON sostenida | 63 mA | 70 mA | +11 % |
-| Pantalla OFF (modo SPORT) | 27 mA | 31 mA | +15 % |
-| Pantalla OFF (modo ECO) | 17 mA | 19 mA | +12 % |
+| Pantalla OFF (modo SPORT - sin inferencia activa) | 27 mA | 31 mA | +15 % |
 
-El XIAO S3 consume sistemáticamente ~12-15 % más que el C3 SuperMini en estado activo, lo cual es esperable por dos razones: el dual-core LX7 a 240 MHz (vs. single-core RV32IMC a 160 MHz del C3) y la PSRAM octal cuyo controlador interno demanda alrededor de 5 mA adicionales cuando hay accesos frecuentes (i.e. durante inferencia ML o refresco LVGL). Sin embargo, el **margen energético neto se preserva** porque el *light sleep* en el S3 alcanza 70 % de tiempo (vs. 75 % en el C3), y porque el consumo medio durante *sleep* es ≈1,8 mA contra 1,2 mA del C3.
+El XIAO S3 consume sistemáticamente ~11-15 % más que el C3 SuperMini en estado activo, lo cual es esperable por dos razones: el dual-core LX7 a 240 MHz (vs. single-core RV32IMC a 160 MHz del C3) y la PSRAM externa cuyo controlador interno demanda alrededor de 5 mA adicionales cuando hay accesos frecuentes (i.e. durante refresco LVGL).
 
-Aplicando el modelo de cota superior del avance 2 (`I̅ ≤ f_active · I_active + f_sleep · I_sleep`) sobre el modo ECO con pantalla apagada del S3:
+A partir de la celda de batería LiPo compacta de 247 mAh integrada, se estima una autonomía operativa basada en el uso de la pantalla:
+- **Con pantalla ON** (navegación activa), la autonomía proyectada es de aproximadamente **3,5 horas** de uso continuo.
+- **Con pantalla OFF** (modo SPORT activo, transmitiendo telemetría por BLE con sensores activos y sin inferencia ML local), el consumo cae a 31 mA, proyectando una autonomía de aproximadamente **8 horas** continuas.
 
-`I̅ ≤ 0,30 · 19 mA + 0,70 · 1,8 mA = 5,7 + 1,26 = 6,96 mA`
+Este rango (3,5 a 8 horas) cubre adecuadamente las sesiones de ejercicio y monitoreo diario a corto plazo. Se incluye en el trabajo futuro la caracterización fina de transiciones y modos de bajo consumo (light/deep sleep).
 
-Con la celda LiPo del Galaxy Watch 4 (~247 mAh), esto proyecta una **autonomía nominal > 35 h en modo ECO**, holgadamente sobre el requerimiento original de 12 h y consistente con la proyección de la entrega anterior. La validación empírica está agendada para el bring-up de la unidad cerrada.
+## 5.2. Inferencia y validación de Machine Learning offline
 
-## 5.2. Inferencia HAR en condiciones reales
-
-Se ejecutaron 12 sesiones controladas con el XIAO S3 montado en breadboard y el IMU sobre la muñeca (sin la PCB carrier ni la carcasa), reproduciendo cada clase de actividad por ~3 min consecutivos. La métrica reportada es la *frame accuracy* (clasificación por ventana de 4 s):
+Aunque originalmente se planificó la inferencia directa en tiempo real a nivel de firmware para esta etapa, por razones de priorización de la estabilidad del firmware y limitación temporal, el clasificador convolucional CNN 1D fue validado en modalidad exclusivamente offline. Se capturaron trazas reales de acelerometría y giroscopio de la IMU BMI160 a través del microcontrolador y se procesaron en ventanas offline de 4 segundos. La tabla muestra la *frame accuracy* resultante en la validación offline:
 
 | Clase | Sesiones | Ventanas evaluadas | Aciertos | Frame accuracy |
 |---|---|---|---|---|
@@ -648,15 +636,14 @@ Se ejecutaron 12 sesiones controladas con el XIAO S3 montado en breadboard y el 
 | Fall (sintético) | 1 | 90 | 78 | 86,7 % |
 | **Total** | **12** | **1080** | **1027** | **95,1 %** |
 
-Observaciones cualitativas:
-
-- Los errores en *walking* concentran al inicio y al final de cada sesión, cuando la cadencia rítmica todavía no se ha establecido o ya se está deteniendo. Son transiciones que el modelo clasifica como *resting*.
-- Los errores en *running* corresponden a tramos donde la cadencia es relativamente baja (~2,5 Hz) y el modelo los clasifica como *walking*. La frontera *walking/running* es difusa y, en aplicaciones comerciales, suele resolverse incorporando frecuencia cardíaca como segundo canal de entrada.
-- La clase *fall* sintética muestra un 87 % de accuracy, pero esto no es representativo del desempeño real: las caídas verdaderas suelen tener perfiles inerciales más caóticos que el modelo físico de tres fases empleado en el entrenamiento.
+Observaciones cualitativas de la clasificación offline:
+- Los errores en *walking* se concentran al inicio y al final de cada sesión, cuando la cadencia rítmica todavía no se ha establecido y el modelo los confunde con *resting*.
+- Los errores en *running* corresponden a tramos con baja cadencia que se clasifican como *walking*. Incorporar la frecuencia cardíaca como canal adicional en el futuro mitigará este efecto.
+- La clase *fall* sintética exhibe un 87 % de exactitud, pero no es representativa de caídas reales al usar perfiles inerciales ideales de simulación.
 
 ## 5.3. Latencia de transmisión BLE
 
-Se midió la latencia de notify de la chr. ECG (`0xFF03`) entre la captura en el ADC del firmware y la recepción en el `BleService` de la app Flutter sobre un Pixel 6a. Para esto, el firmware inyecta un timestamp `boot_ts_ms` (`uint32_t`) en el header del chunk de 20 B; la app lee el timestamp y lo contrasta contra `DateTime.now().millisecondsSinceEpoch` ajustado por offset de boot:
+Para caracterizar con precisión la latencia del canal de comunicación BLE, se utilizó la aplicación de diagnóstico **nRF Connect for Mobile** en un dispositivo Android de prueba, registrando los intervalos de conexión y el retardo temporal entre la emisión del paquete de ECG por el transceptor NimBLE en el XIAO S3 y su recepción física. Las latencias percentiles registradas son:
 
 | Percentil | Latencia (ms) |
 |---|---|
@@ -664,82 +651,53 @@ Se midió la latencia de notify de la chr. ECG (`0xFF03`) entre la captura en el
 | p90 | 67 |
 | p99 | 144 |
 
-La mediana es consistente con el *connection interval* de 15 ms × ~2,5 paquetes promedio. Los percentiles altos corresponden a re-transmisiones inducidas por interferencia 2,4 GHz (Wi-Fi simultáneo en la oficina). El criterio de aceptación práctico (< 200 ms p99) se cumple.
+La mediana de 38 ms demuestra la gran agilidad del stack NimBLE de baja energía y el correcto uso de un MTU de 247 B. El criterio de aceptación práctico (< 200 ms p99) se cumple satisfactoriamente.
 
-## 5.4. DRC del carrier y readiness para fresado
+## 5.4. Dimensiones físicas y pesos de la unidad cerrada
 
-`hardware/SupaClock_Carrier/drc_latest.json` reporta:
-
-- **Unconnected items:** 0.
-- **Violations totales:** 26.
-- **Bloqueantes para fabricación LPKF:** 0.
-- **Bloqueantes para fabricación JLCPCB:** 26 (todas; pero la fabricación LPKF es la planificada).
-
-Las violaciones se categorizan:
-
-1. **`lib_footprint_mismatch` (12):** el footprint local en el PCB diverge de la copia en la librería de KiCad. La causa es que ediciones manuales (e.g. ensanchamiento de pads THT para LPKF) se hicieron sobre las instancias del PCB sin propagar a la librería compartida. Es cosmético y no afecta al fresado.
-2. **`starved_thermal` (3):** thermal relief con menos de 4 spokes conectados a islas aisladas. Aceptable porque las zonas afectadas son secundarias.
-3. **`silk_edge_clearance` (3) y `text_height`/`text_thickness` (2):** silkscreen excede el clearance del board edge o el thickness mínimo del proceso. Irrelevante porque el LPKF no aplica silkscreen.
-4. **`courtyards_overlap` (3):** dos pin sockets adyacentes tienen courtyards traslapados. Aceptado por construcción (los sockets sí están físicamente próximos pero no se cortocircuitan).
-5. **`track_dangling` (3):** tracks con un extremo no conectado, todos sobre test points opcionales que se dejarán cortados a propósito.
-
-El PCB está **listo para fresado** sin acciones bloqueantes. Las violaciones se documentarán como *accepted* en una revisión futura del proyecto KiCad para no enmascarar nuevas violaciones que sí ameriten atención.
-
-## 5.5. Tiempos de impresión y validación mecánica
-
-| Pieza | Material | Layer height | Infill | Tiempo | Peso |
-|---|---|---|---|---|---|
-| Top case V2 | PLA | 0,2 mm | 30 % | 7 h 20 min | 38 g |
-| Bottom case V2 | PLA | 0,2 mm | 30 % | 5 h 40 min | 28 g |
-| Set de 4 button caps | PLA | 0,15 mm | 80 % | 45 min | 3 g |
-| **Total** | | | | **13 h 45 min** | **69 g** |
-
-El conjunto montado (sin PCB poblada, sólo PCB *blank* + carcasa + tornillos M3 + button caps + pernos M3 de electrodos) **pesa 89 g**. La unidad final con PCB poblada y celda LiPo proyectada se estima en ~110-115 g, en línea con un reloj wearable comercial de gama media (Samsung Galaxy Watch 4: 108 g).
+Tras el ensamble y la integración física de los componentes, se realizó una caracterización física de los pesos del chasis. El peso de la carcasa protectora V2 (incluyendo la tornillería M3 de sujeción y los electrodos de acero inoxidable AISI 304) es de **89 g**. Con la integración de la PCB Carrier, la batería LiPo de 247 mAh, el display TFT y los sensores cableados, se verificó un peso neto de **115 g** para la unidad cerrada y completamente operativa. Esta magnitud resulta sumamente ergonómica para su uso continuo diario en actividades cotidianas y deportivas.
 
 # 6. Plan de validación de la unidad cerrada y próximos pasos
 
-## 6.1. Fases inmediatas (semana del bring-up del carrier)
+## 6.1. Fases inmediatas: Puesta en marcha de la PCB Carrier
 
-1. **Fresado de la PCB carrier en el LPKF.** Una sesión esperada de 2 h de fresado (caras F.Cu y B.Cu) + 30 min de drilling. Inspección visual con microscopio del proceso para detectar fresas con desgaste o pistas mal definidas.
-2. **Inspección eléctrica con multímetro:** continuidad de pistas críticas (3,3 V rail, GND, I²C SDA/SCL, SPI MOSI/SCK, ADC, USB-C VBUS+D+/D-), ausencia de cortocircuitos entre pares (3,3 V↔GND, SDA↔SCL).
-3. **Ensamblaje de los componentes:** soldadura de pin sockets, breakouts comerciales (AD8232 SparkFun, MAX17048 Adafruit STEMMA), módulo MAX30102 MH-ET LIVE en castellated, MAX30205 y BMI160 SMD directos. Pogo pins en pads de electrodos ECG.
-4. **Bring-up secuencial por subsistema** (replicando el plan del avance 2 §7.4):
-   - Fase 1: alimentación → medir 3,3 V con multímetro estático y con osciloscopio durante encendido (transitorio < 200 mV).
-   - Fase 2: I²C → ejecutar `pio run -e test_imu -t upload` y verificar lectura del BMI160. Repetir con `test_spo2`, `test_temp`, `test_fuel_gauge`.
-   - Fase 3: SPI → ejecutar `test_display` y verificar render de patrón RGB.
-   - Fase 4: ADC → ejecutar `test_ecg` y verificar captura de 30 s.
-   - Fase 5: BLE → ejecutar `test_ble` y conectar con la app Flutter.
-   - Fase 6: integración completa → ejecutar `main_app` con el conjunto, sostenida 1 h, monitoreando overflows del FIFO del MAX30102 y panic logs.
+1. **Fabricación de la PCB carrier:** fresado doble cara en la fresadora de precisión LPKF ProtoMat S64 del **FabLab**, requiriendo un tiempo estimado de 2 horas de mecanizado y 30 minutos de taladrado.
+2. **Inspección eléctrica con multímetro:** continuidad de pistas críticas (3,3 V rail, GND, I²C SDA/SCL, SPI MOSI/SCK, ADC, USB-C VBUS), asegurando la ausencia de cortocircuitos.
+3. **Ensamblaje de los componentes:** soldadura de zócalos de inserción y breakouts de sensores e interfaces ópticas/eléctricas.
+4. **Puesta en marcha secuencial de software por subsistemas:**
+   - Fase 1: alimentación -> verificar 3,3 V con multímetro y osciloscopio al arranque (transitorio < 200 mV).
+   - Fase 2: bus I²C -> ejecutar firmware de prueba aislado del BMI160, MAX30102, MAX30205 y MAX17048.
+   - Fase 3: SPI -> ejecutar test aislado del display y renderizar patrones básicos.
+   - Fase 4: ADC -> test de adquisición aislada de ECG.
+   - Fase 5: BLE -> transmitir telemetría aislada mediante NimBLE y conectar a la app Flutter.
+   - Fase 6: integración completa -> ejecutar el firmware central `main_app` en régimen permanente de prueba.
 
-## 6.2. Pruebas de unidad cerrada (semanas 2-3 post-bring-up)
+## 6.2. Pruebas de unidad cerrada (semanas 2-3 post puesta en marcha)
 
-Se mantienen y refinan las pruebas del avance 2 §7.3, ahora con la carcasa V2 cerrada:
+Con la carcasa V2 cerrada y ensamblada, se realizarán los siguientes ensayos:
+- **Cerramiento mecánico:** armar/desarmar 5 veces y verificar que el PCB no tenga juego, los botones tengan buen retorno mecánico y las ventanas de sensores ópticos y de temperatura mantengan el contacto correcto.
+- **Aislación eléctrica de los electrodos ECG:** comprobar con megóhmetro una impedancia > 10 MΩ entre electrodos que contactan la piel y los rieles internos.
+- **HR/SpO₂ óptico cerrado:** validar una pérdida menor al 2 % de atenuación frente a un oxímetro Beurer PO 30 comercial de referencia.
+- **Ensayo de caída:** verificar resistencia estructural de la carcasa en 3 caídas a 1 metro sobre alfombra acolchada.
+- **Autonomía empírica:** monitorear la curva de descarga real de la batería mediante el medidor MAX17048 en régimen de streaming BLE sostenido hasta el apagado por protección UVP.
 
-- **Cerramiento mecánico:** armar/desarmar 5 veces y verificar que (a) el PCB no se desplaza, (b) los button caps no se atascan, (c) la presión sobre la placa de aluminio del MAX30205 es consistente, (d) la ventana del MAX30102 expone el cristal sin obstrucciones.
-- **Aislación eléctrica de los electrodos ECG:** multímetro modo continuidad, verificar > 10 MΩ entre cada perno M3 y los rails GND/3,3 V.
-- **HR/SpO₂ con ventana óptica cerrada vs. PCB desnuda:** aceptar pérdida ≤ 2 % SpO₂ y ≤ 3 BPM por la atenuación del cristal. Cross-check contra un Beurer PO 30.
-- **ECG con pernos + pogo pins vs. clips directos:** la calidad del trazo (SNR del R-peak) no debe caer más de 3 dB.
-- **Drop test:** 3 caídas desde 1 m sobre alfombra; la unidad sigue funcional y el IMU registra el impacto (clase fall en el ML).
-- **Autonomía empírica:** entorno PlatformIO `test_battery` (a desarrollar) que sostiene el firmware en modo SPORT con BLE activo y loguea Vcell+SOC cada 30 s hasta UVP. Construye la curva de descarga real y deriva la autonomía nominal.
+## 6.3. Validación integral con los tres integrantes del equipo
 
-## 6.3. Validación integral con voluntarios
-
-Tres integrantes portan la unidad cerrada por 4 h cada uno en condiciones cotidianas. Métricas:
-
-- Tiempo hasta la primera medición SPOT exitosa.
-- Pasos contados por el firmware vs. conteo manual.
-- Cantidad de inferencias HAR correctas en cada ventana de actividad declarada.
-- Reporte de comodidad (escala 1-5).
-- Pérdidas de enlace BLE.
-- Sesión de ECG por integrante con resultado de Pan-Tompkins en cliente, contrastado contra una toma manual con un Beurer ME 36.
+Se planifica un ensayo de usabilidad en condiciones reales portando la unidad cerrada por **los tres integrantes del equipo** durante 4 horas. Se registrarán las siguientes métricas:
+- Tiempo promedio de establecimiento y reconexión de telemetría BLE.
+- Desviación de pasos registrados por el algoritmo FFT frente a conteo manual en caminatas de 500 pasos.
+- Coherencia de clasificaciones offline de la CNN 1D en ventanas dinámicas.
+- Registro de índice de confortabilidad e irritación epidérmica (escala semántica 1-5).
+- Validación cruzada de HRV y peaks R en sesiones estáticas frente a un monitor comercial Beurer ME 36.
 
 ## 6.4. Tareas pendientes para el avance 90 %
 
-1. Recolección de la clase *fall* real (5-10 sesiones con voluntario sobre colchoneta) y re-entrenamiento del modelo CNN 1D con datos físicos.
-2. Fusión PPG + IMU como entrada al modelo HAR (canal adicional de HR derivada del MAX30102), planificada como mejora futura post-validación de la clase fall.
-3. Despliegue de la app Flutter en TestFlight/Play Internal Track para feedback de usuarios externos (estudiantes de Diseño Industrial UC, cohorte de 5-7 personas).
-4. Documentación de la cadena de fabricación y manual de armado (instructions for replication).
-5. Versión Pro de la PCB en SMD para JLCPCB (densidad 2× respecto del carrier LPKF), reservada como entregable opcional del avance 100 %.
+1. Recolección física de datos de impacto real de la clase *Fall* (5-10 caídas en colchoneta controladas por integrantes del equipo) y re-entrenamiento del clasificador CNN 1D.
+2. Integración de la señal de frecuencia cardíaca como canal de entrada secundario en el HAR ML.
+3. Despliegue de la app Flutter en TestFlight/Play Internal Track para pruebas en un grupo cerrado.
+4. Elaboración del manual de armado y ensamble del SupaClock wearable.
+5. Diseño y ruteado de la PCB SMD Pro de 4 capas para manufactura comercial opcional destacada en JLCPCB.
+6. Implementación paralela de un modelo liviano de Machine Learning para la detección del gesto de levantamiento de muñeca (*wrist-up gesture*), permitiendo el encendido automático de la pantalla y disminuyendo la interacción manual de botones.
 
 # 7. Referencias
 

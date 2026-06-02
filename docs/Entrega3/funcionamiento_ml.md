@@ -186,7 +186,7 @@ El módulo está escrito en lenguaje C y se ejecuta de forma asíncrona aprovech
    * La tarea del clasificador de actividad (`har_task`) se ancla al **Core 1** con prioridad media-alta (`priority 4`).
    * **Beneficio:** Las tareas que exigen alta prioridad de comunicación y tiempo real (como la pila Bluetooth `NimBLE` y el refresco de pantalla del motor gráfico `LVGL`) corren en el **Core 0**. De esta forma, la inferencia matemática de la CNN no introduce retrasos perceptibles en la interfaz de usuario ni provoca desconexiones BLE.
 2. **Uso de la Memoria PSRAM Externa:**
-   * El XIAO ESP32-S3 dispone de 320 KB de SRAM interna y 8 MB de PSRAM externa octal de alta velocidad.
+   * El XIAO ESP32-S3 dispone de 320 KB de SRAM interna y 8 MB de PSRAM externa de alta velocidad.
    * La Tensor Arena requerida por TensorFlow Lite Micro para ejecutar las activaciones intermedias del modelo (128 KB) se reserva enteramente en la PSRAM:
      ```c
      s_arena = (uint8_t *)heap_caps_aligned_alloc(16, HAR_ARENA_BYTES, MALLOC_CAP_SPIRAM);
