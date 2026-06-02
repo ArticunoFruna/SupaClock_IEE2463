@@ -28,8 +28,7 @@
 \node[blockOK, above=0.3cm of sgm6029] (fuel) {MAX17048\\\textbf{100\%} (I2C)};
 
 \node[energy, left=0.6cm of sgm40567] (usbc) {USB-C\\\textbf{100\%} (XIAO S3)};
-\node[energy, above=0.3cm of usbc] (bms) {BMS TP4056+DW01A\\\textbf{100\%} (Carrier)};
-\node[energy, above=0.3cm of bms] (lipo) {Bater\'ia LiPo 3.7\,V\\\textbf{100\%} (502030)};
+\node[energy, above=0.6cm of usbc] (lipo) {Bater\'ia LiPo 3.7\,V\\\textbf{100\%} (Seeed S3 SMD)};
 
 % ============== SENSORES I2C y ADC (Derecha) ==============
 \node[blockOK, right=2.2cm of mcu, yshift=1.8cm] (max205) {MAX30205\\\textbf{100\%} \textit{(0x48)}};
@@ -47,11 +46,9 @@
 \node[blockPart, right=0.8cm of pcb] (ml) {TinyML (CNN 1D)\\\textbf{70\%} (Falta capt. datos)};
 
 % ============== Conexiones de Potencia ==============
-\draw[pwr] (usbc) -- (bms);
-\draw[pwr] (lipo) -- (bms);
-\draw[pwr] (lipo) -- (fuel);
-\draw[pwr] (bms)  -- (sgm6029);
 \draw[pwr] (usbc) -- (sgm40567);
+\draw[pwr] (lipo) -- (sgm40567);
+\draw[pwr] (lipo) -- (fuel);
 \draw[pwr] (sgm40567) -- (sgm6029);
 \draw[pwr] (sgm6029.west) -- ++(-0.2,0) |- ([yshift=0.4cm]fuel.north) -| ([xshift=-1.2cm]mcu.north);
 
