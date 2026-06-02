@@ -71,21 +71,27 @@ A continuación se explica al detalle el funcionamiento e importancia de cada un
 ---
 
 #### 2. Conv1D - Primera Convolución (32 filtros, Kernel = 5, ReLU)
-* **El concepto intuitivo:** Imagina que tienes **32 plantillas o "sellos" diferentes** (filtros) que miden exactamente 5 milisegundos inerciales (0.1 segundos físicos). Esta capa desliza cada una de las 32 plantillas sobre los 4 segundos de datos inerciales. Si la señal inercial coincide con la forma de la plantilla (por ejemplo, una plantilla busca "picos de aceleración rápida hacia arriba"), la capa genera una señal fuerte. Si no coincide, genera una señal débil o nula.
+* **¿Qué son los Filtros y el Kernel? (Conceptos Clave):**
+  * **El Kernel (Núcleo / Tamaño de Ventana):** Es como una "lupa temporal" o plantilla de búsqueda. Al definir `Kernel = 5`, le indicamos al modelo que analice bloques de **5 muestras temporales consecutivas** a la vez. Como la señal está a 50 Hz (50 muestras por segundo), 5 muestras equivalen exactamente a **0.1 segundos** de movimiento real ($5 / 50\text{ Hz} = 0.1\text{ s}$). Durante el entrenamiento, el kernel aprende qué "dibujo" o patrón buscar dentro de esa micro-ventana de 0.1 segundos (por ejemplo, una subida rápida de aceleración).
+  * **Los Filtros (Filters):** Representan la **cantidad de plantillas distintas** que buscamos en paralelo. Al usar `filtros = 32`, la red aplica 32 plantillas con diferentes formas matemáticas sobre los datos. Cada filtro genera su propia señal de salida indicando en qué parte de la ventana de 4 segundos detectó su respectivo patrón.
+* **El concepto intuitivo:** Imagina que tienes **32 plantillas o "sellos" diferentes** (filtros) que miden exactamente 5 muestras inerciales (0.1 segundos físicos). Esta capa desliza cada una de las 32 plantillas a lo largo de los 4 segundos de datos inerciales de entrada. Si la señal inercial coincide con la forma de la plantilla (por ejemplo, una plantilla busca "picos de aceleración rápida hacia arriba"), la capa genera una señal fuerte. Si no coincide, genera una señal débil o nula.
 * **El "Por Qué" de sus detalles:**
-  * **Filtros = 32:** Significa que buscamos 32 patrones inerciales básicos diferentes en paralelo en la señal de entrada.
-  * **Kernel = 5 (0.1 segundos a 50 Hz):** Se eligió 5 porque un micro-impacto o el choque inicial de un talón contra el suelo al caminar dura físicamente entre 80 y 120 milisegundos. Un kernel de tamaño 5 es la "lupa temporal" perfecta para detectar estos eventos cortos.
-  * **Activación ReLU (Rectified Linear Unit):** Es un interruptor matemático simple pero potente: $f(x) = \max(0, x)$. Si la plantilla no coincide y da un valor negativo, ReLU lo convierte en un **cero absoluto (silencio)**. Si da positivo, deja pasar el valor real. Esto evita que los ruidos o vibraciones irrelevantes (negativos) se propaguen por la red y permite modelar decisiones complejas que no son líneas rectas (no lineales).
+  * **Filtros = 32:** Buscamos 32 patrones inerciales básicos diferentes en paralelo.
+  * **Kernel = 5 (0.1 segundos a 50 Hz):** Se eligió 5 porque eventos como el impacto inicial del talón contra el suelo al dar un paso duran físicamente entre 80 y 120 milisegundos. Un kernel de tamaño 5 es la escala temporal perfecta para detectar estos eventos cortos.
+  * **Activación ReLU (Rectified Linear Unit):** Es un interruptor matemático simple pero potente: $f(x) = \max(0, x)$. Si la plantilla no coincide y da un valor de coincidencia negativo, ReLU lo convierte en un **cero absoluto (silencio)**. Si da positivo, deja pasar el valor real. Esto apaga el ruido de fondo innecesario y permite modelar decisiones complejas y no lineales.
 
 ---
 
 #### 3. MaxPooling1D - Primer Reductor de Datos (Pool = 2)
-* **El concepto intuitivo:** MaxPooling divide la señal de salida del paso anterior en bloques de 2 muestras de tiempo consecutivas y se queda **únicamente con el valor más grande** de cada bloque, descartando el menor.
+* **El concepto intuitivo:** MaxPooling divide la señal de salida de la convolución anterior en bloques de 2 muestras de tiempo consecutivas y se queda **únicamente con el valor máximo (más grande)** de cada bloque, descartando el menor.
 * **El "Por Qué" de sus detalles:**
   * Al quedarse solo con la mayor respuesta, la longitud de la señal se reduce exactamente **a la mitad** (de 200 muestras de tiempo a 100).
   * Esto tiene dos beneficios cruciales:
     1. **Velocidad:** Reduce a la mitad las operaciones matemáticas que deben hacer las siguientes capas convolucionales, lo cual es vital para que la ESP32-S3 no gaste batería de más.
     2. **Invarianza Temporal (Tolerancia a desfases):** Al sensor no le importa el milisegundo exacto en el que pisaste; solo le importa si pisaste en esa fracción de segundo. MaxPooling "suaviza" el tiempo, haciendo que el modelo sea robusto aunque el usuario camine un poco más rápido o más lento que los datos con los que se entrenó.
+* **¿Qué significa la dimensión resultante de `(100, 32)`?**
+  * **El 100 (Dimensión Temporal):** Representa que nuestra ventana temporal se ha comprimido a **100 pasos de tiempo**. Al sensor le ingresaron originalmente 200 muestras a 50 Hz (4.0 segundos). Tras pasar por la reducción de MaxPooling (Pool = 2), nos quedan 100 muestras comprimidas. Físicamente representa el mismo intervalo de 4.0 segundos, pero ahora con menos resolución temporal (cada punto representa 0.04 segundos en lugar de 0.02 segundos).
+  * **El 32 (Dimensión de Características / Filtros):** Representa los **32 canales de patrones** que la convolución anterior detectó. MaxPooling opera a lo largo del tiempo, reduciendo los 200 puntos a 100, pero **mantiene intacto** el número de filtros independientes. Por ende, seguimos teniendo 32 señales distintas, una por cada patrón que buscamos.
 
 ---
 
