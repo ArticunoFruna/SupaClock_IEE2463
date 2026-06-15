@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "974952417818",
+    "project_id": "supaclock-iee2463",
+    "storage_bucket": "supaclock-iee2463.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:974952417818:android:8a630c1740d010f4851fa3",
+        "android_client_info": {
+          "package_name": "com.supaclock.supaclock_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "974952417818-u7cv3uue8u202bru9m61e23e6cfu3bfi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQowcXUrSyf9YGgoNdgLRvSxgLBgzxVvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "974952417818-u7cv3uue8u202bru9m61e23e6cfu3bfi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

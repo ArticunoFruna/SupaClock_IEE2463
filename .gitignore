@@ -44,7 +44,7 @@ fp-info-cache
 
 # Carpetas de otros proyectos (App / Firebase)
 firebase/
-app/
+#app/
 
 *.cache/
 
