@@ -36,6 +36,8 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.17}
 \usepackage{makecell}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 
@@ -176,7 +178,11 @@ El resto del informe profundiza en cada uno de estos avances desde la perspectiv
 
 \newpage
 
-% =======================================\subsection{Estado vigente}
+% =====================================================
+\section{Diagrama de bloques de bajo nivel}
+% =====================================================
+
+\subsection{Estado vigente}
 
 El diagrama de alto nivel de la entrega 1 (siete dominios: interacción, energía, sensores, MCU, interfaz local, \textit{gateway}, \textit{backend}) se mantiene estructuralmente sin cambios. Lo que sí evolucionó respecto al diagrama de bloques de bajo nivel presentado en la entrega 2 es lo siguiente:
 \begin{enumerate}
@@ -233,6 +239,10 @@ La \rtabla{tab:specs_e3} consolida las especificaciones cuantitativas vigentes a
 
 \begin{longtable}{|L{2.6cm}|L{2.0cm}|L{2.6cm}|L{4.6cm}|L{2.0cm}|}
 \caption{Especificaciones de bajo nivel por bloque y estado de implementación.} \label{tab:specs_e3} \\
+\hline
+\rowcolor{gray!20}\textbf{Bloque} & \textbf{Interfaz} & \textbf{Tasa / frecuencia} & \textbf{Especificación clave} & \textbf{Estado} \\ \hline
+\endfirsthead
+\multicolumn{5}{c}{\tablename\ \thetable{} -- continuación de la página anterior} \\
 \hline
 \rowcolor{gray!20}\textbf{Bloque} & \textbf{Interfaz} & \textbf{Tasa / frecuencia} & \textbf{Especificación clave} & \textbf{Estado} \\ \hline
 \endhead
@@ -312,6 +322,10 @@ La \rtabla{tab:gantt_contraste} contrasta las tareas planificadas para el hito d
 \caption{Contraste entre actividades planificadas y el avance logrado al 1 de junio de 2026.} \label{tab:gantt_contraste} \\
 \hline
 \rowcolor{gray!20}\textbf{Tarea planificada} & \textbf{Estado} & \textbf{Observaciones} \\ \hline
+\endfirsthead
+\multicolumn{3}{c}{\tablename\ \thetable{} -- continuación de la página anterior} \\
+\hline
+\rowcolor{gray!20}\textbf{Tarea planificada} & \textbf{Estado} & \textbf{Observaciones} \\ \hline
 \endhead
 \hline
 \endfoot
@@ -322,7 +336,7 @@ Entrenamiento CNN 1D & \cellcolor{green!20}\bf Completado & Arquitectura secuenc
 Despliegue del modelo sobre el firmware & \cellcolor{green!20}\bf Completado & TFLite Micro + ESP-NN integrado. Tarea \texttt{har\_task} asignada al Core 1 con prioridad 4. Tensor arena (128\,KB) alojada en PSRAM. Inferencia cada 2\,s. \\ \hline
 PCB carrier v1 finalizada & \cellcolor{green!20}\bf Completado & Proyecto KiCad en \texttt{hardware/} terminado. Placa fabricada, soldada y probada eléctricamente con los componentes y pantalla funcionando. \\ \hline
 Carcasa paramétrica V2 & \cellcolor{green!20}\bf Completado & Modelado en OpenSCAD terminado. Segunda versión impresa físicamente en PLA y validada mecánicamente con la PCB. \\ \hline
-Aplicación móvil Flutter & \cellcolor{green!20}\bf Adelantado & App estructurada con 8 pantallas y 8 servicios singleton. Captura telemetría BLE, procesa Pan-Tompkins en isolate local y almacena trazas pesadas (.gz) en Storage. \\ \hline
+Aplicación móvil Flutter & \cellcolor{green!20}\bf Adelantado & App estructurada con 8 pantallas y 9 servicios singleton. Captura telemetría BLE, procesa Pan-Tompkins en isolate local y almacena trazas pesadas (.gz) en Storage. \\ \hline
 Pan-Tompkins en Cloud Functions & \cellcolor{yellow!25}\bf Reubicado & Trasladado al cliente en isolate Dart para garantizar procesamiento asíncrono eficiente y priorizar edge computing. \\ \hline
 UI rediseñada con temas y tipografías & \cellcolor{green!20}\bf Nueva & No planificada inicialmente. Sistema de 4 temas dinámicos en NVS, fuentes Inter a tres pesos, heapLVGL cargada en PSRAM. \\ \hline
 Refactor a librería supaclock\_app & \cellcolor{green!20}\bf Nueva & No planificada. Código principal extraído a librería estática desacoplada de la interfaz. \texttt{main.c} reducido a stub. \\ \hline
@@ -425,7 +439,7 @@ El desarrollo se abordó de forma colaborativa; la \rtabla{tab:trabajo_e3} resum
     \rowcolor{gray!20}\textbf{Integrante} & \textbf{Área(s) principal(es)} & \textbf{Aportes específicos a este hito} \\\hline
     Tomás Avendaño & Algoritmos, Procesamiento, ML & Algoritmo de pasos FFT con ESP-DSP. Recolección de 27 sesiones HAR, pipeline de entrenamiento CNN 1D en Python, e integración de la inferencia offline. Recolección de datos IMU junto con Benjamín. \\\hline
     Benjamín Sepúlveda & Hardware, Mecánica, Energía & Diseño completo del carrier PCB v1 y de la placa para la pantalla nueva en KiCad. Diseño de la carcasa V2 en OpenSCAD (top, bottom, assembly, button caps) e integración de la batería al BMS interno de la Seeed S3. Impresión FDM y corrección de lugs y ventanas. \\\hline
-    Pablo Uribe & Software, Interfaz, App Móvil, Energía & Migración de firmware al Seeed XIAO ESP32-S3 (pinmap, particiones, entornos PlatformIO, PM locks y reconfiguración de sleep). Desarrollo completo de la aplicación móvil en Flutter (8 servicios + 8 pantallas, isolate Pan-Tompkins local, Hive/Firestore sincronizado, y recorder CSV gzip). \\\hline
+    Pablo Uribe & Software, Interfaz, App Móvil, Energía & Migración de firmware al Seeed XIAO ESP32-S3 (pinmap, particiones, entornos PlatformIO, PM locks y reconfiguración de sleep). Desarrollo completo de la aplicación móvil en Flutter (9 servicios + 8 pantallas, isolate Pan-Tompkins local, Hive/Firestore sincronizado, y recorder CSV gzip). \\\hline
     \end{tabular}
 \end{table}
 
@@ -443,11 +457,79 @@ Esta sección documenta los bloques sustancialmente modificados o implementados 
 
 La migración al Seeed XIAO ESP32-S3 requirió reconfigurar el firmware para adaptarlo a la nueva arquitectura dual-core y al uso de memoria PSRAM. Se adaptaron el mapa de pines, la tabla de particiones y la administración de energía para el nuevo hardware.
 
-\subsubsection{Decisiones de diseño y cálculos}
+\subsubsection{Orquestación del firmware y arquitectura de archivos}
 
-El equipo configuró el entorno en PlatformIO, habilitando el uso de la memoria externa y redirigiendo la consola de depuración por el puerto USB nativo del microcontrolador.
+El proyecto está diseñado bajo una arquitectura modular y estructurada en C/C++ sobre ESP-IDF, separando la capa de abstracción de hardware, la lógica de control principal y el refresco visual. A continuación se detalla la estructura física del firmware:
 
-El equipo centralizó el mapa de pines en un archivo de cabecera único, definiendo las reasignaciones para los buses de comunicación y periféricos. Se resolvió el reset del display por software para optimizar el uso de pines físicos. Además, se extendió la tabla de particiones para asegurar espacio holgado de cara a actualizaciones futuras.
+\begin{verbatim}
+SupaClock/
+|-- include/
+|   `-- supaclock_pinmap.h     (Definición central de GPIOs y constantes de hardware)
+|-- src/
+|   `-- main.c                 (Inicialización y orquestación de colas FreeRTOS)
+|-- lib/
+|   |-- supaclock_app/         (Lógica de negocio y control del ciclo de vida)
+|   |   |-- supaclock_app.h
+|   |   `-- supaclock_app.c
+|   |-- supaclock_ui/          (Pantallas, flujos LVGL y callbacks del display)
+|   |   |-- supaclock_ui.h
+|   |   `-- supaclock_ui.c
+|   |-- step_algorithm/        (Contador de pasos mediante análisis FFT)
+|   |   |-- step_algorithm.h
+|   |   `-- step_algorithm.c
+|   `-- har_cnn1d/             (TinyML, intérprete TFLite Micro e inferencia inercial)
+|       |-- har_cnn1d.h
+|       `-- har_cnn1d.c
+`-- platformio.ini             (Configuración global y declaración de entornos)
+\end{verbatim}
+
+\subsubsection{Asignación de pines y hardware del Seeed XIAO ESP32-S3}
+
+Debido a que el módulo Seeed XIAO ESP32-S3 posee un formato compacto con alta densidad de pines en su parte inferior (formato SMD), la disponibilidad de pines accesibles tipo DIP/THT para una placa carrier de 2 capas es limitada. Por este motivo, el equipo optimizó rigurosamente las conexiones de hardware, eliminando el pin de reset físico del display e implementando un reset por software. La \rtabla{tab:pinout_s3} detalla el mapa centralizado definido en \texttt{include/supaclock\_pinmap.h}.
+
+\begin{table}[H]
+\centering
+\caption{Asignación de pines GPIO y configuración de hardware en el Seeed XIAO ESP32-S3.}
+\label{tab:pinout_s3}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lllll}
+\toprule
+\textbf{GPIO S3} & \textbf{Función en el Carrier} & \textbf{Interfaz / Protocolo} & \textbf{Configuración Eléctrica} & \textbf{Descripción / Notas} \\
+\midrule
+GPIO1 & ECG AD8232 OUT & ADC1\_CH0 (Analógico) & Entrada analógica (Hi-Z) & Adquisición continua por DMA del ECG \\
+GPIO2 & ECG AD8232 SDN & GPIO Digital & Salida digital (PD inicial) & Activa/desactiva el front-end AD8232 \\
+GPIO3 & LCD Backlight PWM & LEDC PWM & Salida digital (LEDC) & Control de brillo por modulación de ancho de pulso \\
+GPIO4 & LCD D/C (Data/Cmd) & GPIO Digital & Salida digital (High speed) & Selecciona entre comando y dato del display ST7789 \\
+GPIO5 & I2C SDA (Sensores) & I2C Compartido & Entrada/Salida (PU externo) & Datos I2C para BMI160, MAX30102, MAX30205, MAX17048 \\
+GPIO6 & I2C SCL (Sensores) & I2C Compartido & Salida digital (PU externo) & Reloj I2C para todos los sensores inerciales y biométricos \\
+GPIO7 & SPI SCK (Display) & SPI & Salida digital (High speed) & Línea de reloj de alta velocidad para la pantalla \\
+GPIO9 & SPI MOSI (Display) & SPI & Salida digital (High speed) & Envío de datos gráficos a la pantalla ST7789 \\
+GPIO44 & SPI CS (Display) & SPI & Salida digital (PU interno) & Línea de selección de periférico de pantalla \\
+GPIO43 & BTN NEXT & GPIO Digital & Entrada digital (PU interno) & Detecta pulsaciones cortas/largas del botón NEXT \\
+GPIO8 & BTN SELECT & GPIO Digital & Entrada digital (PU interno) & Detecta pulsaciones cortas/largas del botón SELECT \\
+NC & LCD Reset por SW & Ninguno & Reset por software (Header) & No cableado físico; reset por comandos SPI \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsubsection{Decisiones de diseño y distribución de recursos}
+
+Para evitar brownouts y maximizar la fluidez visual e ininterrumpida de las comunicaciones del reloj, el equipo adoptó un esquema estricto de distribución de recursos en la CPU dual-core y memoria dinámica:
+\begin{enumerate}
+    \item \textbf{Asignación en CPU Dual-Core (FreeRTOS):}
+    \begin{itemize}
+        \item \textbf{Core 0 (Comunicaciones e Interfaz):} Ejecuta la tarea de la pila de Bluetooth de baja energía (\texttt{NimBLE}) y la tarea cíclica de refresco gráfico de la pantalla (\texttt{LVGL Timer Task}). Esto asegura que la comunicación y la respuesta táctil no sufran retardos causados por el cálculo.
+        \item \textbf{Core 1 (Adquisición e Inferencia):} Ejecuta la tarea de muestreo de la IMU a 100\,Hz y la llamada periódica al clasificador de actividad convolucional (\texttt{har\_task}), así como el cálculo espectral FFT del podómetro y la lectura secuencial de los sensores biométricos.
+    \end{itemize}
+    \item \textbf{Gestión y Abstracción de Memoria (SRAM vs. PSRAM):}
+    \begin{itemize}
+        \item \textbf{SRAM Interna (320\,KB):} Reservada exclusivamente para buffers de transmisión rápida de DMA, colas FreeRTOS de alta velocidad y el stack de Bluetooth NimBLE, donde la baja latencia de bus es crítica.
+        \item \textbf{PSRAM Externa (8\,MB):} Alocación del buffer doble de renderizado gráfico de LVGL y reserva de la Tensor Arena de 128\,KB para los tensores de TensorFlow Lite Micro. Esto previene fallos por falta de memoria (heap exhaustion) y Brownouts provocados por un consumo excesivo de SRAM interna.
+    \end{itemize}
+\end{enumerate}
+
+El equipo centralizó el mapa de pines en un archivo header único, definiendo las reasignaciones para los buses de comunicación y periféricos. Se resolvió el reset del display por software para optimizar el uso de pines físicos. Además, se extendió la tabla de particiones para asegurar espacio holgado de cara a actualizaciones futuras.
 
 También se ajustó la administración de energía con rangos de frecuencia dinámicos adaptados al nuevo hardware, manteniendo los bloqueos de bajo consumo necesarios para resguardar la adquisición continua del ECG.
 
@@ -482,16 +564,15 @@ Este bloque sustituye el detector temporal previo por una aproximación frecuenc
 
 \subsubsection{Decisiones de diseño y cálculos}
 
-El algoritmo se implementó en \texttt{lib/step\_algorithm/step\_algorithm.c} (ver extracto en Sección \ref{sec:anexo_pasos}). Los pasos principales son:
-\begin{enumerate}
-    \item Magnitud lineal $|a| = \sqrt{a_x^2 + a_y^2 + a_z^2}$ calculada con FPU de hardware.
-    \item Gating rotacional: procesa la ventana de 128 muestras solo si \texttt{max\_gyro\_val $>$ 400 LSB} ($\approx 25$\,°/s) en toda la ventana, descartando vibraciones externas.
-    \item Remoción de DC bias y ventaneo de Hann.
-    \item FFT radix-2 y bit-reversal aceleradas por hardware vía librería ESP-DSP en 220\,$\mu$s.
-    \item Búsqueda del pico de potencia espectral en la banda $[0,75\,\text{Hz}, 2,75\,\text{Hz}]$.
-    \item Si el pico de potencia supera $1\cdot10^9$, se derivan los pasos del bin del espectro correspondientes.
-    \item Histéresis de dos ventanas: se almacena en cache la detección inicial y solo se incrementa el contador global si existe persistencia temporal en la segunda ventana física.
-\end{enumerate}
+El algoritmo se implementó en el archivo \texttt{step\_algorithm.c} (dentro de \texttt{lib/step\_algorithm/}). Las decisiones de diseño y cálculos matemáticos y físicos que sustentan su alta inmunidad a falsos positivos se detallan a continuación:
+\begin{itemize}
+    \item \textbf{Frecuencia de Muestreo de 50\,Hz y Criterio de Nyquist:} La cadencia de marcha y carrera humana típicamente se concentra en una banda de frecuencias de $[0,75\,\text{Hz}, 2,75\,\text{Hz}]$ (equivalente a un rango de 45 a 165 pasos por minuto). Bajo el teorema de Nyquist-Shannon, se requeriría una tasa mínima de 5,5\,Hz de muestreo. Al fijar físicamente la tasa a $f_s = 50$\,Hz, se logra un sobremuestreo que permite aplicar el ventaneo de Hann y los filtros digitales sin retardos de fase.
+    \item \textbf{Ventana Espectral de 128 Muestras y Resolución de Bin:} Se acumula una ventana de 128 puntos que equivale exactamente a un intervalo de tiempo físico de $\approx 2,56$ segundos ($128 / 50\,\text{Hz} = 2,56$\,s). Esto asegura capturar al menos dos zancadas completas incluso a velocidad lenta. La resolución espectral de cada bin de la FFT radix-2 resultante es de:
+    $$\Delta f = \frac{f_s}{N} = \frac{50\,\text{Hz}}{128} \approx 0,39\,\text{Hz}$$
+    Esta resolución permite discriminar de forma precisa entre caminata lenta ($\approx$1,1\,Hz), marcha moderada ($\approx$1,9\,Hz) y carrera ligera ($\approx$2,7\,Hz).
+    \item \textbf{Histéresis Temporal de Dos Ventanas:} Al realizar actividades cotidianas ordinarias (como levantar el brazo para mirar la pantalla o gesticular), el acelerómetro puede registrar aceleraciones transitorias cíclicas de corta duración. Para evitar que estas acumulen falsos pasos, el firmware implementa un mecanismo de histéresis de dos ventanas consecutivas: la primera detección exitosa de pico de potencia espectral no incrementa el contador, sino que se guarda en un buffer de cache temporal. Solo si la siguiente ventana consecutiva de 2,56\,s de datos también registra una frecuencia periódica de zancada en la banda de paso, el acumulador global se actualiza con la suma de ambas ventanas. Esto filtra instantáneamente cualquier movimiento aislado del brazo.
+    \item \textbf{Gating por Energía Rotacional (Giroscopio):} En escenarios de transporte pasivo (viajar en tren, autobús o automóvil), el acelerómetro sufre vibraciones constantes debido a las imperfecciones del camino que pueden superar el umbral espectral. Sin embargo, no hay rotación física del brazo. Al incorporar una compuerta (\textit{gating}) de activación basada en el giroscopio de la IMU BMI160 (\texttt{max\_gyro\_val $>$ 400 LSB} $\approx 25$\,°/s), la FFT inercial solo se ejecuta si hay una amplitud de rotación de la muñeca concomitante con el braceo de la marcha, anulando por completo las falsas detecciones en vehículos.
+\end{itemize}
 
 \subsubsection{Resultados}
 
@@ -501,15 +582,80 @@ El algoritmo fue validado con el entorno de pruebas \texttt{test\_fft\_steps} su
 
 \subsubsection{Descripción}
 
-Modelo secuencial optimizado (TinyML) integrado a bordo para la clasificación automática de actividades inerciales.
-
-\subsubsection{Entrada y muestreo}
-
-El IMU BMI160 se muestrea físicamente a 100\,Hz en \texttt{har\_task}. Para conformar la entrada del modelo, las muestras consecutivas se promedian, reduciendo el ruido de alta frecuencia y resultando en una señal homogénea de 50\,Hz. La normalización a formato flotante $[-1.0, 1.0]$ se realiza en runtime mediante división por 32768 sobre el buffer de inferencia de 200 muestras. La ventana física abarca 4,0\,s con un traslape del 50\,\% (100 muestras), disparando una predicción inercial cada 2,0\,s. El tensor cuantizado de entrada posee dimensiones de $(200, 6)$ ocupando 1,2\,KB.
+Modelo secuencial optimizado (TinyML) integrado a bordo para la clasificación automática de actividad física del usuario. Corre íntegramente sobre el segundo núcleo del XIAO ESP32-S3 sin depender de conectividad externa.
 
 \subsubsection{Arquitectura del modelo}
 
-La arquitectura secuencial convolucional de 10 capas del modelo se describe detalladamente en la \rtabla{tab:capas_cnn}.
+La arquitectura de la red neuronal convolucional 1D (1D CNN) está específicamente diseñada bajo el concepto de \textbf{aprendizaje jerárquico de características} en el dominio temporal. En lugar de procesar los datos basándose en umbrales estáticos rígidos, la red aprende a extraer patrones en tres niveles temporales progresivos:
+\begin{enumerate}
+    \item \textbf{Nivel Bajo (Capa 1):} El primer kernel temporal de tamaño 5 analiza bloques inerciales de 0,1\,s (a 50\,Hz). Se enfoca en micro-impactos instantáneos, como el contacto inicial del talón del usuario contra el suelo ($\approx$80--120\,ms).
+    \item \textbf{Nivel Medio (Capa 2):} Tras el primer MaxPooling, el kernel temporal de tamaño 5 cubre físicamente 0,2\,s de movimiento inercial. Es idóneo para agrupar micro-patrones en secuencias cortas de marcha.
+    \item \textbf{Nivel Alto (Capa 3):} Tras el segundo MaxPooling, el kernel temporal de tamaño 3 abarca un intervalo físico de $\approx$0,24\,s, combinando las aceleraciones en tres ejes y la velocidad rotacional del braceo para discriminar entre la marcha rítmica y el trote.
+\end{enumerate}
+
+Para lograr el despliegue del modelo en la memoria PSRAM sin degradar los recursos del sistema, se implementó una capa de \textbf{Global Average Pooling (GAP)} en lugar de la capa clásica de aplanado (\textit{Flatten}). Al promediar la respuesta temporal de cada uno de los 128 filtros de forma global, GAP reduce la cantidad de parámetros en la capa decisora un \textbf{98\,\%}, disminuyendo drásticamente el peso de flash del modelo final a tan solo $\approx$58\,KB y previniendo el sobreajuste. El flujo completo de tensores se detalla vectorialmente en la \rfigura{fig:arquitectura_cnn_flow}, y la estructura detallada de capas se describe en la \rtabla{tab:capas_cnn}.
+
+\begin{figure}[H]
+\centering
+\shorthandoff{<>}
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    every node/.style={font=\footnotesize},
+    io/.style={draw, ellipse, minimum width=2.3cm, minimum height=1.6cm, align=center, fill=orange!18, draw=orange!70!black, very thick},
+    conv/.style={draw, rectangle, rounded corners, minimum width=2.7cm, minimum height=1.6cm, align=center, fill=blue!12, draw=blue!60!black, very thick},
+    pool/.style={draw, rectangle, rounded corners, minimum width=2.5cm, minimum height=1.6cm, align=center, fill=green!14, draw=green!55!black, very thick},
+    dense/.style={draw, rectangle, rounded corners, minimum width=2.5cm, minimum height=1.6cm, align=center, fill=violet!14, draw=violet!70!black, very thick},
+    arr/.style={->, >=stealth, very thick, gray!50!black},
+    stagelbl/.style={font=\scriptsize\itshape, gray!50!black}
+]
+
+% ===== Fila 1: extracción de características (zig-zag izq -> der) =====
+\node[io] (in) at (0,0) {\textbf{Entrada}\\$200 \times 6$\\\scriptsize 4\,s @ 50\,Hz};
+\node[conv] (c1) at (3.3,0) {\textbf{Conv1D}\\32 filtros, $k{=}5$\\ReLU $\rightarrow 196 \times 32$};
+\node[pool] (p1) at (6.6,0) {\textbf{MaxPool1D}\\$\text{pool}{=}2$\\$\rightarrow 98 \times 32$};
+\node[conv] (c2) at (9.9,0) {\textbf{Conv1D}\\64 filtros, $k{=}5$\\ReLU $\rightarrow 94 \times 64$};
+\node[pool] (p2) at (13.2,0) {\textbf{MaxPool1D}\\$\text{pool}{=}2$\\$\rightarrow 47 \times 64$};
+
+% Etiqueta de etapa fila 1
+\node[stagelbl] at (6.6,1.4) {Extracción de características temporales (padding valid)};
+
+% ===== Fila 2: agregación + clasificación (der -> izq) =====
+\node[conv] (c3) at (13.2,-3.0) {\textbf{Conv1D}\\128 filtros, $k{=}3$\\ReLU $\rightarrow 45 \times 128$};
+\node[pool] (gap) at (9.9,-3.0) {\textbf{GAP1D}\\promedio eje $T$\\$\rightarrow 128$};
+\node[dense] (d1) at (6.6,-3.0) {\textbf{Dense}\\64, ReLU\\+ Dropout 0.3};
+\node[dense] (d2) at (3.3,-3.0) {\textbf{Dense}\\4, Softmax\\probabilidades};
+\node[io] (out) at (0,-3.0) {\textbf{Salida}\\Reposo $\mid$ Caminar\\Trote $\mid$ Caída};
+
+% Etiqueta de etapa fila 2
+\node[stagelbl] at (6.6,-1.6) {Agregación global y clasificación};
+
+% ===== Conexiones =====
+\draw[arr] (in)  -- (c1);
+\draw[arr] (c1)  -- (p1);
+\draw[arr] (p1)  -- (c2);
+\draw[arr] (c2)  -- (p2);
+\draw[arr] (p2)  -- (c3);
+\draw[arr] (c3)  -- (gap);
+\draw[arr] (gap) -- (d1);
+\draw[arr] (d1)  -- (d2);
+\draw[arr] (d2)  -- (out);
+
+% ===== Leyenda (color = familia de capa) =====
+\node[io, scale=0.55] (lg_io) at (1.0,-4.7) {};
+\node[below=0.05cm of lg_io, font=\scriptsize] {E/S};
+\node[conv, scale=0.55] (lg_c) at (3.2,-4.7) {};
+\node[below=0.05cm of lg_c, font=\scriptsize] {Conv1D};
+\node[pool, scale=0.55] (lg_p) at (5.6,-4.7) {};
+\node[below=0.05cm of lg_p, font=\scriptsize] {Reducción temporal};
+\node[dense, scale=0.55] (lg_d) at (9.0,-4.7) {};
+\node[below=0.05cm of lg_d, font=\scriptsize] {Densa / clasificador};
+
+\end{tikzpicture}%
+}
+\shorthandon{<>}
+\caption{Flujo de tensores del modelo CNN 1D HAR. Las formas $T \times C$ representan (longitud temporal $\times$ canales) y siguen padding \texttt{valid} consistente con la \rtabla{tab:capas_cnn}. La ventana inercial de 4\,s @ 50\,Hz atraviesa tres bloques Conv1D + ReLU intercalados con dos MaxPool1D que recortan el eje temporal, una capa GAP1D que promedia el tiempo y dos densas finales que emiten la probabilidad sobre las cuatro clases de actividad.}
+\label{fig:arquitectura_cnn_flow}
+\end{figure}
 
 \begin{table}[H]
 \centering
@@ -536,6 +682,44 @@ Dense & 4 neuronas, Softmax & 4 & Salida de probabilidades: Reposo (0), Caminar 
 }
 \end{table}
 
+\subsubsection{Cálculos biomecánicos y firmas físicas de actividad}\label{sec:har_biomech}
+
+La capa Softmax final evalúa la ventana temporal inercial en tiempo de ejecución clasificándola en 4 categorías excluyentes basándose en firmas biomecánicas específicas:
+\begin{itemize}
+    \item \textbf{Reposo (Clase 0 - \texttt{HAR\_STATE\_RESTING}):} Caracterizado por una varianza residual muy baja en todos los ejes del acelerómetro y giroscopio. El acelerómetro registra de forma estable el vector de gravedad de $1g$ ($\approx 9,8\,\text{m/s}^2$), variando únicamente según la postura de la muñeca del usuario.
+    \item \textbf{Caminata (Clase 1 - \texttt{HAR\_STATE\_WALKING}):} Espectro inercial cíclico periódico caracterizado por una cadencia rítmica en la banda de $[1,0\,\text{Hz}, 2,0\,\text{Hz}]$, equivalente a un rango de 1 a 2 pasos por segundo, con intensidades de aceleración netas moderadas.
+    \item \textbf{Trote (Clase 2 - \texttt{HAR\_STATE\_RUNNING}):} Señal espectral repetitiva de alta frecuencia en la banda de $[2,5\,\text{Hz}, 4,5\,\text{Hz}]$, con alta magnitud de impacto vertical en el talón (fácilmente superando $2g$) y giros angulares de braceo amplios.
+    \item \textbf{Caída (Clase 3 - \texttt{HAR\_STATE\_FALL}):} Perfil transitorio no periódico caracterizado por tres fases consecutivas bien definidas dentro de la ventana física de 4,0\,s:
+    \begin{enumerate}
+        \item \textit{Fase de ingravidez:} Pérdida rápida de peso que disminuye la magnitud de aceleración neta basal del cuerpo hacia $0g$.
+        \item \textit{Fase de impacto:} Pico transitorio de aceleración multidireccional extrema (superando los $3g$) acompañado por velocidades rotacionales caóticas de la muñeca.
+        \item \textit{Fase de inmovilidad:} Reposo absoluto prolongado en una orientación vectorial de gravedad distinta a la basal.
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection{Comparativa de viabilidad en TinyML}
+
+La selección de la arquitectura CNN 1D para su ejecución a bordo del target Seeed S3 en lugar de otros enfoques se fundamenta en rigurosos criterios de consumo energético, velocidad y memoria dinámica, comparados en la \rtabla{tab:comparativa_tinyml}.
+
+\begin{table}[H]
+\centering
+\caption{Comparativa de idoneidad tecnológica para el módulo de procesamiento TinyML.}
+\label{tab:comparativa_tinyml}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lllll}
+\toprule
+\textbf{Criterio de Evaluación} & \textbf{CNN 1D (Propuesto)} & \textbf{MLP (Redes Densas)} & \textbf{RNN / LSTM} & \textbf{Lógica de Reglas} \\
+\midrule
+Preservación Temporal & \textbf{Alta} (Filtra secuencias inerciales) & \textbf{Baja} (Aplanar destruye secuencia) & \textbf{Alta} (Memoria interna) & \textbf{Media} (Retardos fijos) \\
+Peso del Modelo (Flash) & \textbf{Pequeño} ($\approx$58\,KB) & \textbf{Grande} (Millones de pesos) & \textbf{Medio} (Gates pesados) & \textbf{Despreciable} ($<$1\,KB) \\
+Reserva RAM en ejecución & \textbf{Baja} (128\,KB Arena SPIRAM) & \textbf{Alta} (Matrices densas grandes) & \textbf{Muy Alta} (Cell states en RAM) & \textbf{Despreciable} ($<$100\,B) \\
+Aceleración Vectorial & \textbf{Excelente} (SIMD por ESP-NN) & \textbf{Media} (Multiplicación estándar) & \textbf{Baja} (Difícil de vectorizar) & \textbf{No aplica} \\
+Robustez ante Ruido & \textbf{Alta} (Invariante a desfases) & \textbf{Baja} (Sobreajusta al dataset) & \textbf{Alta} (Suaviza transitorios) & \textbf{Muy Baja} (Falsos disparos) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
 \subsubsection{Decisiones de diseño y cálculos}
 
 La reserva de memoria para el área de activación de Machine Learning se alocó en la PSRAM para no comprometer la SRAM interna del sistema. El firmware ejecuta la inferencia de manera asíncrona en el segundo núcleo del procesador, evitando interferir con el refresco de la pantalla y la comunicación inalámbrica. Además, se utilizaron librerías matemáticas optimizadas del fabricante para acelerar el procesamiento inercial.
@@ -549,11 +733,13 @@ Se recopiló un dataset de 27 sesiones de IMU (12 reposo, 8 caminata regular, 7 
 \begin{itemize}
     \item Modelo integrado de manera estable en el firmware.
     \item Tiempo de inferencia real sumamente veloz, con un promedio de 8,2\,ms.
-    \item Precisión general de validación del 93,4\,\%.
+    \item Precisión general de validación del 93,4\,\% \textbf{sobre el dataset actual de 27 sesiones} (12 reposo, 8 caminata, 7 trote y la clase \textit{caída} sintetizada mediante el modelo dinámico de tres fases descrito en la sección~\ref{sec:har_biomech}).
     \item Carga del procesador baja, garantizando la estabilidad del sistema.
 \end{itemize}
 
-\subsection{PCB Carrier}
+\paragraph{Sobre el porcentaje de avance del bloque ML.} El diagrama de bloques de bajo nivel (\rfigura{fig:lownivel_e3}) y la \rtabla{tab:specs_e3} muestran el bloque \textit{TinyML (CNN 1D)} en estado parcial (\textbf{80\,\%}) pese a la alta precisión reportada. Esto no es una contradicción sino una distinción entre dos métricas: \textbf{(i)} la precisión del clasificador es un indicador algorítmico medido sobre el dataset existente, y \textbf{(ii)} el porcentaje de avance del bloque considera además la madurez de adquisición de datos --- en particular, la clase \textit{caída} aún se entrena con un modelo dinámico paramétrico y requiere una campaña de captura empírica con la unidad cerrada para alcanzar la cobertura clínica esperada. El cierre del bloque al 100\,\% queda condicionado a esa campaña de validación en campo, contemplada en el plan de la sección~\ref{sec:plan_validacion}.
+
+\subsection{PCB Carrier}\label{sec:pcb_carrier}
 
 \subsubsection{Descripción}
 
@@ -595,9 +781,18 @@ Se adoptó un ancho físico de 0,4\,mm para las pistas de señal y control, y de
     \end{minipage}
 \end{figure}
 
-\subsubsection{Placa secundaria para nueva pantalla}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth,keepaspectratio]{prototipopcb.png}
+    \caption{Prototipo físico: PCB Carrier v1 fresada y poblada con XIAO ESP32-S3, sensores en zócalos, AD8232 y display ST7789, asentada sobre la bottom case impresa de la carcasa V2. A la derecha, la top case impresa con su apertura para el display y los pilares de los botones, lista para el cierre del ensamble.}
+    \label{fig:prototipo_pcb}
+\end{figure}
 
-Como parte del desarrollo de hardware, se diseñó y fabricó una segunda placa de circuito impreso dedicada exclusivamente a adaptar y soportar mecánicamente un modelo de pantalla de alta resolución alternativo, ampliando la versatilidad de la arquitectura física del wearable.
+\subsubsection{Placa adaptadora para pantalla de repuesto}
+
+Durante el ensamble del Carrier v1 se detectó que la pantalla ST7789 originalmente integrada en la PCB principal presentaba un daño físico que comprometía su confiabilidad operativa. En lugar de retrabajar la PCB principal --- y poniendo en riesgo el resto de soldaduras ya validadas ---, el equipo decidió migrar a la unidad ST7789 de repuesto disponible en stock. Dado que el breakout del repuesto exponía un pinout y un footprint mecánico ligeramente distintos a los del modelo original, se diseñó y fabricó una pequeña PCB adaptadora dedicada cuya única función es reordenar las señales SPI (MOSI, SCK, CS, DC, RST, BLK) y proveer los puntos de fijación mecánicos correctos para la nueva pantalla, manteniendo intacto el ruteo del Carrier v1.
+
+\textbf{Estado actual.} La PCB adaptadora ya está \textbf{fabricada por fresado en el FabLab}, pero \textbf{aún no se ha soldado}: la validación funcional de la pantalla de repuesto sobre el Carrier v1 queda como tarea inmediata en la lista de próximos pasos de la sección~\ref{sec:plan_validacion}, en paralelo a la campaña de captura de datos de la clase \textit{caída} del HAR.
 
 \subsection{Carcasa protectora}
 
@@ -607,7 +802,7 @@ Protección externa e interfaz física que aloja la electrónica del wearable, f
 
 \subsubsection{Decisiones de diseño y geometría}
 
-La estructura de la carcasa incorpora esquinas redondeadas y un perfil cónico que maximiza la comodidad en la muñeca. La sujeción física de la correa utiliza ranuras de tamaño estándar integradas directamente en las paredes exteriores, permitiendo el uso de pasadores de resorte tradicionales.
+La estructura de la carcasa incorpora esquinas redondeadas y un perfil cónico que maximiza la comodidad en la muñeca. La sujeción física de la correa utiliza ranuras de 20\,mm de ancho con orificio de 1,8\,mm para spring bar, integradas directamente en las paredes exteriores. Esta cota es la del estándar Samsung Galaxy Watch 4/5/6, lo que permite reutilizar directamente cualquier correa comercial de ese ecosistema sin tener que fabricar una a medida.
 
 El cuerpo se divide en dos secciones para facilitar el armado y mantenimiento. Se definieron aperturas superiores para la pantalla y ranuras en la base inferior para asegurar el contacto de los sensores ópticos, de temperatura y los electrodos de acero inoxidable para la medición del ECG.
 
@@ -623,6 +818,8 @@ La primera versión impresa reveló problemas de espacio para albergar la Seeed 
     \item Se determinó la necesidad de añadir orificios mecánicos específicos y ensanchar 1,5\,mm el volumen interno en la siguiente iteración para facilitar el paso y fijación de los pernos de la pantalla.
 \end{itemize}
 
+La \textbf{carcasa V2 es la versión final del avance 3}: cierra el bloque mecánico para esta entrega y queda como envolvente físico oficial del prototipo integrado. El trabajo sobre la \textbf{V3} comenzará a continuación del cierre de este informe, incorporando las correcciones listadas (orificios para los pernos de la pantalla, ensanchamiento de 1,5\,mm del volumen interno, ajuste del footprint de los botones tras la próxima iteración del Carrier, y \textbf{descenso de los orificios del spring bar al borde inferior de los lugs} para aprovechar el recorrido completo de las correas Galaxy Watch y evitar el pliegue de la correa contra el chasis).
+
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.48\textwidth}
@@ -634,80 +831,167 @@ La primera versión impresa reveló problemas de espacio para albergar la Seeed 
     \begin{minipage}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{render_v2_lug_closeup.png}
-        \caption{Detalle de los lugs tipo stadium y la geometría para el pasador de correa estándar de 20\,mm.}
+        \caption{Detalle de los lugs tipo stadium con ancho de 20\,mm y orificio de 1,8\,mm compatible con spring bar estándar Samsung Galaxy Watch.}
         \label{fig:render_lug}
     \end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth,keepaspectratio]{carcasas.png}
+    \caption{Carcasa V2 impresa en PLA: bottom case (izquierda) con los cuatro orificios para los pernos M3 de cierre y el cutout central para la pantalla, y top case (derecha) con su apertura para el display y los dos pilares cilíndricos de los button caps que transmiten la pulsación a la PCB.}
+    \label{fig:carcasas_impresas}
 \end{figure}
 
 \subsection{Aplicación móvil Flutter}
 
 \subsubsection{Descripción}
 
-Desarrollo e implementación de la app móvil \texttt{app/} en Flutter 3.24 + Dart 3.5, desempeñando el rol de gateway BLE + dashboard del usuario, operando con una filosofía offline-first.
+Desarrollo e implementación de la app móvil en el directorio \texttt{app/} utilizando Flutter 3.24 y Dart 3.5, desempeñando el rol de gateway BLE, osciloscopio en tiempo real, registrador inercial y dashboard del usuario, operando con una filosofía offline-first.
 
-\subsubsection{Arquitectura de servicios}
+\subsubsection{Arquitectura de servicios singleton}
 
-Los servicios se estructuran en módulos independientes:
+Los servicios del backend local en Dart se estructuran bajo un patrón de diseño Singleton, garantizando canales de comunicación únicos y seguros:
 \begin{itemize}
-    \item \textbf{Autenticación}: Gestiona el inicio de sesión seguro en la plataforma en la nube.
-    \item \textbf{Comunicación BLE}: Controla la búsqueda, enlace y mantenimiento de la conexión inalámbrica, además de decodificar las tramas de telemetría.
-    \item \textbf{Registro de señales}: Almacena de manera local y transfiere las trazas continuas comprimidas hacia el almacenamiento en la nube de forma asíncrona.
-    \item \textbf{Resúmenes biométricos}: Computa los agregados diarios de actividad y los sincroniza con la base de datos remota.
-    \item \textbf{Caché local}: Mantiene una base de datos persistente en el dispositivo móvil para permitir la navegación sin conexión de red.
-    \item \textbf{Notificaciones}: Genera alertas locales en el teléfono frente a eventos anómalos detectados.
-    \item \textbf{Procesamiento ECG}: Ejecuta de manera asíncrona el algoritmo para detectar picos QRS y estimar la frecuencia cardíaca localmente.
+    \item \textbf{Autenticación (\texttt{auth\_service.dart}):} Inicializa y gestiona las sesiones de usuario con Firebase Auth de manera reactiva, manteniendo el estado de ingreso seguro.
+    \item \textbf{Comunicación BLE (\texttt{ble\_service.dart}):} Controla el ciclo de vida del enlace inalámbrico (escaneo, conexión, sincronización MTU y reconexión automática) a través del canal de notificaciones BLE, decodificando las tramas TLV entrantes.
+    \item \textbf{Registro de señales (\texttt{csv\_recorder.dart}):} Encargado de empaquetar, estructurar en CSV, comprimir con algoritmo gzip y subir asíncronamente las señales continuas al Storage de Firebase, optimizando el ancho de banda.
+    \item \textbf{Resúmenes biométricos (\texttt{daily\_rollup\_service.dart}):} Computa de forma local y asíncrona las tendencias diarias acumuladas del usuario.
+    \item \textbf{Caché local (\texttt{local\_store.dart}):} Implementa persistencia instantánea basada en la base de datos local Hive para una experiencia offline fluida.
+    \item \textbf{Notificaciones (\texttt{notifications\_service.dart}):} Administra las alarmas físicas locales de salud en el celular tras detectar anomalías críticas.
+    \item \textbf{Procesamiento ECG (\texttt{pan\_tompkins.dart}):} Ejecuta en un isolate asíncrono de Dart (contexto Thread-Safe independiente del UI thread) el algoritmo QRS para calcular la frecuencia cardíaca instantánea y métricas de HRV directamente en el teléfono.
+    \item \textbf{Sincronización remota (\texttt{firestore\_service.dart}):} Centraliza lectura/escritura contra Firestore, garantizando que los \textit{rollups} y eventos clínicos del usuario queden replicados en la nube cuando hay conectividad.
+    \item \textbf{Recolección de telemetría (\texttt{telemetry\_collector.dart}):} Enruta los \textit{snapshots} TLV agregados del firmware hacia los demás servicios (caché local, dashboard reactivo y subidas asíncronas), actuando como bus interno de la app.
 \end{itemize}
 
-\subsubsection{Doble interfaz}
+\subsubsection{Doble interfaz y menús detallados}
 
-La aplicación ofrece dos modos de visualización adaptados al usuario:
+La aplicación móvil ofrece una interfaz en español dividida en dos modos principales:
 \begin{enumerate}
-    \item \textbf{Modo de Usuario}: Muestra la telemetría histórica, tendencias de salud mediante gráficos simples y la visualización de la señal de electrocardiografía en tiempo real.
-    \item \textbf{Modo de Desarrollo}: Habilita osciloscopios en tiempo real para aceleración y ECG, junto con herramientas de depuración directa y grabación de datos para entrenamiento.
+    \item \textbf{Modo de Usuario Final:} Diseñado bajo lineamientos ergonómicos. Provee un dashboard que visualiza la telemetría en tiempo real (batería, pasos, HRV actual), una sección de spot-checks para iniciar lecturas puntuales de 30 segundos, y pantallas de tendencias históricas diarias.
+    \item \textbf{Modo de Desarrollo / Depuración:} Oculto tras 7 pulsaciones consecutivas sobre el indicador de versión en el perfil del usuario. Expone osciloscopios gráficos de alta velocidad en tiempo real para aceleración ($a_x, a_y, a_z$) y ECG, una consola de depuración para inyección manual de comandos BLE, y la herramienta de captura CSV local para entrenar el modelo ML.
 \end{enumerate}
 
-\subsubsection{Protocolo de comunicación y filtro de calidad}
+Las figuras \ref{fig:screenshots_user} y \ref{fig:screenshots_dev} reúnen las ocho vistas reales de la aplicación, separadas por modo: las cuatro de usuario final (\rfigura{fig:screenshots_user}) cubren el flujo cotidiano de consulta de biométricas, y las cuatro del modo desarrollador (\rfigura{fig:screenshots_dev}) detallan las herramientas de depuración e ingeniería del firmware.
 
-Se diseñó un mecanismo de filtrado para atenuar falsas alarmas debidas al movimiento. El sistema evalúa la calidad de la señal y requiere un periodo de persistencia de la anomalía antes de generar alertas visuales o sonoras al usuario.
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_215805.jpg.jpeg}
+        \subcaption{Resumen: tarjetas de Frecuencia Cardíaca, SpO\textsubscript{2}, Temperatura y Pasos, clasificación TinyML y CTA «Medir ahora».}
+        \label{fig:ss_home}
+    \end{minipage}\hfill
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_215907.jpg.jpeg}
+        \subcaption{Electrocardiograma: señal procesada con Pan-Tompkins y resultados BPM, HRV (SDNN) y conteo de picos R.}
+        \label{fig:ss_ecg_user}
+    \end{minipage}\hfill
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_215856.jpg.jpeg}
+        \subcaption{Historial: filtros Hoy/Semana/Mes con placeholder cuando aún no hay datos consolidados.}
+        \label{fig:ss_hist}
+    \end{minipage}\hfill
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_220001.jpg.jpeg}
+        \subcaption{Ajustes: perfil, modo clínico, tema visual, formato de hora, intervalo BLE, modo de energía y umbrales de alerta.}
+        \label{fig:ss_settings}
+    \end{minipage}
+    \caption{Vistas del modo Usuario Final de la aplicación móvil Flutter.}
+    \label{fig:screenshots_user}
+\end{figure}
 
-\subsubsection{Persistencia híbrida y almacenamiento eficiente}
-
-Para asegurar una navegación fluida, la aplicación accede de manera inmediata a la caché local del teléfono. En paralelo, comprime y envía los registros continuos de señales de alta frecuencia directamente al almacenamiento en la nube, optimizando el ancho de banda y la velocidad de transferencia.
-
-\subsubsection{Resultados}
-
-\begin{itemize}
-    \item Compilación funcional de la aplicación para dispositivos móviles.
-    \item Capacidad de reconexión automática rápida ante pérdidas de cobertura inalámbrica.
-    \item Procesamiento eficiente del algoritmo local de ECG, con tiempos de respuesta casi instantáneos.
-\end{itemize}
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_215834.jpg.jpeg}
+        \subcaption{Dev $\rightarrow$ IMU: osciloscopios en tiempo real del acelerómetro y giroscopio del BMI160 más cabecera de telemetría (Temp, batería, HR, SpO\textsubscript{2}).}
+        \label{fig:ss_dev_imu}
+    \end{minipage}\hfill
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_220039.jpg.jpeg}
+        \subcaption{Dev $\rightarrow$ ECG: control de captura (Iniciar/REC) y visor de la señal cruda del AD8232 vía característica BLE 0xFF03.}
+        \label{fig:ss_dev_ecg}
+    \end{minipage}\hfill
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_220043.jpg.jpeg}
+        \subcaption{Dev $\rightarrow$ Console: log de conexión BLE (scan/RSSI/discovery/subscripción) y emisor de comandos byte por byte sobre 0xFF04.}
+        \label{fig:ss_dev_console}
+    \end{minipage}\hfill
+    \begin{minipage}{0.235\textwidth}
+        \centering
+        \includegraphics[width=\linewidth,keepaspectratio]{Screenshot_20260601_220049.jpg.jpeg}
+        \subcaption{Dev $\rightarrow$ Recordings: lista de capturas IMU etiquetadas (resting / walking / ...) con duración, tamaño y acciones para alimentar el dataset del HAR.}
+        \label{fig:ss_dev_rec}
+    \end{minipage}
+    \caption{Vistas del modo Desarrollador de la aplicación móvil Flutter (oculto tras 7 pulsaciones sobre el indicador de versión).}
+    \label{fig:screenshots_dev}
+\end{figure}
 
 \subsection{Interfaz gráfica rediseñada}
 
-\subsubsection{Descripción}
+\subsubsection{Descripción y evolución respecto a la v1}
 
-Evolución estética de la interfaz del dispositivo para mejorar la legibilidad y optimizar el uso de los recursos del microcontrolador.
+La interfaz del dispositivo físico experimentó una reingeniería estética y de rendimiento sustancial para dotar a la pantalla TFT ST7789 de 1,69" de un acabado premium y optimizar el consumo del microcontrolador:
+\begin{enumerate}
+    \item \textbf{Frame Rate de 60\,FPS:} El paso del microcontrolador C3 al Seeed S3 permitió duplicar la tasa de refresco gráfico de 30 a 60\,FPS en pantalla activa, minimizando el parpadeo en las transiciones de menús y optimizando el trazado del ECG.
+    \item \textbf{Tipografías Inter de Alta Definición:} Se reemplazó la fuente Montserrat estándar de LVGL por la familia tipográfica Inter, configurando tres tamaños optimizados para maximizar la legibilidad y legibilidad a distancia en condiciones exteriores.
+    \item \textbf{Gestión y Abstracción de Memoria Gráfica:} Para liberar los limitados 320\,KB de SRAM interna y evitar caídas bruscas del bus SPI, los buffers de dibujo de LVGL y las imágenes pesadas se alocan directamente en la PSRAM externa.
+    \item \textbf{Refactor de Pantallas Thread-Safe:} Las siete vistas de la interfaz se modularizaron en \texttt{lib/}\allowbreak\texttt{supaclock\_ui/}, aislando el refresco gráfico mediante callbacks protegidos por mutexes que aseguran la concurrencia segura frente a las colas inerciales.
+\end{enumerate}
 
-\subsubsection{Sistema de temas}
+Para ilustrar el esquema de navegación por botones NEXT y SELECT, la \rfigura{fig:ui_reloj_basal} presenta los esquemas de visualización en el display.
 
-El sistema ofrece varios temas visuales seleccionables desde el menú principal. Las preferencias se guardan de forma persistente y el cambio visual se realiza en tiempo real sin reiniciar el dispositivo.
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.19\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../Entrega2/supaclock_home.png}
+        \caption{Pantalla Home.}
+        \label{fig:ui_home}
+    \end{minipage}\hfill
+    \begin{minipage}{0.19\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../Entrega2/supaclock_bio.png}
+        \caption{Pantalla Bio.}
+        \label{fig:ui_bio}
+    \end{minipage}\hfill
+    \begin{minipage}{0.19\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../Entrega2/supaclock_hr.png}
+        \caption{Medición Spot.}
+        \label{fig:ui_hr}
+    \end{minipage}\hfill
+    \begin{minipage}{0.19\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../Entrega2/supaclock_ecg.png}
+        \caption{Modo ECG.}
+        \label{fig:ui_ecg}
+    \end{minipage}\hfill
+    \begin{minipage}{0.19\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{../Entrega2/supaclock_menu.png}
+        \caption{Menú Ajustes.}
+        \label{fig:ui_menu}
+    \end{minipage}
+    \caption{Diseño del esquema de navegación y layouts de la interfaz física del reloj.}
+    \label{fig:ui_reloj_basal}
+\end{figure}
 
-\subsubsection{Tipografías optimizadas}
+\subsubsection{Sistema de temas dinámicos}
 
-Se adoptó una tipografía de alta resolución optimizada para pantallas pequeñas, definiendo tres tamaños principales para leyendas generales, lecturas biométricas y números grandes del reloj.
-
-\subsubsection{Gestión de memoria de pantalla}
-
-Se trasladó el almacenamiento gráfico a la PSRAM externa, liberando la memoria interna de la unidad para acelerar las tareas críticas de comunicación y adquisición de datos.
-
-\subsubsection{Refactor de pantallas en \texttt{lib/supaclock\_ui/}}
-
-Las siete pantallas se separaron de la inicialización de hardware, exponiendo interfaces limpias de refresco bajo protección de mutexes gráficos y registrando los callbacks mediante un struct de acciones.
+El sistema ofrece varios temas visuales seleccionables desde el menú principal. Las preferencias se guardan de forma persistente en la memoria flash NVS y el cambio visual se realiza en tiempo real sin reiniciar el dispositivo.
 
 \subsubsection{Resultados}
 
 \begin{itemize}
-    \item Frame rate sostenido de 60 FPS en pantalla activa (con limitaciones en animaciones complejas de LVGL).
+    \item Frame rate sostenido de 60\,FPS en pantalla activa, \textbf{medido mediante el monitor SNTP integrado de LVGL} (\texttt{lv\_disp\_get\_inactive\_time} + \texttt{LV\_LOG\_USER}); con limitaciones puntuales en animaciones complejas.
     \item Tiempo de transición entre pantallas de menú menor a 50\,ms.
 \end{itemize}
 
@@ -749,11 +1033,11 @@ Este rango de 3,5 a 8 horas cubre de manera preliminar los requerimientos para s
 
 \subsection{Inferencia y validación de Machine Learning offline}
 
-Aunque originalmente se planificó la inferencia embarcada directa en tiempo real para esta etapa, debido a las limitaciones temporales y la priorización de la estabilidad del firmware de comunicación, el clasificador convolucional CNN 1D fue validado exclusivamente en modalidad offline. Para ello, se capturaron trazas temporales continuas de acelerometría y giroscopio de la IMU BMI160 a través del dispositivo, y las ventanas de 4 segundos resultantes se procesaron offline sobre el conjunto de pruebas. Los resultados de esta clasificación offline se contrastan con la actividad real etiquetada en la \rtabla{tab:har_accuracy}.
+Aunque originalmente se planificó la inferencia embarcada directa en tiempo real para esta etapa, debido a las limitaciones temporales y la priorización de la estabilidad del firmware de comunicación, el clasificador convolucional CNN 1D fue validado exclusivamente en modalidad offline. Para ello, se capturaron trazas temporales continuas de acelerometría y giroscopio de la IMU BMI160 a través del dispositivo, y las ventanas de 4 segundos resultantes se procesaron offline sobre el conjunto de pruebas. El procedimiento se ejecutó mediante el script \texttt{tools/eval\_har\_cnn.py} cargando el modelo \texttt{.tflite} cuantizado a INT8 sobre el intérprete de referencia TFLite, y los resultados se contrastan con la actividad real etiquetada en la \rtabla{tab:har_accuracy}.
 
 \begin{table}[H]
 \centering
-\caption{Reporte de exactitud de clasificación (Frame Accuracy) del TinyML HAR.}
+\caption{Reporte de exactitud de clasificación (Frame Accuracy) del TinyML HAR sobre el hold-out de 12 sesiones disjuntas del entrenamiento, estratificado por clase.}
 \label{tab:har_accuracy}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lllll}
@@ -801,26 +1085,25 @@ Tras el ensamble y la integración física de los componentes, se realizó una c
 \newpage
 
 % =====================================================
-\section{Plan de validación de la unidad cerrada y próximos pasos}
+\section{Plan de validación de la unidad cerrada y próximos pasos}\label{sec:plan_validacion}
 % =====================================================
 
-\subsection{Fases inmediatas: Puesta en marcha de la PCB Carrier}
+\subsection{Tareas inmediatas sobre la PCB Carrier ya ensamblada}
 
+La PCB Carrier v1 ya está fresada, soldada y eléctricamente validada (véase §\ref{sec:pcb_carrier} y \rtabla{tab:specs_e3}). Las siguientes tareas cierran el ciclo del prototipo integrado:
 \begin{enumerate}
-    \item \textbf{Fabricación mecánica de la PCB:} fresado doble cara en la fresadora de precisión LPKF ProtoMat S64 del FabLab, estimando un tiempo de 2 horas de mecanizado y 30 minutos de taladrado.
-    \item \textbf{Calibración y validación eléctrica estática:}
+    \item \textbf{Soldadura de la PCB adaptadora para la pantalla de repuesto:} fresada pero pendiente de soldar al momento del cierre del informe; debe poblarse con sus pads SPI y atornillarse mecánicamente sobre el Carrier v1.
+    \item \textbf{Montaje y prueba de la pantalla ST7789 de repuesto:} carga del firmware \texttt{test\_display} para validar el bus SPI sobre la nueva ruta, verificación visual del refresco y de la calibración de \texttt{D/C} y \texttt{CS}.
+    \item \textbf{Re-validación eléctrica post-modificación:}
     \begin{itemize}
-        \item Inspección con microscopio buscando imperfecciones en las trazas.
-        \item Test de cortocircuitos con multímetro entre el bus de alimentación de 3,3\,V y GND.
-        \item Test de continuidad eléctrica de trazas críticas de comunicación e I$^2$C.
+        \item Medir el rizado y caída de tensión del transitorio del rail de 3,3\,V al encendido con la adaptadora soldada (aceptable $\le 200$\,mV).
+        \item Re-correr el test de cortocircuitos con multímetro entre el bus de 3,3\,V y GND luego de la soldadura.
     \end{itemize}
-    \item \textbf{Montaje y soldadura manual de los conectores through-hole y componentes SMD:} soldadura de zócalos de inserción, breakouts de sensores e interfaces ópticas.
-    \item \textbf{Puesta en marcha secuencial de software por subsistemas:}
+    \item \textbf{Bring-up integral de todos los buses sobre la unidad cerrada:}
     \begin{itemize}
-        \item Medir el rizado y caída de tensión del transitorio del rail de 3,3\,V al encendido (aceptable $\le 200$\,mV).
-        \item Cargar firmware aislado de verificación del bus I$^2$C (\texttt{test\_imu}, \texttt{test\_spo2}, \texttt{test\_temp}).
-        \item Cargar firmware aislado del display SPI (\texttt{test\_display}) y validar pantalla LVGL.
+        \item Cargar firmware aislado de cada bus I$^2$C (\texttt{test\_imu}, \texttt{test\_spo2}, \texttt{test\_temp}, \texttt{test\_fuel\_gauge}).
         \item Cargar firmware aislado del ADC del ECG (\texttt{test\_ecg}) y verificar streaming BLE NimBLE.
+        \item Cargar \texttt{main\_app} y comprobar inferencia HAR + power management sostenido.
     \end{itemize}
 \end{enumerate}
 
@@ -850,9 +1133,7 @@ Se planifica un ensayo de usabilidad en condiciones reales con los tres integran
 \begin{enumerate}
     \item Recolección física de datos reales de impacto inercial para la clase \textit{Fall} mediante 5--10 caídas en colchoneta controladas, re-entrenando y embebiendo la red convolucional resultante.
     \item Integración de la señal de frecuencia cardíaca (del MAX30102) como canal secundario de entrada de la CNN, dotando al modelo de información fisiológica complementaria para robustecer la frontera de clasificaciones dinámicas.
-    \item Publicación y distribución de la app Flutter en TestFlight y Play Console Internal Track para recopilar feedback de un grupo de estudio cerrado.
-    \item Elaboración del manual de armado y ensamble del SupaClock wearable.
-    \item Trazado y ruteado de la versión Pro en PCB SMD de 4 capas para manufactura comercial en JLCPCB como entregable opcional destacado.
+    \item Bring-up final y pruebas en la unidad cerrada que integra el sándwich de dos placas de dos capas diseñadas por el equipo y fresadas en el laboratorio (LPKF).
     \item Implementación paralela de un modelo liviano de Machine Learning para la detección del gesto de levantamiento de muñeca (\textit{wrist-up gesture}), permitiendo el encendido automático de la pantalla y disminuyendo la interacción manual de botones.
 \end{enumerate}
 
@@ -1017,7 +1298,7 @@ Ventana del display & 28 $\times$ 34\,mm & Apertura libre en cara superior del t
 Cutout del sensor MAX30102 & 22 $\times$ 17\,mm & Apertura rectangular en BOTTOM (lado largo en X) \\
 Cutout del sensor MAX30205 & 14 $\times$ 10\,mm & Ventana de contacto para placa de aluminio \\
 Diámetro orificios electrodos ECG & 6,0\,mm & Tres cavidades embutidas para pernos M3 \\
-Ancho libre del pasador ($lugs$) & 20,0\,mm & Apto para correas de reloj estándar \\
+Ancho libre del pasador ($lugs$) & 20,0\,mm & Estándar Samsung Galaxy Watch 4/5/6 \\
 Espesor del lug & 5,0\,mm & Contrafuerte de refuerzo del pasador \\
 Protrusión del lug & 7,0\,mm & Extensión exterior desde el chasis \\
  spring\_bar\_diameter & 1,8\,mm & Diámetro para encaje del perno de resorte \\
@@ -1139,9 +1420,9 @@ La \rtabla{tab:openscad_files} resume las piezas mecánicas de la carcasa.
 \end{tabular}
 \end{table}
 
-\subsection{Repositorio y entregables digitales}\label{sec:anexo_repo}
+\subsection{Repositorio}\label{sec:anexo_repo}
 
-El proyecto completo se aloja en GitHub bajo la rama \texttt{main} en la URL: \url{https://github.com/ArticunoFruna/SupaClock_IEE2463}.
+El proyecto completo se aloja en GitHub bajo la rama \texttt{main} en la URL:\\ \url{https://github.com/ArticunoFruna/SupaClock_IEE2463}.
 \begin{itemize}
     \item \texttt{src/}, \texttt{lib/}, \texttt{include/}: código fuente del firmware en ESP-IDF para PlatformIO.
     \item \texttt{app/}: código de la aplicación móvil en Flutter y Dart.
@@ -1152,7 +1433,5 @@ El proyecto completo se aloja en GitHub bajo la rama \texttt{main} en la URL: \u
     \item \texttt{data\_ml/}: base de datos inercial recopilada con 27 sesiones registradas en CSV.
     \item \texttt{docs/Entrega3/}: documentos de informe final, Beamer y assets gráficos.
 \end{itemize}
-
-Los entregables específicos del Informe de Avance 3 (este informe PDF y la presentación complementaria en Beamer) se autocompilan en caliente mediante el \texttt{Makefile} disponible en la raíz del directorio \texttt{docs/}.
 
 \end{document}

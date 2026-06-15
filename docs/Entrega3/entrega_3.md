@@ -235,9 +235,64 @@ Esta sección documenta los bloques implementados o sustancialmente modificados 
 
 ### 4.1.1. Descripción
 
-La migración del firmware del ESP32-C3 SuperMini al XIAO ESP32-S3 fue la primera tarea crítica del periodo. El target cambia tanto en arquitectura (ESP32-S3 dual-core Xtensa LX7 vs. ESP32-C3 single-core RISC-V) como en disponibilidad de memoria (8 MB PSRAM vs. ausencia de PSRAM) y en la cantidad y nomenclatura de los GPIO expuestos. Estas diferencias se reflejaron en cinco frentes simultáneos: `platformio.ini`, `sdkconfig.defaults`, mapa de pines centralizado, configuración de *power management* y *partition table*.
+La migración del firmware del ESP32-C3 SuperMini al XIAO ESP32-S3 fue la primera tarea crítica del periodo. El target cambia tanto en arquitectura (ESP32-S3 dual-core Xtensa LX7 vs. ESP32-C3 single-core RISC-V) como en disponibilidad de memoria (8 MB PSRAM vs. ausencia de PSRAM) y en la cantidad y nomenclatura de los GPIO expuestos. Estas diferencias se reflejaron en frentes simultáneos: `platformio.ini`, `sdkconfig.defaults`, mapa de pines centralizado, configuración de *power management*, *partition table* y orquestación de tareas en procesador dual-core.
 
-### 4.1.2. Decisiones de diseño y cálculos
+### 4.1.2. Orquestación del firmware y arquitectura de archivos
+
+El proyecto está diseñado bajo una arquitectura modular y estructurada en C/C++ sobre ESP-IDF, separando la capa de abstracción de hardware, la lógica de control principal y el refresco visual. A continuación se detalla la estructura física del firmware:
+
+```
+SupaClock/
+|-- include/
+|   `-- supaclock_pinmap.h     (Definición central de GPIOs y constantes de hardware)
+|-- src/
+|   `-- main.c                 (Inicialización y orquestación de colas FreeRTOS)
+|-- lib/
+|   |-- supaclock_app/         (Lógica de negocio y control del ciclo de vida)
+|   |   |-- supaclock_app.h
+|   |   `-- supaclock_app.c
+|   |-- supaclock_ui/          (Pantallas, flujos LVGL y callbacks del display)
+|   |   |-- supaclock_ui.h
+|   |   `-- supaclock_ui.c
+|   |-- step_algorithm/        (Contador de pasos mediante análisis FFT)
+|   |   |-- step_algorithm.h
+|   |   `-- step_algorithm.c
+|   `-- har_cnn1d/             (TinyML, intérprete TFLite Micro e inferencia inercial)
+|       |-- har_cnn1d.h
+|       `-- har_cnn1d.c
+`-- platformio.ini             (Configuración global y declaración de entornos)
+```
+
+### 4.1.3. Asignación de pines y hardware del Seeed XIAO ESP32-S3
+
+Debido a que el módulo Seeed XIAO ESP32-S3 posee un formato compacto con alta densidad de pines en su parte inferior (formato SMD), la disponibilidad de pines accesibles tipo DIP/THT para una placa carrier de 2 capas es limitada. Por este motivo, el equipo optimizó rigurosamente las conexiones de hardware, eliminando el pin de reset físico del display e implementando un reset por software. La siguiente tabla detalla el mapa centralizado definido en `include/supaclock_pinmap.h`:
+
+| GPIO S3 | Función en el Carrier | Interfaz / Protocolo | Configuración Eléctrica | Descripción / Notas |
+|---|---|---|---|---|
+| **GPIO1** | ECG AD8232 OUT | ADC1_CH0 (Analógico) | Entrada analógica (Hi-Z) | Adquisición continua por DMA del ECG |
+| **GPIO2** | ECG AD8232 SDN | GPIO Digital | Salida digital (PD inicial) | Activa/desactiva el front-end AD8232 |
+| **GPIO3** | LCD Backlight PWM | LEDC PWM | Salida digital (LEDC) | Control de brillo por modulación de ancho de pulso |
+| **GPIO4** | LCD D/C (Data/Cmd) | GPIO Digital | Salida digital (High speed) | Selecciona entre comando y dato del display ST7789 |
+| **GPIO5** | I2C SDA (Sensores) | I2C Compartido | Entrada/Salida (PU externo) | Datos I2C para BMI160, MAX30102, MAX30205, MAX17048 |
+| **GPIO6** | I2C SCL (Sensores) | I2C Compartido | Salida digital (PU externo) | Reloj I2C para todos los sensores inerciales y biométricos |
+| **GPIO7** | SPI SCK (Display) | SPI | Salida digital (High speed) | Línea de reloj de alta velocidad para la pantalla |
+| **GPIO9** | SPI MOSI (Display) | SPI | Salida digital (High speed) | Envío de datos gráficos a la pantalla ST7789 |
+| **GPIO44** | SPI CS (Display) | SPI | Salida digital (PU interno) | Línea de selección de periférico de pantalla |
+| **GPIO43** | BTN NEXT | GPIO Digital | Entrada digital (PU interno) | Detecta pulsaciones del botón NEXT |
+| **GPIO8** | BTN SELECT | GPIO Digital | Entrada digital (PU interno) | Detecta pulsaciones del botón SELECT |
+| **NC** | LCD Reset por SW | Ninguno | Reset por software (Header) | No cableado físico; reset por comandos SPI |
+
+### 4.1.4. Decisiones de diseño y distribución de recursos
+
+Para evitar brownouts y maximizar la fluidez visual e ininterrumpida de las comunicaciones del reloj, el equipo adoptó un esquema estricto de distribución de recursos en la CPU dual-core y memoria dinámica:
+1. **Asignación en CPU Dual-Core (FreeRTOS):**
+   - **Core 0 (Comunicaciones e Interfaz):** Ejecuta la tarea de la pila de Bluetooth de baja energía (`NimBLE`) y la tarea cíclica de refresco gráfico de la pantalla (`LVGL Timer Task`). Esto asegura que la comunicación y la respuesta táctil no sufran retardos causados por el cálculo.
+   - **Core 1 (Adquisición e Inferencia):** Ejecuta la tarea de muestreo de la IMU a 100 Hz y la llamada periódica al clasificador de actividad convolucional (`har_task`), así como el cálculo espectral FFT del podómetro y la lectura secuencial de los sensores biométricos.
+2. **Gestión y Abstracción de Memoria (SRAM vs. PSRAM):**
+   - **SRAM Interna (320 KB):** Reservada exclusivamente para buffers de transmisión rápida de DMA, colas FreeRTOS de alta velocidad y el stack de Bluetooth NimBLE, donde la baja latencia de bus es crítica.
+   - **PSRAM Externa (8 MB):** Alocación del buffer doble de renderizado gráfico de LVGL y reserva de la Tensor Arena de 128 KB para los tensores de TensorFlow Lite Micro. Esto previene fallos por falta de memoria (heap exhaustion) y Brownouts provocados por un consumo excesivo de SRAM interna.
+
+### 4.1.5. Decisiones de diseño y cálculos
 
 **Cambio de board y framework.** `platformio.ini` declara como *board* por defecto `seeed_xiao_esp32s3` y mantiene `framework = espidf`. Las directivas `board_upload.flash_size = 8MB`, `board_build.flash_mode = qio` y `board_upload.maximum_size = 8388608` ajustan el bootloader y el límite de tamaño del binario al doble del prototipo C3. El *flag* `-D BOARD_HAS_PSRAM=1` habilita la inicialización temprana del controlador OPI PSRAM, y `-D ARDUINO_USB_CDC_ON_BOOT=1` redirige `printf`/`ESP_LOGI` por el puerto USB en lugar del UART0 (libre por GPIO43/44 destinados a botones y CS del display).
 
@@ -254,7 +309,7 @@ El pinmap también documenta dos restricciones intencionales: (1) **BMI160 INT1 
 
 **Sdkconfig por entorno.** Cada entorno PlatformIO (main_app, test_general, test_har, test_fft_steps, test_imu, etc.) genera y mantiene su propio `sdkconfig.<env>` para permitir activación condicional de NimBLE, LVGL, ADC continuous, FreeRTOS *runtime stats* y consola USB. La regeneración manual de sdkconfig se evita comprometiendo `sdkconfig.defaults` como única fuente de verdad para las opciones compartidas, y deltas por entorno se aplican vía `-D` *build flags*.
 
-### 4.1.3. Resultados
+### 4.1.5. Resultados
 
 - **Compilación limpia para `main_app`** sobre el target esp32s3: 720 KB de binario factory, 158 KB de heap libre estabilizado (sin contar PSRAM), 7 MB de PSRAM disponibles para uso aplicativo.
 - **Consola operativa por USB** sin necesidad de un adaptador FTDI externo. `pio device monitor -b 115200` se conecta sin configuración adicional.
@@ -350,9 +405,37 @@ El modelo clasifica ventanas de 4 s × 6 canales del IMU BMI160 en cuatro estado
 | Dropout | rate=0,3 | 64 | Solo en entrenamiento |
 | Dense (output) | units=4, Softmax | 4 | Probabilidades por clase |
 
+La arquitectura de la red neuronal convolucional 1D (1D CNN) está específicamente diseñada bajo el concepto de **aprendizaje jerárquico de características** en el dominio temporal. En lugar de procesar los datos basándose en umbrales estáticos rígidos, la red aprende a extraer patrones en tres niveles temporales progresivos:
+- **Nivel Bajo (Capa 1):** El primer kernel temporal de tamaño 5 analiza bloques inerciales de 0,1 s (a 50 Hz). Se enfoca en micro-impactos instantáneos, como el contacto inicial del talón del usuario contra el suelo ($\approx$80--120 ms).
+- **Nivel Medio (Capa 2):** Tras el primer MaxPooling, el kernel temporal de tamaño 5 cubre físicamente 0,2 s de movimiento inercial. Es idóneo para agrupar micro-patrones en secuencias cortas de marcha.
+- **Nivel Alto (Capa 3):** Tras el segundo MaxPooling, el kernel temporal de tamaño 3 abarca un intervalo físico de $\approx$0,24 s, combinando las aceleraciones en tres ejes y la velocidad rotacional del braceo para discriminar entre la marcha rítmica y el trote.
+
 El tamaño del modelo final cuantizado a INT8 es de **58 KB** (incluyendo escalas y zeropoints de cuantización), bien por debajo del techo de PSRAM disponible.
 
-### 4.4.4. Decisiones de diseño y cálculos
+### 4.4.4. Cálculos biomecánicos y firmas físicas de actividad
+
+La capa Softmax final evalúa la ventana temporal inercial en tiempo de ejecución clasificándola en 4 categorías excluyentes basándose en firmas biomecánicas específicas:
+- **Reposo (Clase 0 - `HAR_STATE_RESTING`):** Caracterizado por una varianza residual muy baja en todos los ejes del acelerómetro y giroscopio. El acelerómetro registra de forma estable el vector de gravedad de $1g$ ($\approx 9,8 \text{ m/s}^2$), variando únicamente según la postura de la muñeca del usuario.
+- **Caminata (Clase 1 - `HAR_STATE_WALKING`):** Espectro inercial cíclico periódico caracterizado por una cadencia rítmica en la banda de $[1,0 \text{ Hz}, 2,0 \text{ Hz}]$, equivalente a un rango de 1 a 2 pasos por segundo, con intensidades de aceleración netas moderadas.
+- **Trote (Clase 2 - `HAR_STATE_RUNNING`):** Señal espectral repetitiva de alta frecuencia en la banda de $[2,5 \text{ Hz}, 4,5 \text{ Hz}]$, con alta magnitud de impacto vertical en el talón (fácilmente superando $2g$) y giros angulares de braceo amplios.
+- **Caída (Clase 3 - `HAR_STATE_FALL`):** Perfil transitorio no periódico caracterizado por tres fases consecutivas bien definidas dentro de la ventana física de 4,0 s:
+  1. *Fase de ingravidez:* Pérdida rápida de peso que disminuye la magnitud de aceleración neta basal del cuerpo hacia $0g$.
+  2. *Fase de impacto:* Pico transitorio de aceleración multidireccional extrema (superando los $3g$) acompañado por velocidades rotacionales caóticas de la muñeca.
+  3. *Fase de inmovilidad:* Reposo absoluto prolongado en una orientación vectorial de gravedad distinta a la basal.
+
+### 4.4.5. Comparativa de viabilidad en TinyML
+
+La selección de la arquitectura CNN 1D para su ejecución a bordo del target Seeed S3 en lugar de otros enfoques se fundamenta en rigurosos criterios de consumo energético, velocidad y memoria dinámica:
+
+| Criterio de Evaluación | CNN 1D (Propuesto) | MLP (Redes Densas) | RNN / LSTM | Lógica de Reglas |
+|---|---|---|---|---|
+| **Preservación Temporal** | **Alta** (Filtra secuencias inerciales) | **Baja** (Aplanar destruye secuencia) | **Alta** (Memoria interna) | **Media** (Retardos fijos) |
+| **Peso del Modelo (Flash)** | **Pequeño** ($\approx$58 KB) | **Grande** (Millones de pesos) | **Medio** (Gates pesados) | **Despreciable** ($<$1 KB) |
+| **Reserva RAM en ejecución** | **Baja** (128 KB Arena SPIRAM) | **Alta** (Matrices densas grandes) | **Muy Alta** (Cell states en RAM) | **Despreciable** ($<$100 B) |
+| **Aceleración Vectorial** | **Excelente** (SIMD por ESP-NN) | **Media** (Multiplicación estándar) | **Baja** (Difícil de vectorizar) | **No aplica** |
+| **Robustez ante Ruido** | **Alta** (Invariante a desfases) | **Baja** (Sobreajusta al dataset) | **Alta** (Suaviza transitorios) | **Muy Baja** (Falsos disparos) |
+
+### 4.4.6. Decisiones de diseño y cálculos
 
 **Tensor arena en PSRAM.** `lib/har_cnn1d/har_cnn1d.c` aloca 128 KB de arena con `heap_caps_aligned_alloc(16, HAR_ARENA_BYTES, MALLOC_CAP_SPIRAM)`, dejando intacta la SRAM interna para LVGL DMA buffers y NimBLE. El uso real reportado por `har_cnn1d_arena_used()` es de aproximadamente 88 KB, dejando 40 KB de margen para potenciales modelos futuros (LSTM, fusión PPG+IMU).
 
@@ -364,7 +447,7 @@ El tamaño del modelo final cuantizado a INT8 es de **58 KB** (incluyendo escala
 
 **Suspensión voluntaria en SAVER.** `har_cnn1d_pause()` y `har_cnn1d_resume()` permiten que el modo SAVER suspenda la inferencia para ahorrar el costo de la CNN. La detección de caída quedaría delegada a una heurística más barata sobre la magnitud del acelerómetro (no incluida en este avance), pero el API ya está expuesto para soportarla.
 
-### 4.4.5. Entrenamiento
+### 4.4.7. Entrenamiento
 
 **Dataset propio.** 27 sesiones IMU del BMI160 capturadas con el entorno `capture_c3` (ESP32-C3 SuperMini reutilizado como banco de captura por su simplicidad y eficiencia para esta tarea aislada) y la app Flutter en modo desarrollador. Distribución:
 
@@ -377,7 +460,7 @@ El tamaño del modelo final cuantizado a INT8 es de **58 KB** (incluyendo escala
 
 **Curvas de entrenamiento** disponibles en `tools/har_training_history.png` (no se reproduce aquí por extensión; el archivo muestra *training accuracy* convergiendo a 0,97 y *validation accuracy* a 0,93 hacia la época 35).
 
-### 4.4.6. Resultados
+### 4.4.8. Resultados
 
 - **Modelo compilado y embebido:** `har_model.tflite` de 58 KB, exportado como `har_model.c` con la macro `HAR_MODEL_INT8 = 1`.
 - **Tiempo de inferencia medido en bench (XIAO S3 en breadboard):** 8,2 ms promedio sobre 1000 ventanas consecutivas, peak de 14,1 ms (factor de variabilidad menor a 2×, consistente con la ausencia de saltos de cache en PSRAM en operaciones de tamaño fijo).
@@ -550,7 +633,17 @@ El **quality gate** es una mejora introducida en este avance: cada sample TLV in
 - **Firestore (sincronización en la nube):** las escrituras se replican vía `FirestoreService.upsertSession()` en cuanto hay conexión. Reglas de seguridad: `request.auth.uid == userId` en todas las colecciones; las cargas de ECG completas (3000 samples × 2 B = 6 KB cada una) se evitan en Firestore.
 - **Firebase Storage (blobs):** las trazas crudas (IMU+ECG concatenados en CSV gzip) se suben a `users/{uid}/raw/{sessionId}.csv.gz` con `Content-Type: text/csv` y `Content-Encoding: gzip`. La compresión típica es 3:1 sobre TLV (≈ 30 KB raw → 10 KB transferido). Esto saca los datos pesados del path de lectura de Firestore (cuyas lecturas se cobran por documento) y los coloca en Storage (cuyas lecturas son baratas).
 
-### 4.7.6. Resultados
+### 4.7.6. Vistas e interfaces detalladas de la aplicación móvil
+
+Para ilustrar el funcionamiento de los menús y pantallas de la aplicación Flutter, a continuación se presentan las 9 capturas reales de la interfaz de usuario:
+
+| | | |
+|---|---|---|
+| ![Pantalla de inicio de sesión de Firebase](Screenshot_20260601_215805.jpg.jpeg) <br> **Fig 1:** Inicio de sesión Firebase | ![Búsqueda y enlace del reloj por BLE](Screenshot_20260601_215827.jpg.jpeg) <br> **Fig 2:** Enlace BLE del reloj | ![Dashboard biométrico de usuario final](Screenshot_20260601_215834.jpg.jpeg) <br> **Fig 3:** Dashboard de telemetría |
+| ![Visualizador de ECG en tiempo real](Screenshot_20260601_215856.jpg.jpeg) <br> **Fig 4:** Visualizador ECG en vivo | ![Gráficos de tendencias históricas de salud](Screenshot_20260601_215907.jpg.jpeg) <br> **Fig 5:** Tendencias históricas | ![Consola del modo desarrollador](Screenshot_20260601_220001.jpg.jpeg) <br> **Fig 6:** Consola modo desarrollador |
+| ![Perfil y ajustes de la cuenta](Screenshot_20260601_220039.jpg.jpeg) <br> **Fig 7:** Perfil y ajustes | ![Alerta flotante por anomalía QRS](Screenshot_20260601_220043.jpg.jpeg) <br> **Fig 8:** Alerta flotante QRS | ![Registrador CSV de datasets inerciales](Screenshot_20260601_220049.jpg.jpeg) <br> **Fig 9:** Registrador inercial CSV |
+
+### 4.7.7. Resultados
 
 - **Compilación y despliegue:** APK Android funcional (`build/app/outputs/flutter-apk/app-release.apk`, ≈ 28 MB), probado en Samsung Galaxy A52 (Android 13) y Pixel 6a (Android 14).
 - **Conexión BLE estable:** ~30 s de scan + connect + descubrimiento + MTU 247 + suscripción a las 3 chr. de notify. Reconexión automática tras *out-of-range* en < 5 s.
@@ -594,7 +687,15 @@ Las siete pantallas LVGL (Home, Bio, HR-Spot, ECG, Menu, Mode submenu, Settings 
 
 Esto elimina el acoplamiento entre la UI y los detalles de los drivers (la UI ya no conoce las direcciones I²C de los sensores ni los handles de NimBLE), facilita el testing aislado de la UI con un mock de `ui_actions_t`, y permite que el módulo `supaclock_ui` evolucione independientemente del *backend* sensor-driven.
 
-### 4.8.6. Resultados
+### 4.8.6. Evolución de la interfaz física de pantalla (Layout Basal)
+
+Para ilustrar el esquema de navegación por botones NEXT y SELECT en el dispositivo físico, la siguiente fila presenta los esquemas de visualización en el display (layouts basales definidos en el Avance 2):
+
+| ![Pantalla Home](../Entrega2/supaclock_home.png) | ![Pantalla Bio](../Entrega2/supaclock_bio.png) | ![Pantalla HR](../Entrega2/supaclock_hr.png) | ![Pantalla ECG](../Entrega2/supaclock_ecg.png) | ![Pantalla Menu](../Entrega2/supaclock_menu.png) |
+|---|---|---|---|---|
+| **Fig A:** Pantalla Home | **Fig B:** Pantalla Bio | **Fig C:** Pantalla HR | **Fig D:** Pantalla ECG | **Fig E:** Pantalla Menu |
+
+### 4.8.7. Resultados
 
 - **Tiempo de transición entre pantallas:** < 50 ms (sin tearing, sin flicker, percepción de UI fluida).
 - **Frame rate sostenido:** 30 FPS durante navegación, 10 FPS cuando el backlight está apagado (auto-off), validado mediante el contador interno de LVGL.
@@ -676,8 +777,8 @@ Tras el ensamble y la integración física de los componentes, se realizó una c
 
 Con la carcasa V2 cerrada y ensamblada, se realizarán los siguientes ensayos:
 - **Cerramiento mecánico:** armar/desarmar 5 veces y verificar que el PCB no tenga juego, los botones tengan buen retorno mecánico y las ventanas de sensores ópticos y de temperatura mantengan el contacto correcto.
-- **Aislación eléctrica de los electrodos ECG:** comprobar con megóhmetro una impedancia > 10 MΩ entre electrodos que contactan la piel y los rieles internos.
-- **HR/SpO₂ óptico cerrado:** validar una pérdida menor al 2 % de atenuación frente a un oxímetro Beurer PO 30 comercial de referencia.
+- **Aislación eléctrica de los electrodos ECG:** comprobar con multímetro una impedancia > 10 MΩ entre electrodos que contactan la piel y los rieles internos.
+- **HR/SpO₂ óptico cerrado:** validar una pérdida menor al 2 % de atenuación frente a un oxímetro comercial de referencia homologado.
 - **Ensayo de caída:** verificar resistencia estructural de la carcasa en 3 caídas a 1 metro sobre alfombra acolchada.
 - **Autonomía empírica:** monitorear la curva de descarga real de la batería mediante el medidor MAX17048 en régimen de streaming BLE sostenido hasta el apagado por protección UVP.
 
@@ -688,16 +789,14 @@ Se planifica un ensayo de usabilidad en condiciones reales portando la unidad ce
 - Desviación de pasos registrados por el algoritmo FFT frente a conteo manual en caminatas de 500 pasos.
 - Coherencia de clasificaciones offline de la CNN 1D en ventanas dinámicas.
 - Registro de índice de confortabilidad e irritación epidérmica (escala semántica 1-5).
-- Validación cruzada de HRV y peaks R en sesiones estáticas frente a un monitor comercial Beurer ME 36.
+- Validación cruzada de HRV y peaks R en sesiones estáticas frente a un monitor comercial de referencia homologado.
 
 ## 6.4. Tareas pendientes para el avance 90 %
 
 1. Recolección física de datos de impacto real de la clase *Fall* (5-10 caídas en colchoneta controladas por integrantes del equipo) y re-entrenamiento del clasificador CNN 1D.
 2. Integración de la señal de frecuencia cardíaca como canal de entrada secundario en el HAR ML.
-3. Despliegue de la app Flutter en TestFlight/Play Internal Track para pruebas en un grupo cerrado.
-4. Elaboración del manual de armado y ensamble del SupaClock wearable.
-5. Diseño y ruteado de la PCB SMD Pro de 4 capas para manufactura comercial opcional destacada en JLCPCB.
-6. Implementación paralela de un modelo liviano de Machine Learning para la detección del gesto de levantamiento de muñeca (*wrist-up gesture*), permitiendo el encendido automático de la pantalla y disminuyendo la interacción manual de botones.
+3. Bring-up final y pruebas en la unidad cerrada que integra el sándwich de dos placas de dos capas diseñadas por el equipo y fresadas en el laboratorio (LPKF).
+4. Implementación paralela de un modelo liviano de Machine Learning para la detección del gesto de levantamiento de muñeca (*wrist-up gesture*), permitiendo el encendido automático de la pantalla y disminuyendo la interacción manual de botones.
 
 # 7. Referencias
 

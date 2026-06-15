@@ -3,7 +3,7 @@
 // Aplica mejoras esteticas al envelope exterior de V1:
 //   (1) Esquinas verticales redondeadas r=12mm
 //   (2) Chamfer superior de 1.5mm
-//   (4) Lugs traseros para correa de 22mm + spring bar
+//   (4) Lugs traseros para correa de 20mm (Galaxy Watch 4/5/6) + spring bar
 //   (5) Taper de 2mm full case (top mas angosto que bottom)
 //
 // PCB-local coordinates UNCHANGED desde V1.
@@ -79,6 +79,13 @@ lug_anchor_depth = 5.0;   // cuanto se mete el lug dentro del case. Generoso
 lug_z_bot      = 0.0;     // arranca en la base del top case (abs Z=4=seam)
 lug_z_top      = 15.0;    // en frame top-case-local (abs Z=19)
 spring_bar_d   = 1.8;     // agujero pasante para spring bar standard 1.5mm + holgura
+// Posicion vertical del spring bar dentro del lug: queremos el bar lo mas
+// abajo posible para que la correa cubra el lateral completo del watch y no
+// quede pinzada contra el cuerpo. Limite inferior = spring_bar_d/2 + pared
+// minima de impresion 3D (~1.6 mm). 2.5 mm desde lug_z_bot deja ~1.6 mm de
+// piso solido bajo el agujero (abs Z=6.5, vs centro vertical del watch en
+// Z=12.5, dejando ~10 mm de carcasa a partir de la cual sale la correa).
+spring_bar_z_offset = 2.5;
 
 // Cutter generoso para agujeros en paredes laterales. Como la pared exterior
 // es curva/taperada, el grosor real (cavity_edge -> outer_face) varia con Z
@@ -86,7 +93,7 @@ spring_bar_d   = 1.8;     // agujero pasante para spring bar standard 1.5mm + ho
 // cruza la pared completa sin importar la curvatura.
 wall_cutter_depth = r_vert + 4;
 
-lug_center_sep = lug_strap_w + lug_thickness;   // = 27mm center-to-center
+lug_center_sep = lug_strap_w + lug_thickness;   // = 25 mm center-to-center
 
 // ---------------------- MOUNTING HOLES (PCB-local) ---------------------------
 mh_positions = [
@@ -182,10 +189,12 @@ module lug_one(x_center, y_case_edge, dir) {
             translate([x_center, y_outer_ctr, lug_z_bot])
                 cylinder(h = h, d = lug_thickness);
         }
-        // Agujero del spring bar (a lo largo de X, atraviesa el lug)
+        // Agujero del spring bar (a lo largo de X, atraviesa el lug).
+        // Z = lug_z_bot + spring_bar_z_offset: bar al borde inferior del lug
+        // para liberar el recorrido completo de la correa.
         translate([x_center - lug_thickness / 2 - eps,
                    y_outer_ctr,
-                   lug_z_bot + h / 2])
+                   lug_z_bot + spring_bar_z_offset])
             rotate([0, 90, 0])
                 cylinder(h = lug_thickness + 2 * eps, d = spring_bar_d);
     }
