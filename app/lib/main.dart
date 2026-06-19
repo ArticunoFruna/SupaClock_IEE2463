@@ -17,6 +17,7 @@ import 'services/daily_rollup_service.dart';
 import 'services/firestore_service.dart';
 import 'services/local_store.dart';
 import 'services/notifications_service.dart';
+import 'services/sync_service.dart';
 import 'services/telemetry_collector.dart';
 
 void main() async {
@@ -50,6 +51,7 @@ class _SupaClockAppState extends State<SupaClockApp> with WidgetsBindingObserver
   final _fs = FirestoreService();
   final _notif = NotificationsService();
   late final DailyRollupService _rollup;
+  late final SyncService _sync;
 
   TelemetryCollector? _collector;
   StreamSubscription<UserModel>? _userSub;
@@ -61,6 +63,7 @@ class _SupaClockAppState extends State<SupaClockApp> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _rollup = DailyRollupService(_fs);
+    _sync = SyncService(_fs);
     _notif.init();
     // Wire up telemetry once first frame is rendered (need providers in tree).
     WidgetsBinding.instance.addPostFrameCallback((_) => _wireUp());
@@ -85,7 +88,14 @@ class _SupaClockAppState extends State<SupaClockApp> with WidgetsBindingObserver
 
   Future<void> _runRollup(String uid) async {
     try {
+      // 1. Close out any finished days (writes dailyStats, clears Hive).
       await _rollup.runRollupIfNeeded(uid);
+      // 2. Persist a snapshot of the day in progress so "Hoy" has cloud data
+      //    even before midnight.
+      await _rollup.flushTodaySnapshot(uid);
+      // 3. Drain any writes that were stranded offline (alerts / rollups).
+      await _sync.drain(uid);
+
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       if (!mounted) return;
       // ignore: use_build_context_synchronously

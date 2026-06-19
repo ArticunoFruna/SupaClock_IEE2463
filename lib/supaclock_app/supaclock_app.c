@@ -188,53 +188,120 @@ void ecg_task(void *pvParameter) {
     }
 }
 
-/* ─────────────── IMU task: lee + step_algo + jerk + envío directo BLE ─────────────── */
+/* ─────────────── IMU task: drena FIFO @50Hz + step_algo + jerk + BLE ─────────────── */
 void imu_task(void *pvParameter) {
-    int16_t imu_raw[6] = {0};
     step_algo_state_t sw_pedometer;
     step_algo_init(&sw_pedometer);
 
     int16_t prev_ax = 0, prev_ay = 0, prev_az = 0;
+    /* Timestamp uniforme por muestra (50 Hz). El BMI160 muestrea el FIFO a ODR
+     * constante, así que asignamos t0 + i*20 ms en vez de now_ms() por muestra:
+     * esto garantiza espaciado uniforme para la FFT del pedómetro. */
+    uint32_t sample_ts = now_ms();
+
+    bmi160_fifo_frame_t frames[32];
 
     TickType_t xLastWakeTime = xTaskGetTickCount();
     while (1) {
         const power_profile_t *p = power_get_profile();
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(p->imu_poll_ms));
 
-        esp_err_t err = bmi160_read_accel_gyro(&imu_raw[0], &imu_raw[1], &imu_raw[2],
-                                                &imu_raw[3], &imu_raw[4], &imu_raw[5]);
-        if (err == ESP_OK) {
-            uint32_t now = now_ms();
+        size_t n = 0;
+        esp_err_t err = bmi160_read_fifo(frames, 32, &n);
 
-            /* Cálculo de jerk simple: |Δa| escalado a 0..255 */
-            int32_t dx = imu_raw[0] - prev_ax;
-            int32_t dy = imu_raw[1] - prev_ay;
-            int32_t dz = imu_raw[2] - prev_az;
-            int32_t mag2 = dx*dx + dy*dy + dz*dz;
-            /* Umbral: ±2g ≈ 16384 LSB. Δa de 4000 = movimiento moderado.
-             * mag2 ~ 16e6 → jerk_score ~ 80 (justo el threshold). */
-            uint32_t jerk = mag2 / 200000;
-            if (jerk > 255) jerk = 255;
-            max30102_set_motion_level((uint8_t)jerk);
-            prev_ax = imu_raw[0]; prev_ay = imu_raw[1]; prev_az = imu_raw[2];
+        /* DEBUG: contar frames/seg reales y polls/seg para medir el feed. */
+        static uint32_t s_fps = 0, s_polls = 0;
+        s_polls++;
+        s_fps += n;
 
-            bool is_sport = (power_get_mode() == POWER_MODE_SPORT);
-            uint32_t new_steps = step_algo_update(&sw_pedometer,
-                imu_raw[0], imu_raw[1], imu_raw[2],
-                imu_raw[3], imu_raw[4], imu_raw[5], now, is_sport);
+        if (err != ESP_OK || n == 0) {
+            /* Aún así emitir el log si toca, para ver polls aunque n=0 */
+            static uint32_t s_dbg0 = 0;
+            uint32_t d0 = now_ms();
+            if (d0 - s_dbg0 >= 1000) {
+                s_dbg0 = d0;
+                ESP_LOGW(TAG, "PED feed: polls/s=%lu frames/s=%lu (n=0 ahora) idx=%u",
+                         (unsigned long)s_polls, (unsigned long)s_fps,
+                         sw_pedometer.sample_index);
+                s_polls = 0; s_fps = 0;
+            }
+            continue;
+        }
 
-            /* Envío IMU directo (no agregado): SPORT 50Hz, NORMAL 25Hz, SAVER 12.5Hz */
+        uint32_t new_steps_total = 0;
+        int16_t last[6] = {0};
+
+        for (size_t i = 0; i < n; i++) {
+            bmi160_fifo_frame_t *f = &frames[i];
+            new_steps_total += step_algo_update(&sw_pedometer,
+                f->ax, f->ay, f->az, f->gx, f->gy, f->gz, sample_ts);
+            sample_ts += 20;  /* 50 Hz uniforme */
+
+            /* Envío IMU directo (preserva el stream a 50 Hz) */
             if (app_state_imu_tx_enabled()) {
-                ble_telemetry_send_imu(imu_raw, sizeof(imu_raw));
+                int16_t raw[6] = { f->ax, f->ay, f->az, f->gx, f->gy, f->gz };
+                ble_telemetry_send_imu(raw, sizeof(raw));
             }
+            last[0]=f->ax; last[1]=f->ay; last[2]=f->az;
+            last[3]=f->gx; last[4]=f->gy; last[5]=f->gz;
+        }
 
-            shared_sensor_data_t *sd = app_state_lock(10);
-            if (sd) {
-                sd->ax = imu_raw[0]; sd->ay = imu_raw[1]; sd->az = imu_raw[2];
-                sd->gx = imu_raw[3]; sd->gy = imu_raw[4]; sd->gz = imu_raw[5];
-                sd->steps_sw += new_steps;
-                app_state_unlock();
-            }
+        /* Jerk con la última muestra del burst (gating del HRM): |Δa| → 0..255 */
+        int32_t dx = last[0] - prev_ax;
+        int32_t dy = last[1] - prev_ay;
+        int32_t dz = last[2] - prev_az;
+        int32_t mag2 = dx*dx + dy*dy + dz*dz;
+        uint32_t jerk = mag2 / 200000;
+        if (jerk > 255) jerk = 255;
+        max30102_set_motion_level((uint8_t)jerk);
+        prev_ax = last[0]; prev_ay = last[1]; prev_az = last[2];
+
+        uint32_t steps_now = 0;
+        shared_sensor_data_t *sd = app_state_lock(10);
+        if (sd) {
+            sd->ax = last[0]; sd->ay = last[1]; sd->az = last[2];
+            sd->gx = last[3]; sd->gy = last[4]; sd->gz = last[5];
+            sd->steps_sw += new_steps_total;
+            steps_now = sd->steps_sw;
+            app_state_unlock();
+        }
+
+        /* DEBUG pedómetro: 1/seg por USB y por BLE (TLV 0x10 → app). Quitar tras calibrar. */
+        static uint32_t s_dbg_last = 0;
+        uint32_t dbg = now_ms();
+        if (dbg - s_dbg_last >= 1000) {
+            s_dbg_last = dbg;
+            bool gate_active = (sample_ts < sw_pedometer.walk_gate_expiry_ms);
+            float amp = sw_pedometer.peak_env - sw_pedometer.valley_env;
+
+            ESP_LOGI(TAG, "PED fps=%lu idx=%u ffts=%u pkHz=%.2f amp=%.0f prom=%.1f ratio=%.2f gate=%d cad=%.2f cons=%u prov=%u steps=%lu",
+                     (unsigned long)s_fps, sw_pedometer.sample_index,
+                     sw_pedometer.dbg_fft_runs, (double)sw_pedometer.dbg_peak_hz,
+                     (double)amp, (double)sw_pedometer.dbg_prominence,
+                     (double)sw_pedometer.dbg_ratio, gate_active,
+                     (double)sw_pedometer.cadence_hz, sw_pedometer.consecutive_steps,
+                     sw_pedometer.provisional_steps, (unsigned long)steps_now);
+            s_polls = 0; s_fps = 0;
+
+            /* Empaquetar para la app (BLE_TLV_TYPE_PED_DBG, little-endian) */
+            uint8_t rec[13];
+            uint16_t amp_u16  = amp > 65535.0f ? 65535 : (uint16_t)amp;
+            float promx = sw_pedometer.dbg_prominence * 10.0f;
+            uint16_t prom_u16 = promx > 65535.0f ? 65535 : (uint16_t)promx;
+            uint8_t ratio_u8 = (uint8_t)(sw_pedometer.dbg_ratio * 100.0f);
+            float pkx = sw_pedometer.dbg_peak_hz * 10.0f;
+            uint8_t pkhz_u8 = pkx > 255.0f ? 255 : (uint8_t)pkx;
+            float cadx = sw_pedometer.cadence_hz * 10.0f;
+            uint8_t cad_u8 = cadx > 255.0f ? 255 : (uint8_t)cadx;
+            memcpy(&rec[0], &amp_u16, 2);
+            memcpy(&rec[2], &prom_u16, 2);
+            rec[4] = ratio_u8;
+            rec[5] = pkhz_u8;
+            rec[6] = cad_u8;
+            rec[7] = gate_active ? 1 : 0;
+            rec[8] = sw_pedometer.consecutive_steps;
+            memcpy(&rec[9], &steps_now, 4);
+            ble_tx_push(BLE_TLV_TYPE_PED_DBG, rec, sizeof(rec), 0xFF);
         }
     }
 }
@@ -554,8 +621,10 @@ void supaclock_app_run(void) {
 
     if (max17048_init() != ESP_OK) ESP_LOGW(TAG, "MAX17048 ausente");
 
-    /* BMI160: NO habilitar step counter HW (no irá en producción) */
+    /* BMI160: NO usar el step counter HW (prohibido por requisito de proyecto).
+     * ODR 50 Hz + FIFO para muestreo uniforme del pedómetro FFT+tiempo. */
     if (bmi160_init() != ESP_OK) ESP_LOGE(TAG, "BMI160 init falló");
+    else if (bmi160_fifo_enable() != ESP_OK) ESP_LOGE(TAG, "BMI160 FIFO falló");
 
     if (max30205_init() != ESP_OK) ESP_LOGW(TAG, "MAX30205 ausente");
     if (max30102_init_hrm() != ESP_OK) ESP_LOGW(TAG, "MAX30102 ausente");
@@ -583,7 +652,7 @@ void supaclock_app_run(void) {
 
     /* Tasks */
     xTaskCreate(gui_task,    "gui_task",    4096, NULL, 5, NULL);
-    xTaskCreate(imu_task,    "imu_task",    5120, NULL, 6, NULL);
+    xTaskCreate(imu_task,    "imu_task",    6144, NULL, 6, NULL);  /* +1KB: FFT del pedómetro usa ~1.8 KB en stack */
     xTaskCreate(hrm_task,    "hrm_task",    4096, NULL, 5, NULL);
     xTaskCreate(system_task, "system_task", 4096, NULL, 3, NULL);
     xTaskCreate(ble_tx_task, "ble_tx_task", 4096, NULL, 4, NULL);  /* +1024: el HWM medido era 960 B */

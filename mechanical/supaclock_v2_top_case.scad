@@ -58,10 +58,13 @@ btn_z_above_pcb = 1.9;
 usb_pos_y       = 48.0;
 usb_width_y     = 10.0;
 usb_height_z    = 4.0;
-usb_z_above_pcb = 13.0;
+usb_z_above_pcb = 14.0;   // +1 mm (subido respecto a v2 original = 13.0)
 
 // ---------------------- JACK 3.5 mm ------------------------------------------
-jack_x         = 13.525;
+// jack_y_pcb = coordenada Y PCB-local. Centro de la pared izquierda en abs Y =
+// outer_y/2 = 39.5; PCB-local equivalente = 33.5. Lo centramos parcialmente
+// moviendolo +2 mm respecto a la posicion original (16.586 -> 18.586).
+jack_y_pcb     = 18.586;
 jack_d         = 6.5;
 jack_z_above_pcb = 12.6;
 
@@ -233,7 +236,7 @@ difference() {
 
     // Jack 3.5 mm (pared izquierda). Cutter inicia FUERA del case (x = -4) y entra
     // hacia la derecha, cubriendo toda la pared curva.
-    translate([-4, 16.586 + pcb_off_y, jack_z])
+    translate([-4, jack_y_pcb + pcb_off_y, jack_z])
         rotate([0, 90, 0])
             cylinder(h = wall_cutter_depth, d = jack_d);
 

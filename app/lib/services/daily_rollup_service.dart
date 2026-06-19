@@ -47,7 +47,7 @@ class DailyRollupService {
       await _fs.upsertDailyStats(uid, stats);
       await LocalStore.clearDay(dateKey);
     } catch (e) {
-      await LocalStore.enqueue('dailyStats:$dateKey', stats.toFirestore());
+      await LocalStore.enqueue('dailyStats', stats.toJson());
       debugPrint('rollup queued offline: $e');
     }
   }
@@ -108,8 +108,33 @@ class DailyRollupService {
       spo2: spo2Stats,
       temp: tempStats,
       hrZones: hrZones,
+      hourly: _hourly(day),
       computedAt: DateTime.now(),
     );
+  }
+
+  /// Average each per-hour accumulator bucket into a sparse list of
+  /// [HourPoint]s (empty hours are dropped to keep the doc small).
+  List<HourPoint> _hourly(Map<String, dynamic> day) {
+    final raw = (day['hourly'] as List?) ?? const [];
+    final out = <HourPoint>[];
+    for (var h = 0; h < raw.length && h < 24; h++) {
+      final b = Map<String, dynamic>.from(raw[h] as Map);
+      final hrCount = (b['hrCount'] as int?) ?? 0;
+      final spo2Count = (b['spo2Count'] as int?) ?? 0;
+      final tempCount = (b['tempCount'] as int?) ?? 0;
+      final steps = (b['steps'] as int?) ?? 0;
+
+      final point = HourPoint(
+        hour: h,
+        hr: hrCount > 0 ? (b['hrSum'] as num) / hrCount : null,
+        spo2: spo2Count > 0 ? (b['spo2Sum'] as num) / spo2Count : null,
+        temp: tempCount > 0 ? (b['tempSum'] as num) / tempCount : null,
+        steps: steps,
+      );
+      if (!point.isEmpty) out.add(point);
+    }
+    return out;
   }
 
   /// Resting HR estimate: take the bottom 5 % of the day's samples (excluding

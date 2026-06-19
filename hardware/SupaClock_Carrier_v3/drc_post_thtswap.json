@@ -1,0 +1,653 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-05-15T18:08:25",
+    "ignored_checks": [
+        {
+            "description": "Clearance violation",
+            "key": "clearance"
+        },
+        {
+            "description": "Track angle",
+            "key": "track_angle"
+        },
+        {
+            "description": "Track segment length",
+            "key": "track_segment_length"
+        },
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "key": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "key": "silk_over_copper"
+        },
+        {
+            "description": "Non-Mirrored text on back layer",
+            "key": "nonmirrored_text_on_back_layer"
+        },
+        {
+            "description": "PTH inside courtyard",
+            "key": "pth_inside_courtyard"
+        },
+        {
+            "description": "NPTH inside courtyard",
+            "key": "npth_inside_courtyard"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.3",
+    "schematic_parity": [],
+    "source": "SupaClock_Carrier.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [/BTN_NEXT] on F.Cu, length 3.5332 mm",
+                    "pos": {
+                        "x": 140.4633,
+                        "y": 59.065
+                    },
+                    "uuid": "340fef0e-5c2c-4a0d-8999-d0c722b88f20"
+                },
+                {
+                    "description": "Track [/BTN_NEXT] on F.Cu, length 0.8350 mm",
+                    "pos": {
+                        "x": 128.88,
+                        "y": 34.88
+                    },
+                    "uuid": "cf811f2c-2c79-44cf-b634-ddb59ef31b9a"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": [
+        {
+            "description": "Thermal relief connection to zone incomplete (layer F.Cu; 2 spokes connected to isolated island)",
+            "items": [
+                {
+                    "description": "Zone [/GND] on F.Cu, priority 1",
+                    "pos": {
+                        "x": 61.5,
+                        "y": 23.5
+                    },
+                    "uuid": "ee12e519-ab40-4159-8e14-2ade60a4dd55"
+                },
+                {
+                    "description": "PTH pad 2 [/GND] of C6",
+                    "pos": {
+                        "x": 110.5,
+                        "y": 47.0
+                    },
+                    "uuid": "dd9bf91e-d6df-4be9-a722-06b7da52de99"
+                }
+            ],
+            "severity": "error",
+            "type": "starved_thermal"
+        },
+        {
+            "description": "Thermal relief connection to zone incomplete (layer B.Cu; 2 spokes connected to isolated island)",
+            "items": [
+                {
+                    "description": "Zone [/GND] on B.Cu, priority 0",
+                    "pos": {
+                        "x": 61.5,
+                        "y": 23.5
+                    },
+                    "uuid": "b36177c1-18b8-42ea-ae46-9ac28368a646"
+                },
+                {
+                    "description": "PTH pad 3 [/GND] of J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 75.02
+                    },
+                    "uuid": "ae8e6629-4aff-4677-8e61-631c03f58e7c"
+                }
+            ],
+            "severity": "error",
+            "type": "starved_thermal"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/SPI_RES] of C6",
+                    "pos": {
+                        "x": 105.5,
+                        "y": 47.0
+                    },
+                    "uuid": "ce123b1d-f6ab-43c6-be55-34fd4760c9af"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/GND] of C6",
+                    "pos": {
+                        "x": 110.5,
+                        "y": 47.0
+                    },
+                    "uuid": "dd9bf91e-d6df-4be9-a722-06b7da52de99"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+3V3] of R5",
+                    "pos": {
+                        "x": 112.81,
+                        "y": 42.0
+                    },
+                    "uuid": "0c949049-e8da-4168-9cf7-3ea4fdbdaa28"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/SPI_RES] of R5",
+                    "pos": {
+                        "x": 105.19,
+                        "y": 42.0
+                    },
+                    "uuid": "186b99f6-fdc5-4262-a7b3-b23cc8d5c632"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+BATT] of C2",
+                    "pos": {
+                        "x": 123.5,
+                        "y": 29.5
+                    },
+                    "uuid": "78632db3-7e36-4766-83d7-c125b05dbf82"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/GND] of C2",
+                    "pos": {
+                        "x": 123.5,
+                        "y": 27.0
+                    },
+                    "uuid": "c7a00d92-3338-4a6a-8155-518a80ea00e2"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [/+3V3] of C3",
+                    "pos": {
+                        "x": 137.5,
+                        "y": 55.5
+                    },
+                    "uuid": "36d345ee-4fe0-45f0-9411-1f530bbff252"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 2 [/GND] of C3",
+                    "pos": {
+                        "x": 137.5,
+                        "y": 60.5
+                    },
+                    "uuid": "db739249-69b1-4e05-a268-f0fd9837c0d9"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Hole size out of range (board setup constraints min hole 1.0000 mm; actual 0.8000 mm)",
+            "items": [
+                {
+                    "description": "Via [/SPI_SCK] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 127.3602,
+                        "y": 45.3695
+                    },
+                    "uuid": "81bfbb9f-4067-4942-9fe8-8fb86fafa70a"
+                }
+            ],
+            "severity": "error",
+            "type": "drill_out_of_range"
+        },
+        {
+            "description": "Text thickness out of range (board setup constraints silk text thickness min thickness 0.1500 mm; actual 0.1016 mm)",
+            "items": [
+                {
+                    "description": "Reference field of U1",
+                    "pos": {
+                        "x": 136.525,
+                        "y": 32.15
+                    },
+                    "uuid": "d56bd9bd-7c11-48f7-b3fe-45751b2e12d8"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_thickness"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.6350 mm)",
+            "items": [
+                {
+                    "description": "Reference field of U1",
+                    "pos": {
+                        "x": 136.525,
+                        "y": 32.15
+                    },
+                    "uuid": "d56bd9bd-7c11-48f7-b3fe-45751b2e12d8"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x06_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J11",
+                    "pos": {
+                        "x": 89.025,
+                        "y": 73.025
+                    },
+                    "uuid": "0fa01ee3-81ee-47d8-bf7f-dc69e4cf2b9d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x03_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J13",
+                    "pos": {
+                        "x": 75.025,
+                        "y": 83.025
+                    },
+                    "uuid": "216351ab-bf02-4918-8cd6-5321f3db4299"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x07_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J5",
+                    "pos": {
+                        "x": 125.475,
+                        "y": 80.1
+                    },
+                    "uuid": "4923f9de-a40a-45be-b1f8-bb33a582e355"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x03_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J6a1",
+                    "pos": {
+                        "x": 78.525,
+                        "y": 44.25
+                    },
+                    "uuid": "62e4de97-4954-407a-996a-3c40a91b6a69"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x03_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J6b1",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 36.225
+                    },
+                    "uuid": "74df9561-ed32-44d0-bbc4-f01eff59b15e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x08_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J7",
+                    "pos": {
+                        "x": 115.28,
+                        "y": 37.0
+                    },
+                    "uuid": "8f1c1e5e-37aa-40f5-bcc2-d6fc58395ccd"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x02_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 43.25
+                    },
+                    "uuid": "9d9ee023-a784-42be-a3a6-ed36339f6d6c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'XIAO-ESP32-S3-DIP' does not match copy in library 'Seeed_Studio_XIAO_Footprints'",
+            "items": [
+                {
+                    "description": "Footprint U1",
+                    "pos": {
+                        "x": 136.5,
+                        "y": 42.5
+                    },
+                    "uuid": "e550302f-64dd-491a-9259-d6755869d9f8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'PinSocket_1x02_P2.54mm_Vertical' does not match copy in library 'Connector_PinSocket_2.54mm'",
+            "items": [
+                {
+                    "description": "Footprint J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "f762a1ef-4a17-4fd2-8301-dc0f8a9906b3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'MAX30102_Castellated_1x4' does not match copy in library 'SupaClock_Custom'",
+            "items": [
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 99.5,
+                        "y": 57.42
+                    },
+                    "uuid": "16b0a17b-2da1-4feb-ad89-8ca4e1400f5c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'MAX30205_8pad_Flush' does not match copy in library 'SupaClock_Custom'",
+            "items": [
+                {
+                    "description": "Footprint J4",
+                    "pos": {
+                        "x": 106.5,
+                        "y": 73.5
+                    },
+                    "uuid": "3b99a9d5-bb1b-4060-9745-b85cc5551204"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Footprint 'MAX30102_Castellated_1x4' does not match copy in library 'SupaClock_Custom'",
+            "items": [
+                {
+                    "description": "Footprint J14",
+                    "pos": {
+                        "x": 114.5,
+                        "y": 57.19
+                    },
+                    "uuid": "e5239fc8-5a65-4d72-8d67-ea0df9daf43b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Arc of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 145.136,
+                        "y": 35.515
+                    },
+                    "uuid": "3631d905-0a7e-4374-ad67-58acee5ce1fd"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Arc of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 145.136,
+                        "y": 49.485
+                    },
+                    "uuid": "38d8a692-8453-4298-be80-7fa1948e7060"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge (board setup constraints silk clearance 0.1500 mm; actual 0.1460 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 146.5,
+                        "y": 23.5
+                    },
+                    "uuid": "10000000-0000-0000-0000-000000000001"
+                },
+                {
+                    "description": "Circle of U1 on F.Silkscreen",
+                    "pos": {
+                        "x": 146.9,
+                        "y": 33.596
+                    },
+                    "uuid": "230fabf2-b504-47f7-ad7d-d2351f882806"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint J6a1",
+                    "pos": {
+                        "x": 78.525,
+                        "y": 44.25
+                    },
+                    "uuid": "62e4de97-4954-407a-996a-3c40a91b6a69"
+                },
+                {
+                    "description": "Footprint J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "f762a1ef-4a17-4fd2-8301-dc0f8a9906b3"
+                }
+            ],
+            "severity": "warning",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint J6b1",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 36.225
+                    },
+                    "uuid": "74df9561-ed32-44d0-bbc4-f01eff59b15e"
+                },
+                {
+                    "description": "Footprint J6c1",
+                    "pos": {
+                        "x": 76.525,
+                        "y": 39.25
+                    },
+                    "uuid": "f762a1ef-4a17-4fd2-8301-dc0f8a9906b3"
+                }
+            ],
+            "severity": "warning",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint J15",
+                    "pos": {
+                        "x": 129.975,
+                        "y": 43.25
+                    },
+                    "uuid": "9d9ee023-a784-42be-a3a6-ed36339f6d6c"
+                },
+                {
+                    "description": "Footprint U1",
+                    "pos": {
+                        "x": 136.5,
+                        "y": 42.5
+                    },
+                    "uuid": "e550302f-64dd-491a-9259-d6755869d9f8"
+                }
+            ],
+            "severity": "warning",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [/I2C_SCL] on B.Cu, length 0.0198 mm",
+                    "pos": {
+                        "x": 115.086,
+                        "y": 59.786
+                    },
+                    "uuid": "46249742-4f79-45da-a546-707a22a0b797"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [/I2C_SCL] on B.Cu, length 0.0707 mm",
+                    "pos": {
+                        "x": 115.1,
+                        "y": 59.8
+                    },
+                    "uuid": "d6753d8b-7950-4d68-ba73-57a86d87fd34"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        }
+    ]
+}

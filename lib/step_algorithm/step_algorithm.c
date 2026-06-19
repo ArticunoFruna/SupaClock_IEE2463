@@ -8,156 +8,237 @@
 #define VALID_STEPS_THRESHOLD 4
 
 // ==============================================================================
-//                    IMPLEMENTACIÓN PARA ESP32-S3 (FFT / FPU)
+//          IMPLEMENTACIÓN PARA ESP32-S3 (Híbrido FFT + dominio del tiempo)
 // ==============================================================================
+//
+// Muestreo fijo a 50 Hz uniforme (BMI160 ODR 50 Hz + FIFO). El conteo NO se hace
+// por la FFT (eso cuantiza el conteo al índice del bin); la FFT solo DETECTA
+// caminata y estima la cadencia. Los pasos se cuentan por peak-detection en el
+// dominio del tiempo sobre la señal pasa-banda, con umbral adaptativo, periodo
+// refractario y validación por racha con commit retroactivo.
+//
 #if defined(CONFIG_IDF_TARGET_ESP32S3)
 
 #include "esp_dsp.h"
+#include "esp_log.h"
+static const char *STEP_TAG = "STEP_FFT";
 
-#define FFT_WINDOW_SIZE 128
+#define FFT_WINDOW_SIZE   128
+#define FFT_HOP           64          // 50% de solapamiento entre ventanas FFT
+#define FS_HZ             50.0f
+#define WIN_DURATION_S    (FFT_WINDOW_SIZE / FS_HZ)   // 2.56 s
+
+// --- Cadena pasa-banda 0.5–5 Hz (IIR 1er orden cada etapa, a 50 Hz) ---
+#define HP_ALPHA          0.94f       // pasa-altos ≈ 0.5 Hz (quita gravedad/DC)
+#define LP_ALPHA          0.40f       // pasa-bajos ≈ 5 Hz   (quita jitter)
+
+// --- Envolvente adaptativa y detector temporal ---
+#define ENV_DECAY         0.04f       // velocidad de adaptación del umbral
+#define AMP_MIN           600.0f      // amplitud pico-valle mínima (LSB ≈ 0.04 g)
+#define HYST_FRAC         0.15f       // histéresis = 15% de la amplitud
+
+// --- Gate espectral (FFT) ---
+#define WALK_BAND_LO_HZ   0.70f
+#define WALK_BAND_HI_HZ   3.00f
+// Prominencia espectral mínima del pico de caminata respecto al piso de ruido
+// medio (peak / mean). Robusto a armónicos: cada pisada es un impacto rico en
+// armónicos, así que la fracción de energía en banda (inband/total) se diluye,
+// pero el pico fundamental SIGUE sobresaliendo del promedio. Escala-invariante.
+#define FFT_PROM_MIN      4.0f
+#define FFT_RATIO_MIN     0.30f       // vía secundaria: energía concentrada en banda
+#define GYRO_SOFT         500         // |gyro| LSB que ayuda a confirmar (entrada blanda)
+#define WALK_GATE_MS      3500        // vigencia del gate tras la última detección
 
 void step_algo_init(step_algo_state_t *state) {
-  state->sample_index = 0;
-  state->window_start_time_ms = 0;
-  state->last_step_time_ms = 0;
-  state->steps_in_queue = 0;
-  state->max_gyro_val = 0;
-  state->consecutive_walking_windows = 0;
-  state->cached_steps = 0;
+  memset(state, 0, sizeof(*state));
+  // Inicializar las tablas FFT para EXACTAMENTE N=128. CRÍTICO: la tabla de
+  // twiddles (dsps_gen_w_r2_fc32) se genera para el tamaño que se pasa aquí.
+  // Si se inicializa con un tamaño distinto al de la FFT que se corre (p.ej.
+  // CONFIG_DSP_MAX_FFT_SIZE=4096), los factores de giro cos(2πk/4096) no
+  // corresponden a cos(2πk/128) → la FFT devuelve un espectro incorrecto que
+  // NO sigue la frecuencia real de la señal. Debe coincidir con FFT_WINDOW_SIZE.
+  esp_err_t e = dsps_fft2r_init_fc32(NULL, FFT_WINDOW_SIZE);
+  if (e != ESP_OK) {
+    ESP_LOGE(STEP_TAG, "dsps_fft2r_init_fc32(%d) FALLÓ: %s (0x%x)",
+             FFT_WINDOW_SIZE, esp_err_to_name(e), e);
+  } else {
+    ESP_LOGI(STEP_TAG, "FFT init OK (N=%d)", FFT_WINDOW_SIZE);
+  }
+}
 
-  // Inicializar tablas FFT genéricas
-  dsps_fft2r_init_fc32(NULL, CONFIG_DSP_MAX_FFT_SIZE);
+// Corre la FFT sobre la ventana de 128 muestras pasa-banda y actualiza el gate
+// de caminata + la cadencia estimada. No cuenta pasos.
+static void fft_walk_gate(step_algo_state_t *state, uint32_t now) {
+  // Ventana Hann PRECALCULADA una sola vez. OJO CRÍTICO: dsps_wind_hann_f32()
+  // GENERA los coeficientes de la ventana DENTRO del array que recibe — NO
+  // multiplica una señal existente. Hay que generarla aparte y multiplicar la
+  // señal por ella al armar el buffer complejo (igual que el ejemplo oficial).
+  static __attribute__((aligned(16))) float hann[FFT_WINDOW_SIZE];
+  static bool hann_ready = false;
+  if (!hann_ready) {
+    dsps_wind_hann_f32(hann, FFT_WINDOW_SIZE);
+    hann_ready = true;
+  }
+
+  // CRÍTICO: la FFT optimizada del ESP32-S3 (dsps_fft2r_fc32_aes3, ensamblador)
+  // exige buffers alineados a 16 bytes, igual que el ejemplo/tests de esp-dsp.
+  __attribute__((aligned(16))) float cbuf[FFT_WINDOW_SIZE * 2];
+  for (int i = 0; i < FFT_WINDOW_SIZE; i++) {
+    cbuf[i * 2]     = state->bp_mags[i] * hann[i];  // señal × ventana
+    cbuf[i * 2 + 1] = 0.0f;
+  }
+  esp_err_t fe = dsps_fft2r_fc32(cbuf, FFT_WINDOW_SIZE);
+  if (fe != ESP_OK) {
+    static bool logged = false;
+    if (!logged) {
+      logged = true;
+      ESP_LOGE(STEP_TAG, "dsps_fft2r_fc32 FALLÓ: %s (0x%x)", esp_err_to_name(fe), fe);
+    }
+  }
+  dsps_bit_rev_fc32(cbuf, FFT_WINDOW_SIZE);
+
+  int lo = (int)ceilf(WALK_BAND_LO_HZ * WIN_DURATION_S);   // bin 2
+  int hi = (int)floorf(WALK_BAND_HI_HZ * WIN_DURATION_S);  // bin 7
+  if (lo < 1) lo = 1;
+  if (hi > FFT_WINDOW_SIZE / 2 - 1) hi = FFT_WINDOW_SIZE / 2 - 1;
+
+  // Potencia por bin. IMPORTANTE: excluimos el bin 1 (0.39 Hz) del piso de ruido.
+  // Los transitorios de arranque/parada de movimiento crean una rampa lenta de
+  // ~2.56 s = bin 1, que domina el espectro e infla el denominador de la
+  // prominencia, aplastando el pico de caminata real. El bin 1 = 23 pasos/min,
+  // está por debajo de cualquier cadencia de caminata → descartarlo es correcto.
+  float pw[FFT_WINDOW_SIZE / 2];
+  float total = 0.0f, inband = 0.0f, peak_p = 0.0f;
+  int peak_k = lo;
+  int n_bins = 0;
+  // Pico global (toda la banda 0..25 Hz) solo para debug: dónde está la energía
+  float gpeak_p = 0.0f; int gpeak_k = 1;
+  for (int k = 1; k < FFT_WINDOW_SIZE / 2; k++) {
+    float re = cbuf[k * 2];
+    float im = cbuf[k * 2 + 1];
+    pw[k] = re * re + im * im;
+    if (pw[k] > gpeak_p) { gpeak_p = pw[k]; gpeak_k = k; }
+    if (k >= 2) {            // piso/total: desde bin 2 (excluye el transitorio del bin 1)
+      total += pw[k];
+      n_bins++;
+    }
+  }
+  state->dbg_peak_hz = (float)gpeak_k / WIN_DURATION_S;
+  state->dbg_fft_runs++;
+  for (int k = lo; k <= hi; k++) {
+    inband += pw[k];
+    if (pw[k] > peak_p) { peak_p = pw[k]; peak_k = k; }
+  }
+
+  // Métricas escala-invariantes (no dependen de la amplitud absoluta / rango):
+  //  - prominence: cuánto sobresale el pico de caminata del piso medio. Robusto
+  //    a armónicos (el 2.º armónico cae fuera de banda pero es OTRO pico, no
+  //    impide que el fundamental destaque). Es la métrica principal.
+  //  - ratio: fracción de energía concentrada en banda (vía secundaria).
+  float mean_pw = (total > 0.0f && n_bins > 0) ? (total / (float)n_bins) : 1.0f;
+  float prominence = (mean_pw > 1.0f) ? (peak_p / mean_pw) : 0.0f;
+  float ratio = (total > 1.0f) ? (inband / total) : 0.0f;
+  float amp = state->peak_env - state->valley_env;
+  state->dbg_prominence = prominence;
+  state->dbg_ratio = ratio;
+  bool gyro_help = (state->max_gyro_val > GYRO_SOFT);
+  bool is_walk = (amp > AMP_MIN) &&
+                 (prominence > FFT_PROM_MIN ||
+                  ratio > FFT_RATIO_MIN ||
+                  (gyro_help && prominence > FFT_PROM_MIN * 0.6f));
+
+  if (is_walk) {
+    // Interpolación parabólica del pico → cadencia fraccional (Hz)
+    float cad_bin = (float)peak_k;
+    if (peak_k > 1 && peak_k < FFT_WINDOW_SIZE / 2 - 1) {
+      float a = pw[peak_k - 1], b = pw[peak_k], c = pw[peak_k + 1];
+      float denom = a - 2.0f * b + c;
+      if (fabsf(denom) > 1e-3f) {
+        float d = 0.5f * (a - c) / denom;
+        if (d > -1.0f && d < 1.0f) cad_bin = (float)peak_k + d;
+      }
+    }
+    state->cadence_hz = cad_bin / WIN_DURATION_S;
+    state->walk_gate = true;
+    state->walk_gate_expiry_ms = now + WALK_GATE_MS;
+  }
 }
 
 uint8_t step_algo_update(step_algo_state_t *state, int16_t ax, int16_t ay,
                          int16_t az, int16_t gx, int16_t gy, int16_t gz,
-                         uint32_t current_time_ms, bool is_sport_mode) {
+                         uint32_t current_time_ms) {
   uint8_t new_steps = 0;
 
-  // En el S3 calculamos la magnitud lineal con math.h
+  // ── 1. Magnitud lineal del acelerómetro ──────────────────────────────
   float mag = sqrtf((float)ax * ax + (float)ay * ay + (float)az * az);
 
-  // Guardar en la posición correspondiente del buffer de magnitud real
-  state->accel_mags[state->sample_index] = mag;
+  // ── 2. Pasa-banda IIR (pasa-altos quita gravedad, pasa-bajos quita ruido)
+  float hp = HP_ALPHA * (state->hp_prev + mag - state->prev_raw_mag);
+  state->hp_prev = hp;
+  state->prev_raw_mag = mag;
+  float bp = state->lp_prev + LP_ALPHA * (hp - state->lp_prev);
+  state->lp_prev = bp;
 
-  if (state->sample_index == 0) {
-    state->window_start_time_ms = current_time_ms;
-  }
+  // ── 3. Envolvente adaptativa pico/valle (ataque rápido, decay lento) ──
+  if (bp > state->peak_env)   state->peak_env = bp;
+  else                        state->peak_env += (bp - state->peak_env) * ENV_DECAY;
+  if (bp < state->valley_env) state->valley_env = bp;
+  else                        state->valley_env += (bp - state->valley_env) * ENV_DECAY;
 
-  float gyro_mag = sqrtf((float)gx * gx + (float)gy * gy + (float)gz * gz);
-  if (gyro_mag > state->max_gyro_val) {
-    state->max_gyro_val = (uint32_t)gyro_mag;
-  }
+  float amp = state->peak_env - state->valley_env;
+  float thr = 0.5f * (state->peak_env + state->valley_env);
+  float hyst = HYST_FRAC * amp;
 
-  state->sample_index++;
+  // ── 4. Detección de paso por cruce de umbral con histéresis ──────────
+  if (!state->above && bp > thr + hyst) {
+    state->above = true;  // flanco ascendente → candidato a paso
 
-  if (state->sample_index >= FFT_WINDOW_SIZE) {
-    // Solo procesamos si hay movimiento angular suficiente
-    if (state->max_gyro_val > 400) {
-      // 1. Quitar DC Bias (Gravedad y offset base)
-      float dc_bias = 0.0f;
-      for (int i = 0; i < FFT_WINDOW_SIZE; i++) {
-        dc_bias += state->accel_mags[i];
-      }
-      dc_bias /= FFT_WINDOW_SIZE;
-      for (int i = 0; i < FFT_WINDOW_SIZE; i++) {
-        state->accel_mags[i] -= dc_bias;
-      }
+    if (amp > AMP_MIN) {
+      uint32_t dt = current_time_ms - state->last_step_time_ms;
+      // Intervalo mínimo: 0.6× el periodo de cadencia FFT, con piso físico
+      uint32_t period_ms = (state->cadence_hz > 0.1f)
+                               ? (uint32_t)(1000.0f / state->cadence_hz) : 500;
+      uint32_t min_int = (uint32_t)(0.6f * (float)period_ms);
+      if (min_int < STEP_MIN_TIME_MS) min_int = STEP_MIN_TIME_MS;
 
-      // 2. Aplicar ventana (Hann) para reducir fuga espectral "leakage"
-      // Procesa exactamente 128 floats reales de accel_mags
-      dsps_wind_hann_f32(state->accel_mags, FFT_WINDOW_SIZE);
+      if (dt >= min_int && dt <= STEP_MAX_TIME_MS) {
+        state->consecutive_steps++;
+        state->last_step_time_ms = current_time_ms;
+        bool gate = (current_time_ms < state->walk_gate_expiry_ms);
 
-      // 3. Poblar buffer complejo en el stack (128 muestras * 2 = 256 floats)
-      float accel_window[FFT_WINDOW_SIZE * 2];
-      for (int i = 0; i < FFT_WINDOW_SIZE; i++) {
-        accel_window[i * 2] = state->accel_mags[i];
-        accel_window[i * 2 + 1] = 0.0f;
-      }
-
-      // 4. FFT Radix-2 acelerada por PIE de Xtensa (S3) + bit-reversal.
-      // Tras esto, accel_window[2k]/[2k+1] son las partes real/imag de X[k].
-      // OJO: NO usamos dsps_cplx2reC_fc32 — esa rutina deshace el packing
-      // de DOS señales reales en una FFT compleja y devuelve componentes
-      // (re,im), no potencias. Para una sola señal calculamos |X[k]|² aquí.
-      dsps_fft2r_fc32(accel_window, FFT_WINDOW_SIZE);
-      dsps_bit_rev_fc32(accel_window, FFT_WINDOW_SIZE);
-
-      // 5. Duración real de la ventana (depende del Fs efectivo)
-      float total_duration_s = (float)(current_time_ms - state->window_start_time_ms) / 1000.0f;
-      if (total_duration_s <= 0.0f) {
-        total_duration_s = (float)FFT_WINDOW_SIZE / 50.0f; // fallback Fs=50Hz
-      }
-
-      // 6. Buscar pico de potencia en la banda de caminata [0.75 Hz, 2.75 Hz]
-      int min_bin = (int)ceilf(0.75f * total_duration_s);
-      int max_bin = (int)floorf(2.75f * total_duration_s);
-      if (min_bin < 1) min_bin = 1;
-      if (max_bin >= FFT_WINDOW_SIZE / 2) max_bin = FFT_WINDOW_SIZE / 2 - 1;
-
-      float peak_power = 0.0f;
-      int peak_bin = 0;
-      for (int k = min_bin; k <= max_bin; k++) {
-        float re = accel_window[k * 2];
-        float im = accel_window[k * 2 + 1];
-        float p = re * re + im * im;
-        if (p > peak_power) {
-          peak_power = p;
-          peak_bin = k;
-        }
-      }
-
-      // Umbral de potencia |X|² para 128 puntos a 50Hz / ±2g.
-      // Caminata real ~1e9-1e10; reposo / falsos < 1e8.
-      const float UMBRAL_FFT = 1.0e9f;
-      uint8_t detected_steps = 0;
-
-      if (peak_power > UMBRAL_FFT) {
-        // Bin k = freq * T = ciclos en la ventana → 1 ciclo por paso.
-        detected_steps = (uint8_t)peak_bin;
-
-        // Con solapamiento 50% (sport mode) cada ciclo se ve en dos
-        // ventanas seguidas; repartir el conteo para no contar doble.
-        if (is_sport_mode) {
-          detected_steps = (uint8_t)((detected_steps + 1) / 2);
-        }
-      }
-
-      // 7. Filtro de histéresis temporal
-      if (detected_steps > 0) {
-        state->consecutive_walking_windows++;
-        if (state->consecutive_walking_windows == 1) {
-          // Primera ventana: guardar buffer temporal
-          state->cached_steps = detected_steps;
-          new_steps = 0;
-        } else if (state->consecutive_walking_windows == 2) {
-          // Segunda ventana consecutiva: validar caminata y descargar acumulados
-          new_steps = state->cached_steps + detected_steps;
-          state->cached_steps = 0;
+        if (state->consecutive_steps >= VALID_STEPS_THRESHOLD && gate) {
+          // Caminata validada y confirmada por la FFT: descargar el buffer
+          // provisional (commit retroactivo) + este paso.
+          new_steps = state->provisional_steps + 1;
+          state->provisional_steps = 0;
         } else {
-          // Caminata ya validada y continua
-          new_steps = detected_steps;
+          // Aún no validada (racha corta) o sin gate: bufferear.
+          state->provisional_steps++;
         }
-      } else {
-        // No se detectó caminata, resetear histéresis
-        state->consecutive_walking_windows = 0;
-        state->cached_steps = 0;
+      } else if (dt > STEP_MAX_TIME_MS) {
+        // Cadencia rota → descartar provisionales no confirmados y reiniciar
+        state->consecutive_steps = 1;
+        state->provisional_steps = 1;
+        state->last_step_time_ms = current_time_ms;
       }
-    } else {
-      // Movimiento angular insuficiente, resetear histéresis
-      state->consecutive_walking_windows = 0;
-      state->cached_steps = 0;
+      // dt < min_int → periodo refractario: ignorar (no actualizar nada)
     }
+  } else if (state->above && bp < thr - hyst) {
+    state->above = false;  // flanco descendente
+  }
 
-    // 8. Reiniciar o desplazar ventana (según solapamiento / modo)
-    if (is_sport_mode) {
-      memmove(&state->accel_mags[0], &state->accel_mags[64], 64 * sizeof(float));
-      state->sample_index = 64;
-      // Retroceder el timestamp inicial en 1.28 segundos (64 muestras a 50Hz)
-      state->window_start_time_ms = current_time_ms - 1280;
-    } else {
-      state->sample_index = 0;
-    }
+  // ── 5. Acumular |gyro| (entrada blanda para el gate) ─────────────────
+  float gyro_mag = sqrtf((float)gx * gx + (float)gy * gy + (float)gz * gz);
+  if (gyro_mag > state->max_gyro_val) state->max_gyro_val = (uint32_t)gyro_mag;
+
+  // ── 6. Guardar muestra pasa-banda y correr la FFT de detección ───────
+  state->bp_mags[state->sample_index++] = bp;
+  if (state->sample_index >= FFT_WINDOW_SIZE) {
+    fft_walk_gate(state, current_time_ms);
+    // Deslizar la ventana 50% (solapamiento determinístico)
+    memmove(&state->bp_mags[0], &state->bp_mags[FFT_HOP],
+            FFT_HOP * sizeof(float));
+    state->sample_index = FFT_HOP;
     state->max_gyro_val = 0;
   }
 
@@ -203,8 +284,7 @@ static uint32_t int_sqrt(uint32_t val) {
 
 uint8_t step_algo_update(step_algo_state_t *state, int16_t ax, int16_t ay,
                          int16_t az, int16_t gx, int16_t gy, int16_t gz,
-                         uint32_t current_time_ms, bool is_sport_mode) {
-  (void)is_sport_mode; // Ignorado en el target C3 de bajo consumo
+                         uint32_t current_time_ms) {
   uint8_t new_steps = 0;
 
   // Calcular la magnitud lineal real

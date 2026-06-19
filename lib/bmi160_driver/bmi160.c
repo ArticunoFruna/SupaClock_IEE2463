@@ -119,13 +119,15 @@ esp_err_t bmi160_init(void)
     vTaskDelay(pdMS_TO_TICKS(100));
 
     /* ── 6. Configurar Acelerómetro ────────────────────────────
-     * ACC_CONF (0x40) = ODR 100 Hz, BWP Normal (avg4), sin undersampling
-     *   bits [3:0] = 0x08 (ODR 100 Hz)
-     *   bits [6:4] = 0x02 (BWP normal = OSR4_AVG1)
+     * ACC_CONF (0x40) = ODR 50 Hz, BWP Normal (anti-alias), sin undersampling
+     *   bits [3:0] = 0x07 (ODR 50 Hz)
+     *   bits [6:4] = 0x02 (BWP normal = filtro interno anti-alias)
      *   bit  [7]   = 0x0  (no undersampling)
-     *   → 0x28
+     *   → 0x27
+     * Fs fijo a 50 Hz: igual al ritmo de drenado del FIFO → muestreo
+     * uniforme para la FFT del pedómetro (sin aliasing por decimación).
      */
-    uint8_t acc_conf = 0x28;  /* 0b0010_1000 : bwp=0x2, odr=0x8 */
+    uint8_t acc_conf = (0x2 << 4) | BMI160_ACC_ODR_50HZ;  /* 0x27 */
     err = bmi160_write_reg(BMI160_ACC_CONF_REG, acc_conf);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "ACC_CONF falló: %s", esp_err_to_name(err));
@@ -142,12 +144,12 @@ esp_err_t bmi160_init(void)
     vTaskDelay(pdMS_TO_TICKS(2));
 
     /* ── 7. Configurar Giroscopio ──────────────────────────────
-     * GYR_CONF (0x42) = ODR 100 Hz, BWP Normal
-     *   bits [3:0] = 0x08 (ODR 100 Hz)
+     * GYR_CONF (0x42) = ODR 50 Hz, BWP Normal (alineado al accel)
+     *   bits [3:0] = 0x07 (ODR 50 Hz)
      *   bits [5:4] = 0x02 (BWP normal)
-     *   → 0x28
+     *   → 0x27
      */
-    uint8_t gyr_conf = 0x28;  /* 0b0010_1000 : bwp=0x2, odr=0x8 */
+    uint8_t gyr_conf = (0x2 << 4) | BMI160_GYR_ODR_50HZ;  /* 0x27 */
     err = bmi160_write_reg(BMI160_GYR_CONF_REG, gyr_conf);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "GYR_CONF falló: %s", esp_err_to_name(err));
@@ -257,6 +259,100 @@ esp_err_t bmi160_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
     *ay = (int16_t)((uint16_t)buf[9]  << 8 | buf[8]);
     *az = (int16_t)((uint16_t)buf[11] << 8 | buf[10]);
 
+    return ESP_OK;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+
+esp_err_t bmi160_fifo_enable(void)
+{
+    /* FIFO_CONFIG_1 (0x47): habilitar gyro + accel en modo headerless.
+     *   bit 7 = fifo_gyr_en  = 1
+     *   bit 6 = fifo_acc_en  = 1
+     *   bit 4 = fifo_header_en = 0  → headerless (frame fijo de 12 bytes)
+     *   → 0xC0
+     */
+    esp_err_t err = bmi160_write_reg(BMI160_FIFO_CONFIG_1_REG, 0xC0);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "FIFO_CONFIG_1 falló: %s", esp_err_to_name(err));
+        return err;
+    }
+    vTaskDelay(pdMS_TO_TICKS(2));
+
+    /* Vaciar el FIFO para arrancar limpio */
+    err = bmi160_write_reg(BMI160_CMD_REG, BMI160_CMD_FIFO_FLUSH);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "FIFO flush falló: %s", esp_err_to_name(err));
+        return err;
+    }
+    vTaskDelay(pdMS_TO_TICKS(2));
+
+    ESP_LOGI(TAG, "FIFO habilitado (headerless gyro+accel, frame=12B)");
+    return ESP_OK;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+
+#define BMI160_FIFO_FRAME_BYTES 12
+
+esp_err_t bmi160_read_fifo(bmi160_fifo_frame_t *frames, size_t max_frames,
+                           size_t *n_read)
+{
+    if (frames == NULL || n_read == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    *n_read = 0;
+
+    /* 1. Leer cuántos bytes hay disponibles (FIFO_LENGTH, 11 bits) */
+    uint8_t len_buf[2];
+    esp_err_t err = bmi160_read_regs(BMI160_FIFO_LENGTH_0_REG, len_buf, 2);
+    if (err != ESP_OK) {
+        return err;
+    }
+    uint16_t fifo_bytes = (uint16_t)(((len_buf[1] & 0x07) << 8) | len_buf[0]);
+    if (fifo_bytes < BMI160_FIFO_FRAME_BYTES) {
+        return ESP_OK; /* nada completo todavía */
+    }
+
+    /* 2. No leer más de lo que cabe en el buffer del llamador */
+    size_t avail_frames = fifo_bytes / BMI160_FIFO_FRAME_BYTES;
+    if (avail_frames > max_frames) {
+        avail_frames = max_frames;
+    }
+    size_t bytes_to_read = avail_frames * BMI160_FIFO_FRAME_BYTES;
+
+    /* 3. Burst desde FIFO_DATA. Buffer local acotado (FFT usa N=128,
+     * a 50 Hz un drenado típico trae <8 frames). */
+    static uint8_t fifo_buf[BMI160_FIFO_FRAME_BYTES * 32];
+    if (bytes_to_read > sizeof(fifo_buf)) {
+        bytes_to_read = sizeof(fifo_buf);
+        avail_frames = bytes_to_read / BMI160_FIFO_FRAME_BYTES;
+    }
+    err = bmi160_read_regs(BMI160_FIFO_DATA_REG, fifo_buf, bytes_to_read);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    /* 4. Parsear frames headerless: [gyr_x,y,z][acc_x,y,z], little-endian.
+     * El sensor inserta 0x8000 como sentinela de "FIFO vacío"; si lo vemos
+     * en gyr_x cortamos (drenamos de más). */
+    size_t count = 0;
+    for (size_t i = 0; i < avail_frames; i++) {
+        const uint8_t *f = &fifo_buf[i * BMI160_FIFO_FRAME_BYTES];
+        int16_t gx = (int16_t)((uint16_t)f[1]  << 8 | f[0]);
+        if ((uint16_t)gx == 0x8000) {
+            break; /* frame inválido = FIFO se vació a mitad */
+        }
+        frames[count].gx = gx;
+        frames[count].gy = (int16_t)((uint16_t)f[3]  << 8 | f[2]);
+        frames[count].gz = (int16_t)((uint16_t)f[5]  << 8 | f[4]);
+        frames[count].ax = (int16_t)((uint16_t)f[7]  << 8 | f[6]);
+        frames[count].ay = (int16_t)((uint16_t)f[9]  << 8 | f[8]);
+        frames[count].az = (int16_t)((uint16_t)f[11] << 8 | f[10]);
+        count++;
+    }
+
+    *n_read = count;
     return ESP_OK;
 }
 

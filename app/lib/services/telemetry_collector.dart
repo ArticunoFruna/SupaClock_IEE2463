@@ -74,22 +74,44 @@ class TelemetryCollector {
 
     var dirty = false;
 
+    // Per-hour accumulator for the intraday curve (hourly[0..23]).
+    final hour = now.hour;
+    final hourly = (day['hourly'] as List);
+    final hb = Map<String, dynamic>.from(hourly[hour] as Map);
+    var hbDirty = false;
+
     if (hr > 0 && hrQ >= _kQualityGate) {
       (day['hrSamples'] as List).add(hr);
       _accumulateHrZone(day, hr, now);
+      hb['hrSum'] = (hb['hrSum'] as num) + hr;
+      hb['hrCount'] = (hb['hrCount'] as int) + 1;
+      hbDirty = true;
       dirty = true;
     }
     if (spo2 > 0 && spo2Q >= _kQualityGate) {
       (day['spo2Samples'] as List).add(spo2);
+      hb['spo2Sum'] = (hb['spo2Sum'] as num) + spo2;
+      hb['spo2Count'] = (hb['spo2Count'] as int) + 1;
+      hbDirty = true;
       dirty = true;
     }
     if (temp > 30 && temp < 45) {
       (day['tempSamples'] as List).add(temp);
+      hb['tempSum'] = (hb['tempSum'] as num) + temp;
+      hb['tempCount'] = (hb['tempCount'] as int) + 1;
+      hbDirty = true;
       dirty = true;
     }
     if (steps > 0 && steps != day['steps']) {
       day['steps'] = steps;
+      hb['steps'] = steps; // cumulative snapshot within this hour
+      hbDirty = true;
       dirty = true;
+    }
+
+    if (hbDirty) {
+      hourly[hour] = hb;
+      day['hourly'] = hourly;
     }
 
     if (dirty) {
@@ -219,7 +241,7 @@ class TelemetryCollector {
     try {
       await _fs.createAlert(uid, alert);
     } catch (e) {
-      await LocalStore.enqueue('alert', alert.toFirestore());
+      await LocalStore.enqueue('alert', alert.toJson());
       debugPrint('Alert queue (offline): $e');
     }
 

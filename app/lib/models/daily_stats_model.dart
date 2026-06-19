@@ -10,6 +10,11 @@ class DailyStatsModel {
   final Spo2Stats spo2;
   final TempStats temp;
   final HrZoneMinutes hrZones;
+
+  /// Intraday curve: one point per hour (0..23). Drives the "today / por hora"
+  /// chart (Samsung-Health style). Empty for days aggregated before this field
+  /// existed.
+  final List<HourPoint> hourly;
   final DateTime computedAt;
   final int sourceVersion;
 
@@ -21,12 +26,14 @@ class DailyStatsModel {
     Spo2Stats? spo2,
     TempStats? temp,
     HrZoneMinutes? hrZones,
+    List<HourPoint>? hourly,
     DateTime? computedAt,
     this.sourceVersion = 1,
   })  : hr = hr ?? HrStats.empty(),
         spo2 = spo2 ?? Spo2Stats.empty(),
         temp = temp ?? TempStats.empty(),
         hrZones = hrZones ?? HrZoneMinutes.empty(),
+        hourly = hourly ?? const [],
         computedAt = computedAt ?? DateTime.now();
 
   factory DailyStatsModel.fromFirestore(DocumentSnapshot doc) {
@@ -39,6 +46,7 @@ class DailyStatsModel {
       spo2: Spo2Stats.fromMap(data['spo2'] as Map<String, dynamic>?),
       temp: TempStats.fromMap(data['temp'] as Map<String, dynamic>?),
       hrZones: HrZoneMinutes.fromMap(data['hrZoneMinutes'] as Map<String, dynamic>?),
+      hourly: HourPoint.listFromRaw(data['hourly']),
       computedAt: (data['computedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       sourceVersion: data['sourceVersion'] ?? 1,
     );
@@ -51,10 +59,82 @@ class DailyStatsModel {
         'spo2': spo2.toMap(),
         'temp': temp.toMap(),
         'hrZoneMinutes': hrZones.toMap(),
+        'hourly': hourly.map((h) => h.toMap()).toList(),
         'computedAt': Timestamp.fromDate(computedAt),
         'sourceVersion': sourceVersion,
       };
+
+  /// Hive-safe (primitive-only) representation for the offline sync queue.
+  /// Carries `date` so a queued rollup can be replayed without external context.
+  Map<String, dynamic> toJson() => {
+        'date': date,
+        'steps': steps,
+        'activeMinutes': activeMinutes,
+        'hr': hr.toMap(),
+        'spo2': spo2.toMap(),
+        'temp': temp.toMap(),
+        'hrZoneMinutes': hrZones.toMap(),
+        'hourly': hourly.map((h) => h.toMap()).toList(),
+        'computedAt': computedAt.millisecondsSinceEpoch,
+        'sourceVersion': sourceVersion,
+      };
+
+  factory DailyStatsModel.fromJson(Map<String, dynamic> m) => DailyStatsModel(
+        date: m['date'] as String,
+        steps: m['steps'] ?? 0,
+        activeMinutes: m['activeMinutes'] ?? 0,
+        hr: HrStats.fromMap(_asMap(m['hr'])),
+        spo2: Spo2Stats.fromMap(_asMap(m['spo2'])),
+        temp: TempStats.fromMap(_asMap(m['temp'])),
+        hrZones: HrZoneMinutes.fromMap(_asMap(m['hrZoneMinutes'])),
+        hourly: HourPoint.listFromRaw(m['hourly']),
+        computedAt: DateTime.fromMillisecondsSinceEpoch(m['computedAt'] ?? 0),
+        sourceVersion: m['sourceVersion'] ?? 1,
+      );
 }
+
+/// One intraday point (a single hour). Null metric = no valid sample that hour.
+/// `steps` is the cumulative step total seen during the hour (snapshot); the
+/// chart derives per-hour deltas from consecutive points.
+class HourPoint {
+  final int hour; // 0..23
+  final double? hr;
+  final double? spo2;
+  final double? temp;
+  final int steps;
+
+  HourPoint({required this.hour, this.hr, this.spo2, this.temp, this.steps = 0});
+
+  bool get isEmpty => hr == null && spo2 == null && temp == null && steps == 0;
+
+  Map<String, dynamic> toMap() => {
+        'h': hour,
+        if (hr != null) 'hr': hr,
+        if (spo2 != null) 'spo2': spo2,
+        if (temp != null) 'temp': temp,
+        if (steps != 0) 'steps': steps,
+      };
+
+  factory HourPoint.fromMap(Map<String, dynamic> m) => HourPoint(
+        hour: m['h'] ?? 0,
+        hr: (m['hr'] as num?)?.toDouble(),
+        spo2: (m['spo2'] as num?)?.toDouble(),
+        temp: (m['temp'] as num?)?.toDouble(),
+        steps: m['steps'] ?? 0,
+      );
+
+  /// Tolerant of both Firestore and Hive list shapes (`List` of dynamic maps).
+  static List<HourPoint> listFromRaw(dynamic raw) {
+    if (raw is! List) return const [];
+    return raw
+        .map((e) => HourPoint.fromMap(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+}
+
+/// Coerces a loosely-typed (Hive) nested map into `Map<String, dynamic>`.
+Map<String, dynamic>? _asMap(dynamic v) =>
+    v == null ? null : Map<String, dynamic>.from(v as Map);
 
 class HrStats {
   final double? avg;

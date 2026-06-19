@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import '../models/session_model.dart';
+import '../models/daily_stats_model.dart';
 import '../services/firestore_service.dart';
 import '../services/auth_service.dart';
+import '../services/local_store.dart';
 import '../utils/data_aggregator.dart';
 import '../config/theme.dart';
 
@@ -31,46 +32,69 @@ class _TrendsTabState extends State<TrendsTab> {
           _buildSegmentedControl(),
           const SizedBox(height: 16),
           Expanded(
-            child: StreamBuilder<List<SessionModel>>(
-              // For week and month, we should ideally fetch more than the top 20 limit of streamSessions.
-              // We'll fetch a stream of the last 100 sessions to ensure we get a week's data
-              stream: _firestoreService.streamSessions(uid), 
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final sessions = snapshot.data ?? [];
-                if (sessions.isEmpty) {
-                  return const Center(
-                    child: Text('No hay suficientes datos para generar gráficos.'),
-                  );
-                }
-
-                // Process aggregated metrics based on selected TimeFrame
-                final metrics = DataAggregator.process(sessions, _timeFrame, DateTime.now());
-
-                return RefreshIndicator(
-                  onRefresh: () async {},
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    children: [
-                      _buildLineChartCard('Frecuencia Cardíaca (BPM)', metrics.heartRate, AppTheme.heartRate, 40, 200),
-                      const SizedBox(height: 16),
-                      _buildLineChartCard('SpO2 (%)', metrics.spo2, AppTheme.spo2, 80, 100),
-                      const SizedBox(height: 16),
-                      _buildLineChartCard('Temperatura (°C)', metrics.temperature, AppTheme.temperature, 30, 42),
-                      const SizedBox(height: 16),
-                      _buildBarChartCard('Pasos', metrics.steps, AppTheme.steps),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                );
-              },
-            ),
+            child: _timeFrame == TimeFrame.today
+                ? _buildToday()
+                : _buildHistory(uid),
           ),
         ],
       ),
+    );
+  }
+
+  /// Hoy → live per-hour buckets from the local Hive accumulator (no network).
+  Widget _buildToday() {
+    final now = DateTime.now();
+    final dateKey = DateFormat('yyyy-MM-dd').format(now);
+    final day = LocalStore.getDay(dateKey);
+    final metrics = DataAggregator.todayFromHive(day, now);
+    return _buildChartsList(metrics);
+  }
+
+  /// Semana / Mes → closed daily rollups from Firestore (`dailyStats/{date}`).
+  Widget _buildHistory(String uid) {
+    final days = _timeFrame == TimeFrame.week ? 7 : 31;
+    return FutureBuilder<List<DailyStatsModel>>(
+      future: _firestoreService.getRecentDailyStats(uid, days: days),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final stats = snapshot.data ?? [];
+        final metrics = DataAggregator.fromDailyStats(stats, _timeFrame, DateTime.now());
+        return _buildChartsList(metrics);
+      },
+    );
+  }
+
+  Widget _buildChartsList(AggregatedMetrics metrics) {
+    final hasData = metrics.heartRate.isNotEmpty ||
+        metrics.spo2.isNotEmpty ||
+        metrics.temperature.isNotEmpty ||
+        metrics.steps.isNotEmpty;
+
+    return RefreshIndicator(
+      onRefresh: () async => setState(() {}),
+      child: hasData
+          ? ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: [
+                _buildLineChartCard('Frecuencia Cardíaca (BPM)', metrics.heartRate, AppTheme.heartRate, 40, 200),
+                const SizedBox(height: 16),
+                _buildLineChartCard('SpO2 (%)', metrics.spo2, AppTheme.spo2, 80, 100),
+                const SizedBox(height: 16),
+                _buildLineChartCard('Temperatura (°C)', metrics.temperature, AppTheme.temperature, 30, 42),
+                const SizedBox(height: 16),
+                _buildBarChartCard('Pasos', metrics.steps, AppTheme.steps),
+                const SizedBox(height: 40),
+              ],
+            )
+          : ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 140),
+                Center(child: Text('No hay suficientes datos para generar gráficos.')),
+              ],
+            ),
     );
   }
 

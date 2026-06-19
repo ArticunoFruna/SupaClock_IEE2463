@@ -1,0 +1,207 @@
+ERC report (2026-06-16T16:34:21, Encoding UTF8)
+Report includes: Errors, Warnings
+
+***** Sheet /
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(63.50 mm, 147.32 mm): Horizontal Wire, length 10.16 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(71.12 mm, 147.32 mm): Horizontal Wire, length 2.54 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(101.60 mm, 58.42 mm): Vertical Wire, length 5.08 mm
+    @(101.60 mm, 53.34 mm): Horizontal Wire, length 2.54 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(121.92 mm, 73.66 mm): Horizontal Wire, length 20.32 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(121.92 mm, 78.74 mm): Horizontal Wire, length 20.32 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(124.46 mm, 121.92 mm): Vertical Wire, length 17.78 mm
+    @(124.46 mm, 104.14 mm): Horizontal Wire, length 2.54 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(129.54 mm, 53.34 mm): Vertical Wire, length 45.72 mm
+    @(134.62 mm, 55.88 mm): Horizontal Wire, length 63.50 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(137.16 mm, 124.46 mm): Horizontal Wire, length 2.54 mm
+    @(139.70 mm, 124.46 mm): Horizontal Wire, length 2.54 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(139.70 mm, 68.58 mm): Vertical Wire, length 7.62 mm
+    @(139.70 mm, 60.96 mm): Horizontal Wire, length 17.78 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(139.70 mm, 83.82 mm): Horizontal Wire, length 2.54 mm
+    @(139.70 mm, 86.36 mm): Vertical Wire, length 2.54 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(139.70 mm, 104.14 mm): Horizontal Wire, length 2.54 mm
+    @(137.16 mm, 104.14 mm): Horizontal Wire, length 2.54 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(142.24 mm, 93.98 mm): Horizontal Wire, length 2.54 mm
+    @(137.16 mm, 93.98 mm): Vertical Wire, length 2.54 mm
+[power_pin_not_driven]: Input Power pin not driven by any Output Power pins
+    ; error
+    @(162.56 mm, 147.32 mm): Symbol #GND1 Pin 1 [GND, Power input, Line]
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(182.88 mm, 78.74 mm): Horizontal Wire, length 15.24 mm
+    @(124.46 mm, 93.98 mm): Vertical Wire, length 43.18 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(185.42 mm, 60.96 mm): Vertical Wire, length 7.62 mm
+    @(165.10 mm, 60.96 mm): Horizontal Wire, length 20.32 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(187.96 mm, 86.36 mm): Horizontal Wire, length 5.08 mm
+    @(203.20 mm, 86.36 mm): Vertical Wire, length 2.54 mm
+[power_pin_not_driven]: Input Power pin not driven by any Output Power pins
+    ; error
+    @(194.31 mm, 93.98 mm): Symbol #SUPPLY1 Pin 1 [3.3V, Power input, Line]
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(198.12 mm, 127.00 mm): Vertical Wire, length 2.54 mm
+    @(182.88 mm, 114.30 mm): Horizontal Wire, length 10.16 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(20.32 mm, 203.20 mm): Symbol FRAME1 [FRAME-LETTER]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(45.72 mm, 55.88 mm): Symbol JP1 [M03PTH]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(48.26 mm, 147.32 mm): Symbol SJ4 [SOLDERJUMPERTRACE]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(50.80 mm, 116.84 mm): Symbol JP3 [M06SIP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(63.50 mm, 58.42 mm): Symbol JP2 [AUDIO-JACKSMD2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(63.50 mm, 101.60 mm): Symbol R15 [10KOHM1/10W1%(0603)0603]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(68.58 mm, 147.32 mm): Symbol D1 [LED-RED0603]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(78.74 mm, 147.32 mm): Symbol R16 [1K-1%]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(93.98 mm, 53.34 mm): Symbol R17 [0OHM1/10W5%(0603)]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(101.60 mm, 66.04 mm): Symbol R1 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(109.22 mm, 53.34 mm): Symbol R18 [0OHM1/10W5%(0603)]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(109.22 mm, 66.04 mm): Symbol R2 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(116.84 mm, 73.66 mm): Symbol R3 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(116.84 mm, 78.74 mm): Symbol R4 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(116.84 mm, 91.44 mm): Symbol R5 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(124.46 mm, 99.06 mm): Symbol R6 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(124.46 mm, 124.46 mm): Symbol C1 [CAP0603-CAP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(132.08 mm, 104.14 mm): Symbol R7 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(137.16 mm, 119.38 mm): Symbol R8 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(139.70 mm, 91.44 mm): Symbol C2 [CAP0603-CAP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(139.70 mm, 106.68 mm): Symbol C3 [CAP0603-CAP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(139.70 mm, 129.54 mm): Symbol R9 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(147.32 mm, 175.26 mm): Symbol LOGO1 [OSHW-LOGOS]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(162.56 mm, 60.96 mm): Symbol C4 [CAP0805]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(162.56 mm, 109.22 mm): Symbol U1 [AD8232]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(167.64 mm, 203.20 mm): Symbol FRAME1 [FRAME-LETTER]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(187.96 mm, 91.44 mm): Symbol R10 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(190.50 mm, 101.60 mm): Symbol C5 [CAP0603-CAP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(193.04 mm, 68.58 mm): Symbol R11 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(198.12 mm, 63.50 mm): Symbol R12 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(198.12 mm, 73.66 mm): Symbol R13 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(198.12 mm, 116.84 mm): Symbol R19 [0OHM1/10W5%(0603)]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(198.12 mm, 132.08 mm): Symbol R20 [0OHM1/10W5%(0603)]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(203.20 mm, 55.88 mm): Symbol C6 [CAP0805]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(203.20 mm, 93.98 mm): Symbol R14 [RESISTOR0603-RES]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(210.82 mm, 96.52 mm): Symbol C7 [CAP0603-CAP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(210.82 mm, 167.64 mm): Symbol LOGO2 [SFE_LOGO_NAME_FLAME.1_INCH]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(256.54 mm, 172.72 mm): Symbol FID1 [FIDUCIAL1X2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(256.54 mm, 177.80 mm): Symbol FID2 [FIDUCIAL1X2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(261.62 mm, 172.72 mm): Symbol STANDOFF1 [STAND-OFF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(261.62 mm, 177.80 mm): Symbol STANDOFF2 [STAND-OFF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(266.70 mm, 172.72 mm): Symbol STANDOFF3 [STAND-OFF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'AD8232_Heart_Rate_Monitor'
+    ; warning
+    @(266.70 mm, 177.80 mm): Symbol STANDOFF4 [STAND-OFF]
+
+ ** ERC messages: 61  Errors 18  Warnings 43
+
+ ** Ignored checks:
+    - Global label only appears once in the schematic
+    - Four connection points are joined together
+    - SPICE model issue
+    - Assigned footprint doesn't match footprint filters

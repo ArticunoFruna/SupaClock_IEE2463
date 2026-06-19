@@ -15,6 +15,7 @@
 #define BMI160_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include "esp_err.h"
 
 /* ──────────────────────── I2C Address ──────────────────────── */
@@ -34,6 +35,13 @@
 #define BMI160_GYR_DATA_REG     0x0C
 /* Accelerometer data: X[0:7], X[15:8], Y, Z →  0x12..0x17    */
 #define BMI160_ACC_DATA_REG     0x12
+
+/* ─────────────────── FIFO registers ───────────────────────── */
+#define BMI160_FIFO_LENGTH_0_REG 0x22  /**< FIFO byte count [7:0]   */
+#define BMI160_FIFO_LENGTH_1_REG 0x23  /**< FIFO byte count [10:8]  */
+#define BMI160_FIFO_DATA_REG     0x24  /**< FIFO read port          */
+#define BMI160_FIFO_CONFIG_0_REG 0x46  /**< FIFO watermark          */
+#define BMI160_FIFO_CONFIG_1_REG 0x47  /**< FIFO data source enable */
 
 /* ──────────────── Configuration registers ─────────────────── */
 #define BMI160_ACC_CONF_REG     0x40   /**< Acc ODR / BW / US   */
@@ -59,6 +67,7 @@
 #define BMI160_CMD_REG          0x7E
 
 /* ─────────────── Command values (write to CMD) ────────────── */
+#define BMI160_CMD_FIFO_FLUSH   0xB0   /**< Vaciar el FIFO       */
 #define BMI160_CMD_SOFT_RESET   0xB6
 #define BMI160_CMD_ACC_NORMAL   0x11   /**< Accel → Normal mode  */
 #define BMI160_CMD_ACC_LP       0x12   /**< Accel → Low-Power    */
@@ -144,6 +153,38 @@ esp_err_t bmi160_read_accel(int16_t *ax, int16_t *ay, int16_t *az);
  */
 esp_err_t bmi160_read_accel_gyro(int16_t *ax, int16_t *ay, int16_t *az,
                                   int16_t *gx, int16_t *gy, int16_t *gz);
+
+/** Un frame del FIFO en modo headerless (gyro+accel). 6 ejes int16. */
+typedef struct {
+    int16_t gx, gy, gz;
+    int16_t ax, ay, az;
+} bmi160_fifo_frame_t;
+
+/**
+ * @brief Habilita el FIFO en modo headerless con gyro + accel.
+ *
+ * Cada frame queda de 12 bytes (GYR_X..ACC_Z) y el sensor lo llena de
+ * forma uniforme al ODR configurado. Se vacía el FIFO al habilitarlo.
+ *
+ * @return ESP_OK si exitoso.
+ */
+esp_err_t bmi160_fifo_enable(void);
+
+/**
+ * @brief Drena el FIFO y entrega los frames completos disponibles.
+ *
+ * Lee FIFO_LENGTH, hace un burst desde FIFO_DATA y parsea frames de
+ * 12 bytes. Frames incompletos al final se descartan (quedan para la
+ * próxima lectura). El muestreo es uniforme al ODR, así que el llamador
+ * puede asignar timestamps sintéticos t0 + i*(1000/ODR) ms.
+ *
+ * @param[out] frames     Buffer destino de frames.
+ * @param[in]  max_frames Capacidad de @p frames.
+ * @param[out] n_read     Cantidad de frames realmente parseados.
+ * @return ESP_OK si exitoso (n_read puede ser 0 si el FIFO está vacío).
+ */
+esp_err_t bmi160_read_fifo(bmi160_fifo_frame_t *frames, size_t max_frames,
+                           size_t *n_read);
 
 /**
  * @brief Habilita el step counter por hardware del BMI160.

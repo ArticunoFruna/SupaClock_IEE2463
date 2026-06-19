@@ -58,5 +58,33 @@ class AlertModel {
         if (note != null) 'note': note,
       };
 
+  /// Hive-safe (primitive-only) representation for the offline sync queue.
+  /// Timestamps become epoch millis so Hive can persist the map.
+  Map<String, dynamic> toJson() => {
+        'type': type.name,
+        'value': value,
+        'threshold': threshold,
+        'triggeredAt': triggeredAt.millisecondsSinceEpoch,
+        if (ackedAt != null) 'ackedAt': ackedAt!.millisecondsSinceEpoch,
+        if (sessionRef != null) 'sessionRef': sessionRef,
+        if (note != null) 'note': note,
+      };
+
+  factory AlertModel.fromJson(Map<String, dynamic> m) => AlertModel(
+        id: '',
+        type: AlertType.values.firstWhere(
+          (e) => e.name == m['type'],
+          orElse: () => AlertType.hrHigh,
+        ),
+        value: (m['value'] as num).toDouble(),
+        threshold: (m['threshold'] as num).toDouble(),
+        triggeredAt: DateTime.fromMillisecondsSinceEpoch(m['triggeredAt'] as int),
+        ackedAt: m['ackedAt'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(m['ackedAt'] as int)
+            : null,
+        sessionRef: m['sessionRef'] as String?,
+        note: m['note'] as String?,
+      );
+
   bool get isAcked => ackedAt != null;
 }

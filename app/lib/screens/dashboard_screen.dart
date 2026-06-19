@@ -8,6 +8,7 @@ import '../providers/settings_provider.dart';
 import '../services/auth_service.dart';
 import '../services/ble_service.dart';
 import '../services/firestore_service.dart';
+import '../services/local_store.dart';
 import 'ble_debug_screen.dart';
 import 'ecg_screen.dart';
 import 'login_screen.dart';
@@ -96,6 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
+          _statusBanner(ble),
           Expanded(
             child: IndexedStack(
               index: _currentIndex,
@@ -144,6 +146,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Thin status strip: BLE link state on the left, cloud-sync state on the
+  /// right. Rebuilds live as the sync queue grows/drains (Hive listenable).
+  Widget _statusBanner(BleService ble) {
+    final IconData linkIcon;
+    final String linkText;
+    final Color linkColor;
+    if (kIsWeb) {
+      linkIcon = Icons.devices;
+      linkText = 'App web';
+      linkColor = AppTheme.textMuted;
+    } else if (ble.isConnected) {
+      linkIcon = Icons.bluetooth_connected;
+      linkText = 'Reloj conectado';
+      linkColor = AppTheme.spo2;
+    } else if (ble.isScanning) {
+      linkIcon = Icons.bluetooth_searching;
+      linkText = 'Buscando reloj…';
+      linkColor = AppTheme.secondary;
+    } else {
+      linkIcon = Icons.bluetooth_disabled;
+      linkText = 'Reloj desconectado';
+      linkColor = AppTheme.textMuted;
+    }
+
+    return ValueListenableBuilder(
+      valueListenable: LocalStore.syncListenable(),
+      builder: (context, _, _) {
+        final pending = LocalStore.pendingSyncCount();
+        return Container(
+          width: double.infinity,
+          color: AppTheme.borderColor.withValues(alpha: 0.25),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Icon(linkIcon, size: 14, color: linkColor),
+              const SizedBox(width: 6),
+              Text(linkText, style: TextStyle(fontSize: 12, color: linkColor)),
+              const Spacer(),
+              if (pending > 0) ...[
+                const Icon(Icons.sync_problem, size: 14, color: AppTheme.warning),
+                const SizedBox(width: 4),
+                Text(
+                  '$pending sin sincronizar',
+                  style: const TextStyle(fontSize: 12, color: AppTheme.warning),
+                ),
+              ] else ...[
+                Icon(Icons.cloud_done_outlined, size: 14, color: AppTheme.textMuted),
+                const SizedBox(width: 4),
+                const Text('Sincronizado', style: TextStyle(fontSize: 12, color: AppTheme.textMuted)),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 

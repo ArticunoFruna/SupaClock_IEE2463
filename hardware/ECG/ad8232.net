@@ -1,0 +1,2919 @@
+(export
+	(version "E")
+	(design
+		(source "/home/articunot/Documents/PlatformIO/Projects/SupaClock/hardware/ECG/AD8232_Heart_Rate_Monitor.kicad_sch")
+		(date "2026-06-16T16:33:54")
+		(tool "Eeschema 10.0.3-2.fc44")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title)
+				(company)
+				(rev)
+				(date)
+				(source "AD8232_Heart_Rate_Monitor.kicad_sch")
+				(comment
+					(number "1")
+					(value "")
+				)
+				(comment
+					(number "2")
+					(value "")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "C1")
+			(value "1.5nF")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-CAP")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-CAP")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "CAP0603-CAP")
+				(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8da7b106-eefb-498d-905f-49a95e1dd534")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C2")
+			(value "1nF")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-CAP")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-CAP")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "CAP0603-CAP")
+				(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7e5647c9-e535-4334-871c-7c499707cf45")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C3")
+			(value "10nF")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-CAP")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-CAP")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "CAP0603-CAP")
+				(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0d4797c6-ccf0-46ff-b284-e3c8cad58554")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C4")
+			(value "0.33uF")
+			(footprint "AD8232_Heart_Rate_Monitor:0805")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0805")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "CAP0805")
+				(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b3c88115-efd6-4279-8af2-3b8e0a191cbb")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C5")
+			(value "0.1uF")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-CAP")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-CAP")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "CAP0603-CAP")
+				(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0ad1c110-8f35-4390-bb9b-01933877dad6")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C6")
+			(value "0.33uF")
+			(footprint "AD8232_Heart_Rate_Monitor:0805")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0805")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "CAP0805")
+				(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "63cb3e80-e699-4360-987c-090031cb295f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C7")
+			(value "0.1uf")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-CAP")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-CAP")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "CAP0603-CAP")
+				(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "af30b790-f032-4dbf-8e5d-a4d181a7fe8e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D1")
+			(value "RED")
+			(footprint "AD8232_Heart_Rate_Monitor:LED-0603")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:LED-0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "LED-RED0603")
+				(description "Assorted Red LEDs\nLilyPad 1206- DIO-09912\n1206- DIO-00809\n0603- DIO-00819")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e66720e9-5750-41b4-95d3-97f08539658b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "A")
+						)
+						(pin
+							(num "C")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "FID1")
+			(value "FIDUCIAL1X2")
+			(footprint "AD8232_Heart_Rate_Monitor:FIDUCIAL-1X2")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:FIDUCIAL-1X2")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "FIDUCIAL1X2")
+				(description "Fiducial Alignment Points\n\nPoint-of-reference for pick-and-place machines and other optical instruments.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d58b08b0-7fe9-4531-922a-a2852ef69b6b")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "FID2")
+			(value "FIDUCIAL1X2")
+			(footprint "AD8232_Heart_Rate_Monitor:FIDUCIAL-1X2")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:FIDUCIAL-1X2")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "FIDUCIAL1X2")
+				(description "Fiducial Alignment Points\n\nPoint-of-reference for pick-and-place machines and other optical instruments.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0c9c2321-947c-48bb-948f-dd14df3d667c")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "FRAME1")
+			(value "FRAME-LETTER")
+			(footprint "AD8232_Heart_Rate_Monitor:CREATIVE_COMMONS")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:CREATIVE_COMMONS")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "FRAME-LETTER")
+				(description "Schematic Frame\n\nStandard 8.5x11 US Letter frame")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "462f35eb-99ea-4c4b-82fc-a72b5e774026" "3f859fda-1348-4350-aff3-d06fcd8241ad")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+				(unit
+					(name "B")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "JP1")
+			(value "M03PTH")
+			(footprint "AD8232_Heart_Rate_Monitor:1X03")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:1X03")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "M03PTH")
+				(description "Header 3 Standard 3-pin 0.1\" header. Use with straight break away headers (SKU : PRT-00116), right angle break away headers (PRT-00553), swiss pins (PRT-00743), machine pins (PRT-00117), and female headers (PRT-00115). Molex polarized connector foot print use with SKU : PRT-08232 with associated crimp pins and housings.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2b71d995-2d16-4eeb-846a-a1ab5de09d94")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "JP2")
+			(value "AUDIO-JACKSMD2")
+			(footprint "AD8232_Heart_Rate_Monitor:AUDIO-JACK-3.5MM-SMD")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:AUDIO-JACK-3.5MM-SMD")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "AUDIO-JACKSMD2")
+				(description "3.5mm Audio Jack Simple 3.5mm common PCB mount audio jack. SKU: PRT-08032")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "81914589-64a2-4a29-9bd2-740ea954d03d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "SLEEVE")
+						)
+						(pin
+							(num "RING")
+						)
+						(pin
+							(num "TIP")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "JP3")
+			(value "M06SIP")
+			(footprint "AD8232_Heart_Rate_Monitor:1X06")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:1X06")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "M06SIP")
+				(description "Header 6\nStandard 6-pin 0.1\" header. Use with straight break away headers (SKU : PRT-00116), right angle break away headers (PRT-00553), swiss pins (PRT-00743), machine pins (PRT-00117), and female headers (PRT-00115). Molex polarized connector foot print use with SKU : PRT-08094 with associated crimp pins and housings.\n\nNOTES ON THE VARIANTS LOCK and LOCK_LONGPADS... This footprint was designed to help hold the alignment of a through-hole component (i.e.  6-pin header) while soldering it into place. You may notice that each hole has been shifted either up or down by 0.005 of an inch from it's more standard position (which is a perfectly straight line).  This slight alteration caused the pins (the squares in the middle) to touch the edges of the holes.  Because they are alternating, it causes a \"brace\" to hold the component in place.  0.005 has proven to be the perfect amount of \"off-center\" position when using our standard breakaway headers. Although looks a little odd when you look at the bare footprint, once you have a header in there, the alteration is very hard to notice.  Also,if you push a header all the way into place, it is covered up entirely on the bottom side.  This idea of altering the position of holes to aid alignment  will be further integrated into the Sparkfun Library for other footprints.  It can help hold any component with 3 or more connection pins.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0585c13a-81d0-4b87-ad31-c671810a4112")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "LOGO1")
+			(value "OSHW-LOGOS")
+			(footprint "AD8232_Heart_Rate_Monitor:OSHW-LOGO-S")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:OSHW-LOGO-S")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "OSHW-LOGOS")
+				(description "Open Source Hardware Logo This logo indicates the piece of hardware it is found on incorporates a OSHW license and/or adheres to the definition of open source hardware found here: http://freedomdefined.org/OSHW")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8c5f1edc-5de7-43e1-bdfa-e77d8df117a4")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "LOGO2")
+			(value "SFE_LOGO_NAME_FLAME.1_INCH")
+			(footprint "AD8232_Heart_Rate_Monitor:SFE_LOGO_NAME_FLAME_.1")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:SFE_LOGO_NAME_FLAME_.1")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "SFE_LOGO_NAME_FLAME.1_INCH")
+				(description "SFE Logo, name and flame\n\nThis is the SparkFun full logo. The logo on the schematic will always be\nthe same size; the package variant is the height of the flame part of the\nlogo. Default layer for the logo on the board is tSilk.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "51d3a1ef-c38e-4a35-8a37-431c4c889016")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "R1")
+			(value "10M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "fea0e9fd-2ebe-4685-acc3-2ecf49ad291f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R2")
+			(value "10M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ff40cefd-382b-4d0a-a63c-3f5087cbaabf")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R3")
+			(value "180k")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "aba39fd8-1c5a-4dd8-8a3d-3a15592e5ae2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R4")
+			(value "180k")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "4dfdc453-0c8a-4c68-92f8-7677f74692b1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R5")
+			(value "360k")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2d8c610e-13bd-44ce-9deb-61ee29d114af")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R6")
+			(value "1M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "59d720b6-78a4-4360-b878-768374b5266b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R7")
+			(value "1M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f29c8333-f243-4e9d-9bf3-c1f444f5cb34")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R8")
+			(value "100k")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "04fdb252-d5ff-4844-9ded-1c8d8ce9b107")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R9")
+			(value "1M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0d29a883-7a05-43d4-8d21-dffcf9359f18")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R10")
+			(value "10M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1abccef9-693a-4cf1-aef2-55343e236280")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R11")
+			(value "10M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "35829f98-d43c-42f5-86ef-3c399890dcc4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R12")
+			(value "1.4M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "50c2f854-706f-402e-bbe3-ea1e801a4822")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R13")
+			(value "10M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b4eabe51-67a2-4f33-b6ed-f1c0d7370450")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R14")
+			(value "10M")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "RESISTOR0603-RES")
+				(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "12ee901b-69ff-4732-a536-ffc21bcea5ee")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R15")
+			(value "10K")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "10KOHM1/10W1%(0603)0603")
+				(description "RES-00824")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "413d57c4-adbd-4f59-822b-107f30a81097")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R16")
+			(value "1k")
+			(footprint "AD8232_Heart_Rate_Monitor:0603-RES")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "1K-1%")
+				(description "1k-ohm SMT 1/10W - 1% (0603) RES-07856")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5f833a76-546d-4a0c-9a16-c0be775da079")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R17")
+			(value "0")
+			(footprint "AD8232_Heart_Rate_Monitor:0603")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "0OHM1/10W5%(0603)")
+				(description "RES-08609")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "960a9f02-419c-4450-bdf4-d1dee6fde9b0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R18")
+			(value "DNP")
+			(footprint "AD8232_Heart_Rate_Monitor:0603")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "0OHM1/10W5%(0603)")
+				(description "RES-08609")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "876fa8d6-0c1f-4ce5-9ed3-89f08623b3ce")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R19")
+			(value "0")
+			(footprint "AD8232_Heart_Rate_Monitor:0603")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "0OHM1/10W5%(0603)")
+				(description "RES-08609")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "92cdb3b0-ce60-4359-9941-34feccb48f31")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R20")
+			(value "DNP")
+			(footprint "AD8232_Heart_Rate_Monitor:0603")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "0OHM1/10W5%(0603)")
+				(description "RES-08609")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "45e39dbc-dd13-4b8e-b47e-31f052df381b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "SJ4")
+			(value "LED DISABLE")
+			(footprint "AD8232_Heart_Rate_Monitor:SJ_2S-TRACE")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:SJ_2S-TRACE")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "SOLDERJUMPERTRACE")
+				(description "Solder Jumper Standard SMD solder jumper. Used to automate production. Two varients : Normally Open and Normally Closed are the same, but have different paste layers. NC will have a large amount of paste and should jumper during reflow.")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "017875cd-403e-4d8a-832d-b9ca048e2647")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "STANDOFF1")
+			(value "STAND-OFF")
+			(footprint "AD8232_Heart_Rate_Monitor:STAND-OFF")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:STAND-OFF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "STAND-OFF")
+				(description "#4 Stand Off\n\nThis is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "585eaefe-f7aa-4f58-8e19-5665f17cb9f3")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "STANDOFF2")
+			(value "STAND-OFF")
+			(footprint "AD8232_Heart_Rate_Monitor:STAND-OFF")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:STAND-OFF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "STAND-OFF")
+				(description "#4 Stand Off\n\nThis is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e4be8554-d18b-448d-ac37-48a7e080517b")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "STANDOFF3")
+			(value "STAND-OFF")
+			(footprint "AD8232_Heart_Rate_Monitor:STAND-OFF")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:STAND-OFF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "STAND-OFF")
+				(description "#4 Stand Off\n\nThis is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a3273a30-6421-47b3-b8ba-add4dc84218c")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "STANDOFF4")
+			(value "STAND-OFF")
+			(footprint "AD8232_Heart_Rate_Monitor:STAND-OFF")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:STAND-OFF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "STAND-OFF")
+				(description "#4 Stand Off\n\nThis is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "47727375-9084-4ddc-81ff-fe0826f42766")
+			(units
+				(unit
+					(name "A")
+					(pins)
+				)
+			)
+		)
+		(comp
+			(ref "U1")
+			(value "AD8232")
+			(footprint "AD8232_Heart_Rate_Monitor:LFCSP_20")
+			(fields
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:LFCSP_20")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+				(part "AD8232")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "")
+			)
+			(property
+				(name "Sheetfile")
+				(value "AD8232_Heart_Rate_Monitor.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c7de52b7-7710-4f59-a194-5b8f0ee4c121")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "PAD")
+						)
+						(pin
+							(num "20")
+						)
+						(pin
+							(num "19")
+						)
+						(pin
+							(num "18")
+						)
+						(pin
+							(num "17")
+						)
+						(pin
+							(num "16")
+						)
+						(pin
+							(num "15")
+						)
+						(pin
+							(num "14")
+						)
+						(pin
+							(num "13")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "11")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "0OHM1/10W5%(0603)")
+			(description "RES-08609")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "RES-08609")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "10KOHM1/10W1%(0603)0603")
+			(description "RES-00824")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "RES-00824")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "1K-1%")
+			(description "1k-ohm SMT 1/10W - 1% (0603) RES-07856")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "1k-ohm SMT 1/10W - 1% (0603) RES-07856")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "AD8232")
+			(fields
+				(field
+					(name "Reference")
+				)
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:LFCSP_20")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "HPDRIVE")
+					(type "bidirectional")
+				)
+				(pin
+					(num "2")
+					(name "+IN")
+					(type "bidirectional")
+				)
+				(pin
+					(num "3")
+					(name "-IN")
+					(type "bidirectional")
+				)
+				(pin
+					(num "4")
+					(name "RLDFB")
+					(type "bidirectional")
+				)
+				(pin
+					(num "5")
+					(name "RLD")
+					(type "bidirectional")
+				)
+				(pin
+					(num "6")
+					(name "SW")
+					(type "bidirectional")
+				)
+				(pin
+					(num "7")
+					(name "OPAMP+")
+					(type "bidirectional")
+				)
+				(pin
+					(num "8")
+					(name "REFOUT")
+					(type "bidirectional")
+				)
+				(pin
+					(num "9")
+					(name "OPAMP-")
+					(type "bidirectional")
+				)
+				(pin
+					(num "10")
+					(name "OUT")
+					(type "bidirectional")
+				)
+				(pin
+					(num "11")
+					(name "LO-")
+					(type "bidirectional")
+				)
+				(pin
+					(num "12")
+					(name "LO+")
+					(type "bidirectional")
+				)
+				(pin
+					(num "13")
+					(name "~{SDN}")
+					(type "bidirectional")
+				)
+				(pin
+					(num "14")
+					(name "AC/~{DC}")
+					(type "bidirectional")
+				)
+				(pin
+					(num "15")
+					(name "FR")
+					(type "bidirectional")
+				)
+				(pin
+					(num "16")
+					(name "GND")
+					(type "bidirectional")
+				)
+				(pin
+					(num "17")
+					(name "+VS")
+					(type "bidirectional")
+				)
+				(pin
+					(num "18")
+					(name "REFIN")
+					(type "bidirectional")
+				)
+				(pin
+					(num "19")
+					(name "IAOUT")
+					(type "bidirectional")
+				)
+				(pin
+					(num "20")
+					(name "HPSENSE")
+					(type "bidirectional")
+				)
+				(pin
+					(num "PAD")
+					(name "GND_PAD")
+					(type "bidirectional")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "AUDIO-JACKSMD2")
+			(description "3.5mm Audio Jack Simple 3.5mm common PCB mount audio jack. SKU: PRT-08032")
+			(fields
+				(field
+					(name "Reference") "JP")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:AUDIO-JACK-3.5MM-SMD")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "3.5mm Audio Jack Simple 3.5mm common PCB mount audio jack. SKU: PRT-08032")
+			)
+			(pins
+				(pin
+					(num "RING")
+					(name "RIGHT")
+					(type "bidirectional")
+				)
+				(pin
+					(num "SLEEVE")
+					(name "SLEEVE")
+					(type "bidirectional")
+				)
+				(pin
+					(num "TIP")
+					(name "LEFT")
+					(type "bidirectional")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "CAP0603-CAP")
+			(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-CAP")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "CAP0805")
+			(description "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0805")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Capacitor Standard 0603 ceramic capacitor, and 0.1\" leaded capacitor.")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "FIDUCIAL1X2")
+			(description "Fiducial Alignment Points\n\nPoint-of-reference for pick-and-place machines and other optical instruments.")
+			(fields
+				(field
+					(name "Reference") "FD")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:FIDUCIAL-1X2")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Fiducial Alignment Points\n\nPoint-of-reference for pick-and-place machines and other optical instruments.")
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "FRAME-LETTER")
+			(description "Schematic Frame\n\nStandard 8.5x11 US Letter frame")
+			(fields
+				(field
+					(name "Reference") "FRAME")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:CREATIVE_COMMONS")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Schematic Frame\n\nStandard 8.5x11 US Letter frame")
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "LED-RED0603")
+			(description "Assorted Red LEDs\nLilyPad 1206- DIO-09912\n1206- DIO-00809\n0603- DIO-00819")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:LED-0603")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Assorted Red LEDs\nLilyPad 1206- DIO-09912\n1206- DIO-00809\n0603- DIO-00819")
+			)
+			(pins
+				(pin
+					(num "A")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "C")
+					(name "C")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "M03PTH")
+			(description "Header 3 Standard 3-pin 0.1\" header. Use with straight break away headers (SKU : PRT-00116), right angle break away headers (PRT-00553), swiss pins (PRT-00743), machine pins (PRT-00117), and female headers (PRT-00115). Molex polarized connector foot print use with SKU : PRT-08232 with associated crimp pins and housings.")
+			(fields
+				(field
+					(name "Reference") "JP")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:1X03")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Header 3 Standard 3-pin 0.1\" header. Use with straight break away headers (SKU : PRT-00116), right angle break away headers (PRT-00553), swiss pins (PRT-00743), machine pins (PRT-00117), and female headers (PRT-00115). Molex polarized connector foot print use with SKU : PRT-08232 with associated crimp pins and housings.")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "3")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "M06SIP")
+			(description "Header 6\nStandard 6-pin 0.1\" header. Use with straight break away headers (SKU : PRT-00116), right angle break away headers (PRT-00553), swiss pins (PRT-00743), machine pins (PRT-00117), and female headers (PRT-00115). Molex polarized connector foot print use with SKU : PRT-08094 with associated crimp pins and housings.\n\nNOTES ON THE VARIANTS LOCK and LOCK_LONGPADS... This footprint was designed to help hold the alignment of a through-hole component (i.e.  6-pin header) while soldering it into place. You may notice that each hole has been shifted either up or down by 0.005 of an inch from it's more standard position (which is a perfectly straight line).  This slight alteration caused the pins (the squares in the middle) to touch the edges of the holes.  Because they are alternating, it causes a \"brace\" to hold the component in place.  0.005 has proven to be the perfect amount of \"off-center\" position when using our standard breakaway headers. Although looks a little odd when you look at the bare footprint, once you have a header in there, the alteration is very hard to notice.  Also,if you push a header all the way into place, it is covered up entirely on the bottom side.  This idea of altering the position of holes to aid alignment  will be further integrated into the Sparkfun Library for other footprints.  It can help hold any component with 3 or more connection pins.")
+			(fields
+				(field
+					(name "Reference") "JP")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:1X06")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Header 6\nStandard 6-pin 0.1\" header. Use with straight break away headers (SKU : PRT-00116), right angle break away headers (PRT-00553), swiss pins (PRT-00743), machine pins (PRT-00117), and female headers (PRT-00115). Molex polarized connector foot print use with SKU : PRT-08094 with associated crimp pins and housings.\n\nNOTES ON THE VARIANTS LOCK and LOCK_LONGPADS... This footprint was designed to help hold the alignment of a through-hole component (i.e.  6-pin header) while soldering it into place. You may notice that each hole has been shifted either up or down by 0.005 of an inch from it's more standard position (which is a perfectly straight line).  This slight alteration caused the pins (the squares in the middle) to touch the edges of the holes.  Because they are alternating, it causes a \"brace\" to hold the component in place.  0.005 has proven to be the perfect amount of \"off-center\" position when using our standard breakaway headers. Although looks a little odd when you look at the bare footprint, once you have a header in there, the alteration is very hard to notice.  Also,if you push a header all the way into place, it is covered up entirely on the bottom side.  This idea of altering the position of holes to aid alignment  will be further integrated into the Sparkfun Library for other footprints.  It can help hold any component with 3 or more connection pins.")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "3")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "4")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "5")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "6")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "OSHW-LOGOS")
+			(description "Open Source Hardware Logo This logo indicates the piece of hardware it is found on incorporates a OSHW license and/or adheres to the definition of open source hardware found here: http://freedomdefined.org/OSHW")
+			(fields
+				(field
+					(name "Reference") "LOGO")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:OSHW-LOGO-S")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Open Source Hardware Logo This logo indicates the piece of hardware it is found on incorporates a OSHW license and/or adheres to the definition of open source hardware found here: http://freedomdefined.org/OSHW")
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "RESISTOR0603-RES")
+			(description "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:0603-RES")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Resistor Basic schematic elements and footprints for 0603, 1206, and PTH resistors.")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "SFE_LOGO_NAME_FLAME.1_INCH")
+			(description "SFE Logo, name and flame\n\nThis is the SparkFun full logo. The logo on the schematic will always be\nthe same size; the package variant is the height of the flame part of the\nlogo. Default layer for the logo on the board is tSilk.")
+			(fields
+				(field
+					(name "Reference") "LOGO")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:SFE_LOGO_NAME_FLAME_.1")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "SFE Logo, name and flame\n\nThis is the SparkFun full logo. The logo on the schematic will always be\nthe same size; the package variant is the height of the flame part of the\nlogo. Default layer for the logo on the board is tSilk.")
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "SOLDERJUMPERTRACE")
+			(description "Solder Jumper Standard SMD solder jumper. Used to automate production. Two varients : Normally Open and Normally Closed are the same, but have different paste layers. NC will have a large amount of paste and should jumper during reflow.")
+			(fields
+				(field
+					(name "Reference") "SJ")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:SJ_2S-TRACE")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Solder Jumper Standard SMD solder jumper. Used to automate production. Two varients : Normally Open and Normally Closed are the same, but have different paste layers. NC will have a large amount of paste and should jumper during reflow.")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "AD8232_Heart_Rate_Monitor-eagle-import")
+			(part "STAND-OFF")
+			(description "#4 Stand Off\n\nThis is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447")
+			(fields
+				(field
+					(name "Reference") "STANDOFF")
+				(field
+					(name "Value")
+				)
+				(field
+					(name "Footprint") "AD8232_Heart_Rate_Monitor:STAND-OFF")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "#4 Stand Off\n\nThis is the mechanical footprint for a #4 phillips button head screw. Use the keepout ring to avoid running the screw head into surrounding components. SKU : PRT-00447")
+			)
+		)
+	)
+	(libraries
+		(library
+			(logical "AD8232_Heart_Rate_Monitor-eagle-import")
+			(uri "${KIPRJMOD}/AD8232_Heart_Rate_Monitor-eagle-import.kicad_sym")
+		)
+	)
+	(nets
+		(net
+			(code "1")
+			(name "/LA")
+			(class "Default")
+			(node
+				(ref "JP1")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP2")
+				(pin "RING")
+				(pinfunction "RIGHT_RING")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "R1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "/LO+")
+			(class "Default")
+			(node
+				(ref "JP3")
+				(pin "5")
+				(pinfunction "5_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "12")
+				(pinfunction "LO+_12")
+				(pintype "bidirectional")
+			)
+		)
+		(net
+			(code "3")
+			(name "/LO-")
+			(class "Default")
+			(node
+				(ref "JP3")
+				(pin "4")
+				(pinfunction "4_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "11")
+				(pinfunction "LO-_11")
+				(pintype "bidirectional")
+			)
+		)
+		(net
+			(code "4")
+			(name "/RA")
+			(class "Default")
+			(node
+				(ref "JP1")
+				(pin "3")
+				(pinfunction "3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP2")
+				(pin "SLEEVE")
+				(pinfunction "SLEEVE_SLEEVE")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "R2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R4")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "/REFOUT")
+			(class "Default")
+			(node
+				(ref "C3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C6")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R8")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "8")
+				(pinfunction "REFOUT_8")
+				(pintype "bidirectional")
+			)
+		)
+		(net
+			(code "6")
+			(name "/RL")
+			(class "Default")
+			(node
+				(ref "JP1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP2")
+				(pin "TIP")
+				(pinfunction "LEFT_TIP")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "R5")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "/SDN")
+			(class "Default")
+			(node
+				(ref "JP3")
+				(pin "6")
+				(pinfunction "6_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "R15")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "13")
+				(pinfunction "~{SDN}_13")
+				(pintype "bidirectional")
+			)
+		)
+		(net
+			(code "8")
+			(name "/SIGNAL_OUT")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP3")
+				(pin "3")
+				(pinfunction "3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "R16")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R9")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "10")
+				(pinfunction "OUT_10")
+				(pintype "bidirectional")
+			)
+		)
+		(net
+			(code "9")
+			(name "3.3V")
+			(class "Default")
+			(node
+				(ref "C5")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP3")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R10")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R15")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R17")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R20")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "15")
+				(pinfunction "FR_15")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "U1")
+				(pin "17")
+				(pinfunction "+VS_17")
+				(pintype "bidirectional")
+			)
+		)
+		(net
+			(code "10")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "C5")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C7")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R14")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R19")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "SJ4")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "16")
+				(pinfunction "GND_16")
+				(pintype "bidirectional")
+			)
+			(node
+				(ref "U1")
+				(pin "PAD")
+				(pinfunction "GND_PAD_PAD")
+				(pintype "bidirectional")
+			)
+		)
+	)
+)

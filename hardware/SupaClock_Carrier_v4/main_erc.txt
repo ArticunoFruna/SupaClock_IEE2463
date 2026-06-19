@@ -1,0 +1,360 @@
+ERC report (2026-06-16T16:40:52, Encoding UTF8)
+Report includes: Errors, Warnings
+
+***** Sheet /
+[pin_not_connected]: Pin not connected
+    ; error
+    @(147.32 mm, 77.47 mm): Symbol U1 Pin 24 [GPIO41_MTDI, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(151.13 mm, 77.47 mm): Symbol U1 Pin 25 [GPIO40_MTDO, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(154.94 mm, 77.47 mm): Symbol U1 Pin 26 [CHIP_EN, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(158.75 mm, 77.47 mm): Symbol U1 Pin 27 [GND, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(162.56 mm, 77.47 mm): Symbol U1 Pin 28 [GPIO42_MTMS, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(166.37 mm, 77.47 mm): Symbol U1 Pin 29 [GPIO39_MTCK, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(166.37 mm, 132.08 mm): Symbol U1 Pin 34 [PAD, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(170.18 mm, 77.47 mm): Symbol U1 Pin 30 [GPIO19_USB_DN, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(173.99 mm, 77.47 mm): Symbol U1 Pin 31 [GPIO20_USB_DP, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(181.61 mm, 99.06 mm): Symbol U1 Pin 14 [VBUS, Passive, Line]
+[power_pin_not_driven]: Input Power pin not driven by any Output Power pins
+    ; error
+    @(181.61 mm, 102.87 mm): Symbol #PWR_1fbb Pin 1 [Power input, Line]
+[power_pin_not_driven]: Input Power pin not driven by any Output Power pins
+    ; error
+    @(181.61 mm, 106.68 mm): Symbol #PWR_0fd3 Pin 1 [Power input, Line]
+[power_pin_not_driven]: Input Power pin not driven by any Output Power pins
+    ; error
+    @(255.27 mm, 110.49 mm): Symbol #PWR_8ec1 Pin 1 [Power input, Line]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(69.85 mm, 44.45 mm): Symbol R3 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(69.85 mm, 44.45 mm): Symbol R3 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(69.85 mm, 48.26 mm): Symbol #PWR_bd09 [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(69.85 mm, 59.69 mm): Symbol C4 [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(69.85 mm, 63.50 mm): Symbol #PWR_bf91 [GND]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(69.85 mm, 74.93 mm): Symbol R4 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(69.85 mm, 74.93 mm): Symbol R4 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(69.85 mm, 78.74 mm): Symbol #PWR_3c9e [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(69.85 mm, 90.17 mm): Symbol C5 [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(69.85 mm, 93.98 mm): Symbol #PWR_4022 [GND]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(69.85 mm, 110.49 mm): Symbol R1 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(69.85 mm, 110.49 mm): Symbol R1 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(69.85 mm, 114.30 mm): Symbol #PWR_a321 [+3V3]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(69.85 mm, 124.46 mm): Symbol R2 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(69.85 mm, 124.46 mm): Symbol R2 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(69.85 mm, 128.27 mm): Symbol #PWR_cf2e [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Switch'
+    ; warning
+    @(90.17 mm, 59.69 mm): Symbol SW1 [SW_Push]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Switch'
+    ; warning
+    @(90.17 mm, 90.17 mm): Symbol SW2 [SW_Push]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(95.25 mm, 59.69 mm): Symbol #PWR_aed9 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(95.25 mm, 90.17 mm): Symbol #PWR_9048 [GND]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(100.33 mm, 195.58 mm): Symbol R_GATE [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(100.33 mm, 195.58 mm): Symbol R_GATE [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(100.33 mm, 199.39 mm): Symbol #PWR_feb2 [GND]
+[footprint_link_issues]: Footprint 'SOT-23_HandSoldering' not found in library 'Package_TO_SOT_SMD'
+    ; warning
+    @(100.33 mm, 219.71 mm): Symbol Q1 [2N7000]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Transistor_FET'
+    ; warning
+    @(100.33 mm, 219.71 mm): Symbol Q1 [2N7000]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(102.87 mm, 224.79 mm): Symbol #PWR_d712 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(119.38 mm, 191.77 mm): Symbol #PWR_ec6d [+3V3]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(119.38 mm, 195.58 mm): Symbol R_LEDA [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(119.38 mm, 195.58 mm): Symbol R_LEDA [R]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(119.38 mm, 240.03 mm): Symbol R_IM [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(119.38 mm, 240.03 mm): Symbol R_IM [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(119.38 mm, 243.84 mm): Symbol #PWR_ca1d [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(119.38 mm, 271.78 mm): Symbol #PWR_c376 [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(119.38 mm, 275.59 mm): Symbol C_DISP1 [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(119.38 mm, 279.40 mm): Symbol #PWR_39ae [GND]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(134.62 mm, 240.03 mm): Symbol R_RD [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(134.62 mm, 240.03 mm): Symbol R_RD [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(134.62 mm, 243.84 mm): Symbol #PWR_b4bc [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(134.62 mm, 271.78 mm): Symbol #PWR_092e [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(134.62 mm, 275.59 mm): Symbol C_DISP2 [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(134.62 mm, 279.40 mm): Symbol #PWR_24ae [GND]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(149.86 mm, 240.03 mm): Symbol R_RST [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(149.86 mm, 240.03 mm): Symbol R_RST [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(149.86 mm, 243.84 mm): Symbol #PWR_c672 [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(149.86 mm, 260.35 mm): Symbol C_RST [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(149.86 mm, 264.16 mm): Symbol #PWR_45f1 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(156.21 mm, 132.08 mm): Symbol #PWR_e302 [+BATT]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Seeed_Studio_XIAO_Footprints'
+    ; warning
+    @(160.02 mm, 100.33 mm): Symbol U1 [XIAO-ESP32-S3-SMD]
+[lib_symbol_issues]: The symbol library 'Seeed_Studio_XIAO_Series' was not found at '/home/articunot/Documents/PlatformIO/Projects/SupaClock/hardware/SupaClock_Carrier_v4/SupaClock_MainBoard/../../docs/XIAO_Series_SCH_Symbols/Seeed_Studio_XIAO_Series.kicad_sym'
+    ; warning
+    @(160.02 mm, 100.33 mm): Symbol U1 [XIAO-ESP32-S3-SMD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(161.29 mm, 132.08 mm): Symbol #PWR_189a [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 196.85 mm): Symbol #PWR_8ca2 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 199.39 mm): Symbol #PWR_08d0 [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 201.93 mm): Symbol #PWR_2c20 [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 222.25 mm): Symbol #PWR_5f1c [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 224.79 mm): Symbol #PWR_9cae [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 227.33 mm): Symbol #PWR_25c1 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 229.87 mm): Symbol #PWR_ac09 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 232.41 mm): Symbol #PWR_374b [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 234.95 mm): Symbol #PWR_e069 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 237.49 mm): Symbol #PWR_15c2 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 240.03 mm): Symbol #PWR_7c33 [GND]
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(165.10 mm, 242.57 mm): Global Label 'TE_NC'
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(165.10 mm, 245.11 mm): Global Label 'NC_22'
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 247.65 mm): Symbol #PWR_3f1e [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(165.10 mm, 250.19 mm): Symbol #PWR_c0a7 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Connector_Generic'
+    ; warning
+    @(170.18 mm, 219.71 mm): Symbol J_FPC [Conn_01x24]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(181.61 mm, 102.87 mm): Symbol #PWR_1fbb [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(181.61 mm, 106.68 mm): Symbol #PWR_0fd3 [+3V3]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(229.87 mm, 35.56 mm): Symbol R_FG1 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(229.87 mm, 35.56 mm): Symbol R_FG1 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(229.87 mm, 39.37 mm): Symbol #PWR_12e7 [+BATT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(229.87 mm, 49.53 mm): Symbol C_FG1 [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(229.87 mm, 53.34 mm): Symbol #PWR_6156 [GND]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(245.11 mm, 35.56 mm): Symbol R_FG2 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(245.11 mm, 35.56 mm): Symbol R_FG2 [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(245.11 mm, 39.37 mm): Symbol #PWR_62a7 [+BATT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(245.11 mm, 49.53 mm): Symbol C_FG2 [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(245.11 mm, 53.34 mm): Symbol #PWR_c38b [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(250.19 mm, 54.61 mm): Symbol #PWR_7d5a [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(250.19 mm, 62.23 mm): Symbol #PWR_7982 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(250.19 mm, 62.23 mm): Symbol #PWR_1327 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(255.27 mm, 110.49 mm): Symbol #PWR_8ec1 [+BATT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(255.27 mm, 113.03 mm): Symbol #PWR_1587 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'SparkFun_Lipo_Fuel_Gauge-eagle-import'
+    ; warning
+    @(260.35 mm, 59.69 mm): Symbol U2 [MAX1704X]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Connector_Generic'
+    ; warning
+    @(260.35 mm, 110.49 mm): Symbol J_BAT [Conn_01x02]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(279.40 mm, 106.68 mm): Symbol #PWR_c03c [+BATT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(279.40 mm, 110.49 mm): Symbol C2 [C]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(279.40 mm, 114.30 mm): Symbol #PWR_242f [GND]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(289.56 mm, 44.45 mm): Symbol R_FG_ALT [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(289.56 mm, 44.45 mm): Symbol R_FG_ALT [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(289.56 mm, 48.26 mm): Symbol #PWR_e59f [+3V3]
+[footprint_link_issues]: Footprint 'R_0805_2012Metric_Pad1.18x1.45mm_HandSolder' not found in library 'Resistor_SMD'
+    ; warning
+    @(289.56 mm, 64.77 mm): Symbol R_FG_QST [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(289.56 mm, 64.77 mm): Symbol R_FG_QST [R]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(289.56 mm, 68.58 mm): Symbol #PWR_5ed8 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(335.28 mm, 52.07 mm): Symbol #PWR_3462 [+3V3]
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(335.28 mm, 54.61 mm): Global Label 'IMU_INT1'
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(335.28 mm, 57.15 mm): Symbol #PWR_8f6b [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(335.28 mm, 64.77 mm): Symbol #PWR_08bc [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(335.28 mm, 67.31 mm): Symbol #PWR_7a24 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(335.28 mm, 114.30 mm): Symbol #PWR_1da1 [+3V3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'power'
+    ; warning
+    @(335.28 mm, 116.84 mm): Symbol #PWR_e04c [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Connector_Generic'
+    ; warning
+    @(340.36 mm, 59.69 mm): Symbol J_IMU [Conn_01x07]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Connector_Generic'
+    ; warning
+    @(340.36 mm, 119.38 mm): Symbol J_CONN_SENSOR [Conn_01x06]
+
+ ** ERC messages: 116  Errors 13  Warnings 103
+
+ ** Ignored checks:
+    - Global label only appears once in the schematic
+    - Four connection points are joined together
+    - SPICE model issue
+    - Assigned footprint doesn't match footprint filters

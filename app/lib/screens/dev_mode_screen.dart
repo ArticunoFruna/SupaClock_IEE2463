@@ -8,10 +8,8 @@ import 'package:share_plus/share_plus.dart';
 
 import '../config/theme.dart';
 import '../models/recording_model.dart';
-import '../services/auth_service.dart';
 import '../services/ble_service.dart';
 import '../services/csv_recorder.dart';
-import '../services/firestore_service.dart';
 import '../services/local_store.dart';
 
 /// Developer Mode — port of `tools/supaclock_monitor.py`.
@@ -343,26 +341,22 @@ class _DevModeScreenState extends State<DevModeScreen>
         final type = r['type'] ?? 'imu';
         final size = (r['sizeBytes'] ?? 0) as int;
         final dur = ((r['durationMs'] ?? 0) as int) ~/ 1000;
-        final uploaded = r['uploaded'] == true;
         return Card(
           child: ListTile(
             leading: Icon(
               type == 'ecgRaw' ? Icons.monitor_heart : Icons.show_chart,
-              color: uploaded ? AppTheme.spo2 : AppTheme.textMuted,
+              color: AppTheme.textMuted,
             ),
             title: Text(r['id'] ?? '—'),
-            subtitle: Text(
-                '${(size / 1024).toStringAsFixed(1)} KB · ${dur}s · ${uploaded ? "subido" : "local"}'),
+            // Dev-mode recordings stay on-device only (ML dataset). Share to
+            // pull them off via the OS sheet; nothing goes to the cloud.
+            subtitle: Text('${(size / 1024).toStringAsFixed(1)} KB · ${dur}s · local'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.share),
                   onPressed: () => _shareLocal(r),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.cloud_upload),
-                  onPressed: uploaded ? null : () => _uploadRecording(r),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
@@ -380,45 +374,6 @@ class _DevModeScreenState extends State<DevModeScreen>
     final path = r['localPath'] as String?;
     if (path == null) return;
     await Share.shareXFiles([XFile(path)]);
-  }
-
-  Future<void> _uploadRecording(Map<String, dynamic> r) async {
-    final uid = AuthService().currentUser?.uid;
-    if (uid == null) return;
-    final path = r['localPath'] as String?;
-    if (path == null) return;
-
-    try {
-      final csv = await File(path).readAsString();
-      final id = r['id'];
-      final type = r['type'];
-      final folder = type == 'ecgRaw' ? 'ecg' : 'imu';
-      final remotePath = await FirestoreService().uploadRecordingCsvGz(uid, id, csv);
-      await FirestoreService().createRecording(
-          uid,
-          RecordingModel(
-            id: id,
-            type: type == 'ecgRaw' ? RecordingType.ecgRaw : RecordingType.imu,
-            storagePath: remotePath,
-            sizeBytes: r['sizeBytes'] ?? 0,
-            durationMs: r['durationMs'] ?? 0,
-            sampleRate: r['sampleRate'] ?? 0,
-            createdAt: DateTime.fromMillisecondsSinceEpoch(r['createdAtMs'] ?? 0),
-            uploaded: true,
-          ));
-      r['uploaded'] = true;
-      await LocalStore.saveRecording(id, r);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Subido a Firebase Storage')),
-      );
-      setState(() {});
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error subiendo: $e')),
-      );
-    }
   }
 
   Future<void> _deleteRec(Map<String, dynamic> r) async {

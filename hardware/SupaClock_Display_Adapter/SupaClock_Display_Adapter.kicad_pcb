@@ -4508,7 +4508,7 @@
 		(uuid "517c28cd-1827-4cf1-a0d7-6689c517a9b8")
 		(hatch edge 0.5)
 		(connect_pads
-			(clearance 0.2)
+			(clearance 0.15)
 		)
 		(min_thickness 0.2)
 		(fill yes

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 /// Local persistence — Hive-backed. All raw boxes are typed-loosely (Map)
@@ -39,11 +40,30 @@ class LocalStore {
         'spo2Samples': <int>[],
         'tempSamples': <double>[],
         'hrZoneSeconds': <int>[0, 0, 0, 0, 0],
+        'hourly': emptyHourly(),
         'lastTouchEpoch': 0,
       };
     }
-    return Map<String, dynamic>.from(raw as Map);
+    final m = Map<String, dynamic>.from(raw as Map);
+    // Backfill for days persisted before the hourly buckets existed.
+    m['hourly'] ??= emptyHourly();
+    return m;
   }
+
+  /// 24 per-hour accumulator buckets (sum + count per metric). Stored as
+  /// primitive maps so Hive can persist them.
+  static List<Map<String, dynamic>> emptyHourly() => List.generate(
+        24,
+        (_) => <String, dynamic>{
+          'hrSum': 0,
+          'hrCount': 0,
+          'spo2Sum': 0,
+          'spo2Count': 0,
+          'tempSum': 0.0,
+          'tempCount': 0,
+          'steps': 0,
+        },
+      );
 
   static Future<void> putDay(String dateKey, Map<String, dynamic> data) async {
     await _daily.put(dateKey, data);
@@ -68,6 +88,12 @@ class LocalStore {
 
   static List<MapEntry<dynamic, Map>> pendingSync() =>
       _sync.toMap().entries.map((e) => MapEntry(e.key, e.value as Map)).toList();
+
+  /// Number of writes still waiting to reach Firestore.
+  static int pendingSyncCount() => _sync.length;
+
+  /// Rebuilds UI (e.g. the status banner) when the queue grows or drains.
+  static ValueListenable<Box> syncListenable() => _sync.listenable();
 
   static Future<void> dequeue(dynamic key) async => _sync.delete(key);
 

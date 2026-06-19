@@ -1,0 +1,5 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "Seeed_Studio_XIAO_Footprints")(type "KiCad")(uri "${KIPRJMOD}/../../docs/New_XIAO_Series_Footprints")(options "")(descr "Seeed Studio XIAO series module footprints"))
+	(lib (name "SupaClock_Custom")(type "KiCad")(uri "${KIPRJMOD}/footprints/SupaClock_Custom.pretty")(options "")(descr "Footprints custom para SupaClock Carrier v1: side-press buttons, castellated MAX30102, M3 electrode pads"))
+)

@@ -30,6 +30,7 @@ class TlvTypes {
   static const int steps = 0x05;
   static const int modeEvt = 0x06;
   static const int spotResult = 0x07;
+  static const int pedDbg = 0x10; // debug pedómetro (quitar tras calibrar)
 }
 
 class SupaClockTelemetry {
@@ -304,6 +305,21 @@ class BleService extends ChangeNotifier {
         case TlvTypes.steps:
           if (len == 4) {
             updates['steps'] = payload.getUint32(0, Endian.little);
+          }
+          break;
+        case TlvTypes.pedDbg:
+          if (len == 13) {
+            final amp = payload.getUint16(0, Endian.little);
+            final prom = payload.getUint16(2, Endian.little) / 10.0;
+            final ratio = payload.getUint8(4) / 100.0;
+            final pkHz = payload.getUint8(5) / 10.0;
+            final cad = payload.getUint8(6) / 10.0;
+            final gate = payload.getUint8(7);
+            final cons = payload.getUint8(8);
+            final steps = payload.getUint32(9, Endian.little);
+            _addLog('PED amp=$amp prom=${prom.toStringAsFixed(1)} '
+                'ratio=${ratio.toStringAsFixed(2)} pkHz=${pkHz.toStringAsFixed(1)} '
+                'cad=${cad.toStringAsFixed(1)} gate=$gate cons=$cons pasos=$steps');
           }
           break;
         case TlvTypes.spotResult:

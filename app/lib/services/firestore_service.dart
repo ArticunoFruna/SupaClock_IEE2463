@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,7 +5,6 @@ import '../models/user_model.dart';
 import '../models/session_model.dart';
 import '../models/daily_stats_model.dart';
 import '../models/alert_model.dart';
-import '../models/recording_model.dart';
 import '../models/ecg_reading_model.dart';
 
 /// Firestore service for the SupaClock schema:
@@ -62,9 +60,11 @@ class FirestoreService {
     await _sessions(uid).doc(sessionId).set(patch, SetOptions(merge: true));
   }
 
+  /// Raw 30s ECG → gzip Blob inside the session doc's `blobs/csv_gz`.
+  /// This is the ONLY raw waveform we keep in the cloud; everything else is
+  /// edge-summarised. Stays well under Firestore's 1 MB/doc limit (~40-70 KB).
   Future<String> uploadSessionCsvGz(String uid, String sessionId, String csvBody) async {
     final gz = GZipEncoder().encode(Uint8List.fromList(csvBody.codeUnits));
-    if (gz == null) return '';
     await _sessions(uid).doc(sessionId).collection('blobs').doc('csv_gz').set({
       'data': Blob(Uint8List.fromList(gz)),
       'timestamp': FieldValue.serverTimestamp(),
@@ -91,6 +91,39 @@ class FirestoreService {
     final doc = await _sessions(uid).doc(sessionId).get();
     if (!doc.exists) return null;
     return SessionModel.fromFirestore(doc);
+  }
+
+  /// Recent sessions that carry an ECG recording (`ecg != null`), newest first.
+  /// ECG spot sessions are stored with `type == 'spot'`, so we filter client
+  /// side on the presence of the ecg meta rather than by type.
+  Future<List<SessionModel>> getEcgSessions(String uid, {int scan = 40}) async {
+    final all = await getSessions(uid, limit: scan);
+    return all.where((s) => s.ecg != null).toList();
+  }
+
+  /// Downloads and gunzips a session's raw ECG Blob into its sample list.
+  /// Mirrors the writer in [uploadSessionCsvGz] (CSV: `timestamp_ms,ecg_raw`).
+  Future<List<double>> downloadSessionEcg(String uid, String sessionId) async {
+    final doc =
+        await _sessions(uid).doc(sessionId).collection('blobs').doc('csv_gz').get();
+    final blob = doc.data()?['data'];
+    if (blob is! Blob) return const [];
+
+    final bytes = GZipDecoder().decodeBytes(blob.bytes);
+    final csv = String.fromCharCodes(bytes);
+
+    final out = <double>[];
+    final lines = csv.split('\n');
+    for (var i = 1; i < lines.length; i++) {
+      // skip header
+      final line = lines[i].trim();
+      if (line.isEmpty) continue;
+      final parts = line.split(',');
+      if (parts.length < 2) continue;
+      final v = double.tryParse(parts[1]);
+      if (v != null) out.add(v);
+    }
+    return out;
   }
 
   // ═════════════════════════════════════════════════════════════════
@@ -148,33 +181,6 @@ class FirestoreService {
           .limit(20)
           .snapshots()
           .map((s) => s.docs.map(AlertModel.fromFirestore).toList());
-
-  // ═════════════════════════════════════════════════════════════════
-  //                           Recordings (dev)
-  // ═════════════════════════════════════════════════════════════════
-  CollectionReference<Map<String, dynamic>> _recordings(String uid) =>
-      _user(uid).collection('recordings');
-
-  Future<String> createRecording(String uid, RecordingModel rec) async {
-    final doc = await _recordings(uid).add(rec.toFirestore());
-    return doc.id;
-  }
-
-  Future<String> uploadRecordingCsvGz(String uid, String recId, String csvBody) async {
-    final gz = GZipEncoder().encode(Uint8List.fromList(csvBody.codeUnits));
-    if (gz == null) return '';
-    await _recordings(uid).doc(recId).collection('blobs').doc('csv_gz').set({
-      'data': Blob(Uint8List.fromList(gz)),
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-    return 'firestore:recordings/$recId/blobs/csv_gz';
-  }
-
-  Stream<List<RecordingModel>> streamRecordings(String uid) => _recordings(uid)
-      .orderBy('createdAt', descending: true)
-      .limit(50)
-      .snapshots()
-      .map((s) => s.docs.map(RecordingModel.fromFirestore).toList());
 
   // ═════════════════════════════════════════════════════════════════
   //                        ECG Readings (legacy)

@@ -37,7 +37,6 @@ dependencies:
   firebase_core: ^4.6.0
   firebase_auth: ^6.3.0
   cloud_firestore: ^6.2.0
-  firebase_storage: ^13.1.0
   google_sign_in: ^7.2.0
   fl_chart: ^1.2.0
   google_fonts: ^8.0.2

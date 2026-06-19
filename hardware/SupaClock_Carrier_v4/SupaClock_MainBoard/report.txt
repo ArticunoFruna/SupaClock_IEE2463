@@ -1,0 +1,83 @@
+Info: Processing symbol 'R_LEDA1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R3:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R4:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R_FG1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R_FG2:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R_FG_ALT1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R_FG_QST1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R_GATE1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R_IM1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'C4:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'R_RD1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'R_RST1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'SW1:SupaClock_Custom:SW_Tactile_Side_3.5x7.8mm'.
+Info: Processing symbol 'SW2:SupaClock_Custom:SW_Tactile_Side_3.5x7.8mm'.
+Info: Processing symbol 'U1:Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD'.
+Info: Processing symbol 'U2:SupaClock_Custom:MAX17048_WDFN8_HandSolder'.
+Info: Processing symbol 'C2:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'R1:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'C5:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'C_DISP1:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'C_DISP2:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'C_FG1:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'C_FG2:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'C_RST1:Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder'.
+Info: Processing symbol 'J_BAT1:Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical'.
+Info: Processing symbol 'J_CONN_SENSOR1:Connector_JST:JST_PH_B6B-PH-K_1x06_P2.00mm_Vertical'.
+Info: Processing symbol 'J_FPC1:Connector_FFC-FPC:Hirose_FH12-24S-0.5SH_1x24-1MP_P0.50mm_Horizontal'.
+Info: Processing symbol 'R2:Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder'.
+Info: Processing symbol 'J_IMU1:Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical'.
+Info: Processing symbol 'Q1:Package_TO_SOT_SMD:SOT-23_Handsoldering'.
+Connected U1 pin 14 to unconnected-(U1-VBUS-Pad14).
+Connected U1 pin 5 to I2C_SDA.
+Connected U1 pin 7 to BTN_NEXT.
+Add net unconnected-(U1-VBUS-Pad14).
+Connected U1 pin 10 to BTN_SELECT.
+Connected U1 pin 13 to GND.
+Connected U1 pin 3 to BLK_PWM.
+Add net unconnected-(U1-GPIO40_MTDO-Pad25).
+Connected U1 pin 25 to unconnected-(U1-GPIO40_MTDO-Pad25).
+Connected U1 pin 1 to ECG_OUT.
+Connected U1 pin 4 to SPI_DC.
+Connected U1 pin 8 to SPI_CS.
+Updated U1 unit metadata.
+Removed unused footprint H4.
+Removed unused footprint H1.
+Removed unused footprint H3.
+Removed unused footprint H2.
+Connected U1 pin 24 to unconnected-(U1-GPIO41_MTDI-Pad24).
+Updated U1 symbol association from  to /db6f3556-5f5e-4a55-aaf6-6296fc445b68.
+Updated U1 sheetname to '/'.
+Updated U1 sheetfile to 'SupaClock_MainBoard.kicad_sch'.
+Connected U1 pin 2 to ECG_SDN.
+Connected U1 pin 11 to SPI_MOSI.
+Changed U1 value from Val** to XIAO-ESP32-S3.
+Changed REF** reference designator to U1.
+Connected U1 pin 9 to SPI_SCK.
+Connected U1 pin 12 to +3V3.
+Connected U1 pin 6 to I2C_SCL.
+Added U1 (footprint 'Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD').
+Add net unconnected-(U1-GPIO41_MTDI-Pad24).
+Warning: No net found for component J_FPC1 pad MP (no pin MP in symbol).
+Warning: No net found for component J_FPC1 pad MP (no pin MP in symbol).
+Warning: No net found for component U1 pad 16 (no pin 16 in symbol).
+Warning: No net found for component U1 pad 17 (no pin 17 in symbol).
+Warning: No net found for component U1 pad 19 (no pin 19 in symbol).
+Warning: No net found for component U1 pad 21 (no pin 21 in symbol).
+Warning: No net found for component U1 pad 23 (no pin 23 in symbol).
+Warning: No net found for component U1 pad 20 (no pin 20 in symbol).
+Warning: No net found for component U1 pad 18 (no pin 18 in symbol).
+Warning: No net found for component U1 pad 15 (no pin 15 in symbol).
+Warning: No net found for component U1 pad 22 (no pin 22 in symbol).
+Error: U1 pad 32 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 33 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 26 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 27 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 30 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 31 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 29 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 28 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+Error: U1 pad 34 not found in Seeed_Studio_XIAO_Footprints:XIAO-ESP32-S3-SMD.
+
+
+Info: Total warnings: 11, errors: 9.

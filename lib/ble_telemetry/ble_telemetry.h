@@ -27,6 +27,10 @@
 #define BLE_TLV_TYPE_MODE_EVT    0x06  /**< 1 B: u8 new_mode (0=SPORT 1=NORM 2=SAVER)   */
 #define BLE_TLV_TYPE_SPOT_RESULT 0x07  /**< 6 B: u8 bpm; u8 spo2; u16 dur_ms;
                                             u8 quality; u8 aborted                     */
+#define BLE_TLV_TYPE_PED_DBG     0x10  /**< 13 B debug pedómetro (quitar tras calibrar):
+                                            u16 amp; u16 prom_x10; u8 ratio_x100;
+                                            u8 pkhz_x10; u8 cad_x10; u8 gate; u8 cons;
+                                            u32 steps                                  */
 
 /**
  * @brief Header del paquete agregado.
