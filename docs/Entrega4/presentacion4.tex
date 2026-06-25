@@ -1,0 +1,418 @@
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+\usetheme{focus}
+
+% Paleta SupaClock, mantenida desde Entrega 3
+\definecolor{main}{RGB}{57, 110, 184}
+\definecolor{background}{RGB}{255, 255, 255}
+\definecolor{accent}{RGB}{63, 185, 80}
+\definecolor{warn}{RGB}{218, 54, 51}
+\definecolor{softgray}{RGB}{245, 247, 250}
+\definecolor{darkink}{RGB}{23, 32, 51}
+\definecolor{muted}{RGB}{91, 102, 122}
+
+\setbeamercolor{alerted text}{fg=warn}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, babel}
+
+\setbeamerfont{itemize/enumerate body}{size=\small}
+\setbeamerfont{itemize/enumerate subbody}{size=\footnotesize}
+\setbeamerfont{block body}{size=\footnotesize}
+\setbeamerfont{block title}{size=\small}
+
+% Recursos: carpeta actual + bases visuales y técnicas de entregas anteriores.
+\graphicspath{{./}{../Entrega2/}{../Entrega2/presentacion_v2/}{../Entrega3/}{../../mechanical/}{../../tools/}{../../hardware/SupaClock_Carrier/}{../../hardware/SupaClock_Carrier_v3/}}
+
+\newcommand{\ok}{\textcolor{accent}{\textbf{OK}}}
+\newcommand{\warnstate}{\textcolor{orange}{\textbf{En cierre}}}
+\newcommand{\pending}{\textcolor{warn}{\textbf{Pendiente}}}
+\newcommand{\metric}[2]{\textcolor{main}{\Large\textbf{#1}}\\[-0.02cm]{\scriptsize #2}}
+
+\title{Wearable ``SupaClock''}
+\subtitle{Entrega 4 \textbar{} Avance 90\%}
+\date{\today}
+\author{Grupo 10}
+\institute{Ingenier\'ia El\'ectrica}
+\titlegraphic{\hfill\includegraphics[height=1.8cm]{logo.pdf}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Continuidad del proyecto}
+    \begin{columns}[T]
+        \column{0.47\textwidth}
+        \footnotesize
+        \textbf{Evoluci\'on por entregas}
+        \begin{itemize}\itemsep0.10cm
+            \item \textbf{Entrega 0--1}: problema, requisitos, arquitectura de alto nivel y alcance biom\'etrico.
+            \item \textbf{Entrega 2}: sensores, firmware FreeRTOS, GUI, BLE y validaci\'on de subsistemas.
+            \item \textbf{Entrega 3}: migraci\'on a XIAO ESP32-S3, carrier PCB, carcasa y ruta TinyML.
+            \item \textbf{Entrega 4}: demostraci\'on del ECG en PCB, avances ML y cierre hacia el 100\%.
+        \end{itemize}
+        \column{0.53\textwidth}
+        \begin{block}{Tesis de esta entrega}
+            Ya no estamos validando componentes aislados: estamos mostrando un prototipo funcional al 90\%, con los riesgos principales concentrados en manufactura, carcasa final y validaci\'on repetible.
+        \end{block}
+        \vspace{0.2cm}
+        \centering
+        \includegraphics[height=2.35cm]{supaclock_logo_e4.jpg}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Objetivo de la Entrega 4}
+    \begin{columns}[T]
+        \column{0.58\textwidth}
+        \footnotesize
+        Esta presentaci\'on consolida el avance al 90\% y ordena el tramo final del proyecto.
+        \vspace{0.25cm}
+        \begin{itemize}\itemsep0.14cm
+            \item Mostrar \textbf{ECG funcionando en la PCB}, con captura real y transmisi\'on hacia la app.
+            \item Presentar los avances de \textbf{Machine Learning} para reconocimiento de actividad humana.
+            \item Explicar la \textbf{PCB final fabricada en China}, orientada a reducir altura y mejorar repetibilidad.
+            \item Definir qu\'e falta para cerrar el \textbf{100\%}: carcasa, validaci\'on, dataset y demo final.
+        \end{itemize}
+        \column{0.42\textwidth}
+        \centering
+        \begin{tikzpicture}
+            \node[draw=accent, fill=accent!12, rounded corners=8pt, minimum width=4.0cm, minimum height=2.6cm] (box) {};
+            \node[font=\Huge\bfseries, text=accent] at (box.center) {90\%};
+            \node[font=\scriptsize, align=center, text=darkink] at ($(box.center)+(0,-1.05)$) {Prototipo funcional\\con cierre industrial pendiente};
+        \end{tikzpicture}
+        \vspace{0.25cm}
+        \begin{alertblock}{Criterio de avance}
+            \scriptsize El 10\% restante no es ``hacer que prenda'': es hacer que sea repetible, usable y validable como reloj cerrado.
+        \end{alertblock}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Estado del proyecto al 90\%}
+    \scriptsize
+    \centering
+    \begin{tabular}{p{2.6cm}p{4.4cm}p{4.4cm}p{1.5cm}}
+        \toprule
+        \textbf{Bloque} & \textbf{Estado actual} & \textbf{Cierre hacia 100\%} & \textbf{Avance} \\
+        \midrule
+        ECG + PCB & Captura real desde AD8232 en carrier; streaming BLE a $\sim$500\,Hz. & Validar con carcasa cerrada, electrodos definitivos y ruido real. & \ok \\
+        App + BLE & Dashboard, modo dev, REC IMU/ECG, consola y comandos. & Pulir experiencia de usuario y persistencia final de sesiones. & \ok \\
+        Machine Learning & CNN 1D/TFLite, ventana 200$\times$6, modelo embebible. & Dataset final, matriz de confusi\'on y prueba en uso real. & \warnstate \\
+        PCB final & Carrier validado; versiones v3/v4 orientadas a reglas JLCPCB. & DRC final, pedido, ensamble y bring-up de placa fabricada en China. & \warnstate \\
+        Carcasa & Prototipo impreso permiti\'o detectar tolerancias, altura y contacto sensor-piel. & Redise\~no compacto alineado a PCB final y sensores. & \warnstate \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.35cm}
+    \begin{block}{Lectura del avance}
+        \scriptsize El proyecto se mueve desde una demostraci\'on funcional de laboratorio hacia una unidad wearable repetible.
+    \end{block}
+\end{frame}
+
+\section{ECG en PCB}
+
+\begin{frame}{ECG funcionando en la PCB}
+    \begin{columns}[T]
+        \column{0.52\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{prototipopcb_e4.jpg}
+        \vspace{0.08cm}
+        \scriptsize Prototipo con PCB, XIAO ESP32-S3, AD8232, pantalla y carcasa impresa.
+        \column{0.48\textwidth}
+        \footnotesize
+        \textbf{Qu\'e se valida}
+        \begin{itemize}\itemsep0.12cm
+            \item Ruta el\'ectrica: electrodos $\rightarrow$ AD8232 $\rightarrow$ ADC/DMA del ESP32-S3.
+            \item Firmware capaz de activar/detener streaming ECG.
+            \item App Flutter recibiendo paquetes BLE \texttt{0xFF03}.
+            \item Registro local de se\~nal cruda para an\'alisis posterior.
+        \end{itemize}
+        \vspace{0.2cm}
+        \begin{block}{Resultado central}
+            \scriptsize El ECG ya no depende de protoboard: funciona desde la integraci\'on f\'isica del reloj.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Se\~nal ECG real: adquisici\'on y transmisi\'on}
+    \begin{columns}[T]
+        \column{0.68\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{ecg_signal_20260618.png}
+        \column{0.32\textwidth}
+        \scriptsize
+        \vspace{0.2cm}
+        \metric{23.400}{muestras registradas}\\[0.35cm]
+        \metric{46,8\,s}{duraci\'on capturada}\\[0.35cm]
+        \metric{500,2\,Hz}{frecuencia estimada}\\[0.35cm]
+        \metric{1143--3447}{rango ADC raw}\\[0.25cm]
+        \begin{block}{Cadena validada}
+            \scriptsize PCB/AD8232 $\rightarrow$ ADC/DMA $\rightarrow$ BLE 20 B (10$\times$int16) $\rightarrow$ Flutter $\rightarrow$ CSV/app.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{BLE y app como banco de pruebas}
+    \begin{columns}[T]
+        \column{0.25\textwidth}
+        \centering
+        \includegraphics[height=5.0cm]{app_home_e4.jpg}
+        \scriptsize Dashboard
+        \column{0.25\textwidth}
+        \centering
+        \includegraphics[height=5.0cm]{app_imu_e4.jpg}
+        \scriptsize IMU en vivo
+        \column{0.25\textwidth}
+        \centering
+        \includegraphics[height=5.0cm]{app_rec_e4.jpg}
+        \scriptsize CSV etiquetado
+        \column{0.25\textwidth}
+        \scriptsize
+        \textbf{Canales BLE}
+        \vspace{0.08cm}
+        \begin{tabular}{l l}
+            \toprule
+            \textbf{UUID} & \textbf{Uso} \\
+            \midrule
+            \texttt{FF01} & IMU raw \\
+            \texttt{FF02} & TLV agregado \\
+            \texttt{FF03} & ECG raw \\
+            \texttt{FF04} & Comandos \\
+            \bottomrule
+        \end{tabular}
+        \vspace{0.15cm}
+        \begin{block}{Valor para el proyecto}
+            \tiny La app permite probar, registrar y etiquetar datos sin depender de herramientas externas de consola.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\section{Machine Learning}
+
+\begin{frame}{Avances de Machine Learning}
+    \begin{columns}[T]
+        \column{0.52\textwidth}
+        \footnotesize
+        \textbf{Pipeline HAR actual}
+        \begin{itemize}\itemsep0.11cm
+            \item Sensor BMI160 como fuente de aceler\'ometro y giroscopio.
+            \item Ventanas de 200 muestras $\times$ 6 canales.
+            \item Frecuencia efectiva de 50\,Hz: 4\,s por ventana.
+            \item Traslape de 50\%: inferencia cada 2\,s.
+            \item Salida de 4 clases: reposo, caminar, correr, ca\'ida.
+        \end{itemize}
+        \column{0.48\textwidth}
+        \centering
+        \begin{tikzpicture}[
+            block/.style={draw=main, rounded corners=3pt, fill=main!9, align=center, minimum width=2.2cm, minimum height=0.65cm, font=\scriptsize},
+            arr/.style={-Stealth, thick, main}
+        ]
+            \node[block] (imu) {BMI160\\100\,Hz};
+            \node[block, right=0.30cm of imu] (down) {Downsample\\50\,Hz};
+            \node[block, below=0.38cm of down] (win) {Ventana\\200$\times$6};
+            \node[block, left=0.30cm of win] (cnn) {CNN 1D\\TFLite};
+            \node[block, below=0.38cm of cnn, fill=accent!12, draw=accent] (out) {Estado HAR\\0--3};
+            \draw[arr] (imu) -- (down);
+            \draw[arr] (down) -- (win);
+            \draw[arr] (win) -- (cnn);
+            \draw[arr] (cnn) -- (out);
+        \end{tikzpicture}
+        \vspace{0.22cm}
+        \begin{block}{Estado honesto}
+            \scriptsize El pipeline est\'a montado y exporta TFLite; falta consolidar dataset real y reportar desempe\~no final con matriz de confusi\'on.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Entrenamiento y artefactos del modelo}
+    \begin{columns}[T]
+        \column{0.58\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{har_training_history_e4.jpg}
+        \column{0.42\textwidth}
+        \footnotesize
+        \textbf{Artefactos ya generados}
+        \begin{itemize}\itemsep0.12cm
+            \item \texttt{tools/train\_har\_cnn.py}: entrenamiento CNN 1D.
+            \item \texttt{har\_model.tflite}: modelo exportado ($\sim$58\,KB).
+            \item \texttt{lib/har\_cnn1d/har\_model.c}: blob embebible.
+            \item Recorder Flutter para capturar CSV etiquetados.
+        \end{itemize}
+        \vspace{0.2cm}
+        \begin{alertblock}{Siguiente evidencia}
+            \scriptsize Entrenamiento con dataset final real + matriz de confusi\'on por clase.
+        \end{alertblock}
+    \end{columns}
+\end{frame}
+
+\section{Cierre f\'isico}
+
+\begin{frame}{PCB fabricada en China para el dise\~no final}
+    \begin{columns}[T]
+        \column{0.54\textwidth}
+        \centering
+        \begin{minipage}{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{pcb_front_e4.jpg}
+            \scriptsize Cara superior
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{pcb_back_e4.jpg}
+            \scriptsize Cara inferior
+        \end{minipage}
+        \column{0.46\textwidth}
+        \footnotesize
+        \textbf{Motivaci\'on del cambio}
+        \begin{itemize}\itemsep0.12cm
+            \item Reglas de fabricaci\'on m\'as finas que LPKF local.
+            \item V\'ias y pistas m\'as peque\~nas para aumentar densidad.
+            \item Mejor repetibilidad y acabado industrial.
+            \item Reducci\'on de altura objetivo: \textbf{al menos 33\%}.
+        \end{itemize}
+        \vspace{0.15cm}
+        \begin{block}{Meta geom\'etrica}
+            \scriptsize Si el prototipo ronda 22\,mm de altura, una reducci\'on de 33\% apunta a una carcasa del orden de 15\,mm o menos. El valor final debe confirmarse con la placa ensamblada.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Redise\~no de carcasa final}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \centering
+        \includegraphics[width=0.95\linewidth]{case_hero_e4.jpg}
+        \vspace{0.15cm}
+        \includegraphics[width=0.48\linewidth]{case_side_e4.jpg}
+        \column{0.52\textwidth}
+        \footnotesize
+        \textbf{Aprendizajes del prototipo funcional}
+        \begin{itemize}\itemsep0.11cm
+            \item La carcasa debe seguir a la PCB final, no al prototipo con headers.
+            \item El contacto sensor-piel define calidad de PPG, temperatura y ECG.
+            \item Botones, USB-C y electrodos requieren tolerancias reales.
+            \item Debe poder abrirse/cerrarse sin cargar soldaduras ni pads.
+            \item El dise\~no final debe priorizar altura, comodidad y acceso a sensores.
+        \end{itemize}
+        \begin{block}{Cambio conceptual}
+            \scriptsize La carcasa ya no es una envolvente: participa directamente en la calidad de medici\'on biom\'etrica.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\section{Ruta al 100\%}
+
+\begin{frame}{Qu\'e falta para completar el 100\%}
+    \scriptsize
+    \begin{columns}[T]
+        \column{0.25\textwidth}
+        \textbf{\textcolor{main}{Hardware}}
+        \begin{itemize}\itemsep0.05cm
+            \item Pedir PCB China.
+            \item Bring-up el\'ectrico.
+            \item Validar consumo.
+            \item Ajustar electrodos ECG.
+        \end{itemize}
+        \column{0.25\textwidth}
+        \textbf{\textcolor{main}{Software / ML}}
+        \begin{itemize}\itemsep0.05cm
+            \item Dataset final.
+            \item Matriz de confusi\'on.
+            \item Cuantizaci\'on final.
+            \item UI de estado HAR.
+        \end{itemize}
+        \column{0.25\textwidth}
+        \textbf{\textcolor{main}{Mec\'anica}}
+        \begin{itemize}\itemsep0.05cm
+            \item Carcasa compacta.
+            \item Ventanas de sensores.
+            \item Botones y USB-C.
+            \item Confort y montaje.
+        \end{itemize}
+        \column{0.25\textwidth}
+        \textbf{\textcolor{main}{Validaci\'on}}
+        \begin{itemize}\itemsep0.05cm
+            \item Demo cerrada.
+            \item Pruebas repetibles.
+            \item Informe final.
+            \item Video/evidencia.
+        \end{itemize}
+    \end{columns}
+    \vspace{0.32cm}
+    \begin{alertblock}{Criterio de t\'ermino}
+        \scriptsize El 100\% se logra cuando el reloj mide ECG/biometr\'ia, clasifica actividad y se puede usar cerrado con una placa/carcasa repetible.
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Plan de ataque: 90\% $\rightarrow$ 100\%}
+    \centering
+    \begin{tikzpicture}[
+        node/.style={draw=main, rounded corners=5pt, fill=main!9, align=center, minimum width=2.65cm, minimum height=1.15cm, font=\scriptsize},
+        done/.style={node, draw=accent, fill=accent!13},
+        arr/.style={-Stealth, thick, main}
+    ]
+        \node[node] (a) {1. Fabricaci\'on\\Gerbers + pedido};
+        \node[node, right=0.45cm of a] (b) {2. Bring-up\\rails + sensores};
+        \node[done, right=0.45cm of b] (c) {3. Carcasa final\\altura + contacto};
+        \node[done, right=0.45cm of c] (d) {4. Validaci\'on\\demo cerrada};
+        \draw[arr] (a) -- (b);
+        \draw[arr] (b) -- (c);
+        \draw[arr] (c) -- (d);
+    \end{tikzpicture}
+    \vspace{0.45cm}
+    \begin{block}{Riesgo principal}
+        \footnotesize El tramo final no es un problema aislado de c\'odigo: combina tolerancias f\'isicas, ruido real, contacto con piel, energ\'ia y repetibilidad de ensamblaje.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Arquitectura integrada actualizada}
+    \begin{columns}[T]
+        \column{0.42\textwidth}
+        \scriptsize
+        \begin{tabular}{l l}
+            \toprule
+            \textbf{Bloque} & \textbf{Estado Entrega 4} \\
+            \midrule
+            BMI160 IMU & ML/CSV en uso \\
+            MAX30102 PPG & integrado, validaci\'on final pendiente \\
+            MAX30205 Temp. & integrado, offset carcasa pendiente \\
+            MAX17048 Fuel & telemetr\'ia disponible \\
+            AD8232 ECG & \textbf{funcionando en PCB} \\
+            ST7789 Display & GUI funcional \\
+            App m\'ovil & BLE + REC + dashboard \\
+            TinyML HAR & pipeline entrenable/embebible \\
+            PCB final & camino JLCPCB \\
+            \bottomrule
+        \end{tabular}
+        \column{0.58\textwidth}
+        \vspace{-0.25cm}
+        \begin{flushright}
+            \resizebox{1.02\linewidth}{!}{\input{../Entrega3/fig_bloques_lownivel_e3.tex}}
+            \vspace{0.05cm}\newline
+            \scriptsize Arquitectura de hardware heredada de Entrega 3, ahora con ECG y app como evidencia central de integraci\'on.
+        \end{flushright}
+    \end{columns}
+\end{frame}
+
+\begin{frame}[plain]
+    \centering
+    \vspace{1.05cm}
+    {\Huge \color{main} \textbf{Demostraci\'on / Discusi\'on}}\\[0.55cm]
+    {\Large ECG en PCB + BLE + avances ML}\\[0.35cm]
+    \footnotesize
+    Placa final fabricada en China \textbar{} redise\~no de carcasa \textbar{} validaci\'on para cierre 100\%
+    \vspace{0.75cm}
+    \begin{block}{Mensaje final}
+        \centering
+        El proyecto ya demuestra funcionamiento; la etapa final convierte ese funcionamiento en un reloj repetible, compacto y defendible.
+    \end{block}
+\end{frame}
+
+\end{document}

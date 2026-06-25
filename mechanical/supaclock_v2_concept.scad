@@ -50,12 +50,12 @@ btn_z_above_pcb = 1.9;
 btn_hole_d      = 4.0;
 
 usb_y_pcb       = 48.0;
-usb_w_y         = 10.0;
-usb_h_z         = 4.0;
+usb_w_y         = 14.0;
+usb_h_z         = 8.0;
 usb_z_above_pcb = 13.0;
 
 jack_x_pcb       = 13.525;
-jack_d           = 6.5;
+jack_d           = 7.5;
 jack_z_above_pcb = 12.6;
 
 // =============================================================================
@@ -143,11 +143,14 @@ module usb_cutout() {
 
 module jack_cutout() {
     abs_z_offset = bottom_h + pcb_thickness;
-    translate([-3,
-               pcb_off_y + 16.586,
-               abs_z_offset + jack_z_above_pcb])
+    jack_y_abs = pcb_off_y + 16.586;
+
+    translate([-3, jack_y_abs, abs_z_offset + jack_z_above_pcb])
         rotate([0, 90, 0])
             cylinder(h = 10, d = jack_d);
+
+    translate([taper, jack_y_abs, abs_z_offset + jack_z_above_pcb])
+        cylinder(h = H - (abs_z_offset + jack_z_above_pcb) + eps, d = jack_d);
 }
 
 // =============================================================================
