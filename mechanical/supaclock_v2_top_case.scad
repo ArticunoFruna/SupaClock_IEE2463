@@ -56,8 +56,8 @@ btn_z_above_pcb = 1.9;
 
 // ---------------------- USB-C ------------------------------------------------
 usb_pos_y       = 48.0;
-usb_width_y     = 10.0;
-usb_height_z    = 4.0;
+usb_width_y     = 14.0;   // abertura horizontal centrada en la misma posicion
+usb_height_z    = 8.0;
 usb_z_above_pcb = 14.0;   // +1 mm (subido respecto a v2 original = 13.0)
 
 // ---------------------- JACK 3.5 mm ------------------------------------------
@@ -65,7 +65,7 @@ usb_z_above_pcb = 14.0;   // +1 mm (subido respecto a v2 original = 13.0)
 // outer_y/2 = 39.5; PCB-local equivalente = 33.5. Lo centramos parcialmente
 // moviendolo +2 mm respecto a la posicion original (16.586 -> 18.586).
 jack_y_pcb     = 18.586;
-jack_d         = 6.5;
+jack_d         = 7.5;
 jack_z_above_pcb = 12.6;
 
 // ---------------------- LUGS (mejora #4) -------------------------------------
@@ -239,6 +239,12 @@ difference() {
     translate([-4, jack_y_pcb + pcb_off_y, jack_z])
         rotate([0, 90, 0])
             cylinder(h = wall_cutter_depth, d = jack_d);
+
+    // Proyeccion superior del jack: media cana vertical centrada en el borde
+    // superior izquierdo. En la cara superior se ve solo un semicirculo Ø jack_d,
+    // no un rectangulo.
+    translate([taper, jack_y_pcb + pcb_off_y, jack_z])
+        cylinder(h = altura_top - jack_z + eps, d = jack_d);
 
     // USB-C (pared derecha). Mismo principio: inicia en x = outer_x - r_vert.
     translate([outer_x - r_vert,

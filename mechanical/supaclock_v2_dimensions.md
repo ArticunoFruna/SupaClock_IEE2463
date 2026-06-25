@@ -116,8 +116,8 @@ En el frame LOCAL del top case (Z=0 = seam):
 | **Ventana display** | centro (50.78, 44.5) | 18 — 21 | **28 × 34 mm** | atraviesa el techo |
 | Boton SW1 | (96, 21.375, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
 | Boton SW2 | (96, 33.875, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
-| **USB-C** | (96, 54, 14.6) | 14.6 ± 2 | **10 × 4 mm** rect | atraviesa pared +X, eje a lo largo de X |
-| **Jack 3.5mm** | (0, 22.586, 14.2) | 14.2 ± 3.25 | **Ø6.5mm** | atraviesa pared −X (izquierda), eje a lo largo de X |
+| **USB-C** | (96, 54, 15.6) | 15.6 ± 4 | **14 × 8 mm** rect | atraviesa pared +X, eje a lo largo de X, centrado en la posicion previa |
+| **Jack 3.5mm** | (0, 22.586, 14.2) | 14.2 ± 3.75 + media cana hasta Z=21 | **Ø7.5mm** | atraviesa pared −X y deja una muesca semicircular Ø7.5mm en la cara superior |
 
 Las coordenadas de boton/USB/jack son: (X del centro del agujero EN la pared
 INTERIOR, Y/Z del centro del agujero). El agujero atraviesa los 2mm de pared.
@@ -288,7 +288,7 @@ Si replicas el case en Fusion y quieres verificar que esta correcto, mide:
 | Distancia entre standoffs MH1-MH2 | 78.0 (= 88 - 10) |
 | Distancia entre standoffs MH1-MH3 | 60.0 (= 69.5 - 9.5) |
 | Distancia desde piso (Z=0) al centro del display | 20.0 (= 4 + 1.6 + 14.4 aprox) |
-| Distancia desde piso al centro USB-C | 18.6 (= 4 + 1.6 + 13.0) |
+| Distancia desde piso al centro USB-C | 19.6 (= 4 + 1.6 + 14.0) |
 | Volumen aproximado del case completo (sin componentes) | ~110 cm³ |
 
 ---
