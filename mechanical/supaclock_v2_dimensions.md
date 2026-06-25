@@ -114,10 +114,10 @@ En el frame LOCAL del top case (Z=0 = seam):
 | Pilar P3 | (10.0, 9.5) | 1.6 — 19 | Ø7.0mm OD, Ø4.2mm insert ID | idem |
 | Pilar P4 | (88.0, 9.5) | 1.6 — 19 | Ø7.0mm OD, Ø4.2mm insert ID | idem |
 | **Ventana display** | centro (50.78, 44.5) | 18 — 21 | **28 × 34 mm** | atraviesa el techo |
-| Boton SW1 | (96, 21.375, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
-| Boton SW2 | (96, 33.875, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
-| **USB-C** | (96, 54, 14.6) | 14.6 ± 2 | **10 × 4 mm** rect | atraviesa pared +X, eje a lo largo de X |
-| **Jack 3.5mm** | (0, 22.586, 14.2) | 14.2 ± 3.25 | **Ø6.5mm** | atraviesa pared −X (izquierda), eje a lo largo de X |
+| Boton SW1 | (96, 21.375, btn_z=3.5) | 3.5 ± 2.1 | Ø4.2mm | atraviesa pared +X, eje a lo largo de X |
+| Boton SW2 | (96, 33.875, btn_z=3.5) | 3.5 ± 2.1 | Ø4.2mm | atraviesa pared +X, eje a lo largo de X |
+| **USB-C** | (96, 54, 15.6) | 15.6 ± 3.5 | **13 × 7 mm** rect | atraviesa pared +X (derecha), eje a lo largo de X (para cables convencionales) |
+| **Jack 3.5mm** | (0, 24.586, 14.2) | 14.2 ± 3.25 | **Ø6.5mm** | rebaje ext Ø12mm (prof 1.5mm) y canal de alivio superior para conector en L |
 
 Las coordenadas de boton/USB/jack son: (X del centro del agujero EN la pared
 INTERIOR, Y/Z del centro del agujero). El agujero atraviesa los 2mm de pared.

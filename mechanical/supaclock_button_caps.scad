@@ -39,7 +39,7 @@ $fn = 64;
 eps = 0.01;
 
 // --- DEBE COINCIDIR CON EL TOP CASE ---
-hole_d           = 4.0;     // = btn_hole_d del top case
+hole_d           = 4.2;     // = btn_hole_d del top case
 wall_thickness   = 2.0;     // = grosor_pared del top case
 
 // --- GEOMETRIA DEL CAP ---
@@ -49,9 +49,9 @@ wall_thickness   = 2.0;     // = grosor_pared del top case
 //   diff = 1.7 mm
 air_gap_to_sw    = 1.7;
 
-flange_d         = 6.0;     // diametro exterior visible
+flange_d         = 6.5;     // diametro exterior visible (aumentado para cubrir mejor el agujero)
 flange_h         = 1.5;     // grosor del flange
-stem_d           = 3.5;     // diametro del tallo (0.5mm de holgura en hole_d=4)
+stem_d           = 3.5;     // diametro del tallo
 stem_h           = wall_thickness + air_gap_to_sw + 0.2;  // 2 + 1.7 + 0.2 = 3.9mm
                             // +0.2 = pretravel: el stem queda 0.2mm tocando
                             // la cara del switch en reposo, sin actuarlo
@@ -59,10 +59,9 @@ stem_h           = wall_thickness + air_gap_to_sw + 0.2;  // 2 + 1.7 + 0.2 = 3.9
 // Retencion permanente activada. El lip se imprime CONICO (mas grueso en el
 // extremo interno) para poder forzarlo a traves del hueco con presion durante
 // el ensamble. Una vez pasado, no puede regresar.
-// IMPORTANTE: imprimir en PETG/ABS o usar 100% infill. Con PLA y poco infill
-// el lip se puede romper al forzarlo.
-retention_lip_h  = 0.8;     // grosor del lip
-retention_lip_d  = 4.3;     // diametro maximo del lip (> hole_d=4 por 0.3mm)
+// Optimizado para FDM/PLA con menor altura y pendiente mas suave.
+retention_lip_h  = 0.5;     // Reducido de 0.8 a 0.5 para facilitar insercion sin romper
+retention_lip_d  = 4.4;     // diametro maximo del lip (4.4 vs hole_d=4.2 da 0.2mm de interferencia)
 
 // =============================================================================
 
