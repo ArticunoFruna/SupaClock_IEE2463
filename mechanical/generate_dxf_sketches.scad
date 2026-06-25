@@ -21,6 +21,10 @@ grosor_pared   = 2.0;
 pcb_off_x      = 6.5;
 pcb_off_y      = 6.0;
 
+// Parametros para insertos metalicos
+use_inserts    = true;
+insert_od      = 4.2;
+
 // Posiciones PCB-locales trasladadas a case-locales
 mh_positions = [
     [10.0, 69.5], // MH1
@@ -104,9 +108,9 @@ else if (part == "bottom_cuts") {
             translate(pos) circle(d = 6.0);
         }
 
-        // Puntos de centro de standoffs (círculos Ø2.7 para self-tap M3)
+        // Puntos de centro de standoffs (círculos para inserto M3 o self-tap)
         for (pos = mh_positions) {
-            translate(pos) circle(d = 2.7);
+            translate(pos) circle(d = use_inserts ? insert_od : 2.7);
         }
     }
 }
@@ -121,9 +125,9 @@ else if (part == "top_cuts") {
         translate(display_center)
             square(display_size, center = true);
 
-        // Agujeros de pilares (rosca M3 self-tap Ø2.7)
+        // Agujeros de pilares (rosca M3 self-tap o inserto)
         for (pos = mh_positions) {
-            translate(pos) circle(d = 2.7);
+            translate(pos) circle(d = use_inserts ? insert_od : 2.7);
         }
     }
 }

@@ -146,6 +146,9 @@ class _DevModeScreenState extends State<DevModeScreen>
               _chip('HR', '${telem.heartRate ?? 0} bpm (q ${telem.hrQuality ?? 0})'),
               _chip('SpO₂', '${telem.spo2 ?? 0}% (q ${telem.spo2Quality ?? 0})'),
               _chip('Mode', '${telem.powerMode ?? "?"}'),
+              _chip('HAR', telem.harState == null
+                  ? 'calculando…'
+                  : '${telem.activity.label} (${telem.harState})'),
             ],
           ),
           const SizedBox(height: 12),

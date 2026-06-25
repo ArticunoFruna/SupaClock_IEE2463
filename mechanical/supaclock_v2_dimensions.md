@@ -88,10 +88,10 @@ Bottom case = parte del envelope entre Z=0 y Z=4, hueco arriba.
 |---|---|---|---|---|
 | Piso | toda la base | 0 — 2 | 2mm grosor | conserva las esquinas redondeadas |
 | Cavidad | toda | 2 — 4+ | abierta arriba | sigue el offset 2mm desde el envelope |
-| Standoff MH1 | (10.0, 69.5) | 2 — 4 | Ø5.5mm OD, Ø2.7mm ID | self-tap M3 |
-| Standoff MH2 | (88.0, 69.5) | 2 — 4 | Ø5.5mm OD, Ø2.7mm ID | self-tap M3 |
-| Standoff MH3 | (10.0, 9.5) | 2 — 4 | Ø5.5mm OD, Ø2.7mm ID | self-tap M3 |
-| Standoff MH4 | (88.0, 9.5) | 2 — 4 | Ø5.5mm OD, Ø2.7mm ID | self-tap M3 |
+| Standoff MH1 | (10.0, 69.5) | 2 — 4 | Ø7.0mm OD, Ø3.2mm ID | pasante clearance M3 |
+| Standoff MH2 | (88.0, 69.5) | 2 — 4 | Ø7.0mm OD, Ø3.2mm ID | pasante clearance M3 |
+| Standoff MH3 | (10.0, 9.5) | 2 — 4 | Ø7.0mm OD, Ø3.2mm ID | pasante clearance M3 |
+| Standoff MH4 | (88.0, 9.5) | 2 — 4 | Ø7.0mm OD, Ø3.2mm ID | pasante clearance M3 |
 | Cutout MAX30102 | centro (52.0, 39.195) | 0 — 2 | 17 × 22 mm | pasa por TODO el piso |
 | Cutout MAX30205 | centro (51.5, 23.0) | 0 — 2 | 14 × 10 mm | pasa por TODO el piso |
 | Electrode hole E1 (RA) | centro (18.5, 37.5) | 0 — 2 | Ø6mm | electrodo seco M3 |
@@ -109,10 +109,10 @@ En el frame LOCAL del top case (Z=0 = seam):
 |---|---|---|---|---|
 | Cavidad | toda | 0 — 19 | abierta abajo | open base = seam, ceiling Z=19 a Z=21 |
 | Techo | toda | 19 — 21 | 2mm grosor | con ventana del display |
-| Pilar P1 | (10.0, 69.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | apoya sobre cara superior del PCB |
-| Pilar P2 | (88.0, 69.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | idem |
-| Pilar P3 | (10.0, 9.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | idem |
-| Pilar P4 | (88.0, 9.5) | 1.6 — 19 | Ø5.5mm OD, Ø2.7mm ID | idem |
+| Pilar P1 | (10.0, 69.5) | 1.6 — 19 | Ø7.0mm OD, Ø4.2mm insert ID | inserto latón M3 (prof 5mm), alivio Ø3.2 |
+| Pilar P2 | (88.0, 69.5) | 1.6 — 19 | Ø7.0mm OD, Ø4.2mm insert ID | idem |
+| Pilar P3 | (10.0, 9.5) | 1.6 — 19 | Ø7.0mm OD, Ø4.2mm insert ID | idem |
+| Pilar P4 | (88.0, 9.5) | 1.6 — 19 | Ø7.0mm OD, Ø4.2mm insert ID | idem |
 | **Ventana display** | centro (50.78, 44.5) | 18 — 21 | **28 × 34 mm** | atraviesa el techo |
 | Boton SW1 | (96, 21.375, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
 | Boton SW2 | (96, 33.875, btn_z=3.5) | 3.5 ± 2 | Ø4mm | atraviesa pared +X, eje a lo largo de X |
@@ -204,7 +204,8 @@ Construccion en Fusion: revolve un perfil sobre el eje Z. Perfil:
 
 | Parte | Especificacion | Cantidad | Donde |
 |---|---|---|---|
-| Tornillo M3 | M3 × 8 mm self-tap o thread-forming | 4 | ferreteria / RS |
+| Perno M3 | M3 × 8 mm o 10 mm estándar (métrico) | 4 | ferretería |
+| Inserto metálico M3 | M3 × 3 mm (hasta 5 mm) de inserción por calor (heat-set), Ø~4.2mm | 4 | ferretería / AliExpress |
 | Spring bar | Ø1.5 mm × largo 22 mm | 4 | tienda de relojes ($1 USD c/u) |
 | Correa | 22 mm (cualquier estilo) | 1 | tienda de relojes |
 | Perno M3 (electrodo) | M3 × 8 mm cabeza redondeada acero inoxidable | 3 | ferreteria |

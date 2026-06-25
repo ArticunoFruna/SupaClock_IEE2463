@@ -35,8 +35,12 @@ pcb_thickness  = 1.6;    // FR4 estandar
 altura_top     = 21.0;
 
 // Standoffs / pilares internos del top case
-standoff_od    = 7.0;    // diametro exterior del pilar (>= cabeza M3 ~7.0mm)
-standoff_id    = 2.7;    // diametro del agujero pasante (rosca M3 self-tap)
+standoff_od        = 7.0;    // diametro exterior del pilar (>= cabeza M3 ~7.0mm)
+use_inserts        = true;   // true para usar insertos metalicos M3 (heat-set), false para rosca directa
+insert_od          = 4.2;    // Diametro del agujero para el inserto metalico (tipico 4.0 - 4.2 mm)
+insert_depth       = 5.0;    // Profundidad del inserto metalico (longitud del inserto + margen, tipico 4 - 5 mm)
+screw_clearance_d  = 3.2;    // Agujero de alivio para el perno despues del inserto
+standoff_id        = use_inserts ? insert_od : 2.7; // Diametro interior del pilar (segun modo)
 
 // ----------------- VENTANA DEL DISPLAY ST7789 1.69" --------------------------
 // J7 esta rotado -90 deg en el PCB => la fila de 8 pines corre HORIZONTAL
@@ -191,9 +195,19 @@ module reinforced_pillar(p) {
             }
         }
         
-        // Agujero roscado central pasante
-        translate([px, py, pcb_thickness - eps])
-            cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+        if (use_inserts) {
+            // Alojamiento del inserto metalico M3 (desde la base del pilar que toca la PCB)
+            translate([px, py, pcb_thickness - eps])
+                cylinder(h = insert_depth + eps, d = insert_od);
+            
+            // Agujero de alivio/paso para el perno por encima del inserto (evita atascos de tornillos largos)
+            translate([px, py, pcb_thickness + insert_depth - eps])
+                cylinder(h = pillar_h - insert_depth + 2 * eps, d = screw_clearance_d);
+        } else {
+            // Agujero roscado central pasante original (self-tap en plastico)
+            translate([px, py, pcb_thickness - eps])
+                cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+        }
     }
 }
 

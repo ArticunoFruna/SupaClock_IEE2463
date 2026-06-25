@@ -55,8 +55,11 @@ class CsvRecorder {
     _file = await _newFile(_mode!, label: label);
     _sink = _file!.openWrite();
     _bytesWritten = 0;
+    // `label` = etiqueta MANUAL (ground-truth elegida en dev mode).
+    // `har_state` = SALIDA del modelo HAR en el reloj (TLV 0x08; -1 = aún sin
+    //   inferencia / warmup). Tener ambas permite matriz de confusión en el PC.
     _writeLine(
-      'timestamp_ms,ax,ay,az,gx,gy,gz,label,temp_c,steps,bat_mv,bat_soc,hr_bpm,spo2_pct',
+      'timestamp_ms,ax,ay,az,gx,gy,gz,label,temp_c,steps,bat_mv,bat_soc,hr_bpm,spo2_pct,har_state',
     );
     _startedAt = DateTime.now();
 
@@ -68,7 +71,8 @@ class CsvRecorder {
         '${_label ?? ""},'
         '${(t.temperature ?? 0.0).toStringAsFixed(2)},${t.steps ?? 0},'
         '${t.batteryMv ?? 0},${t.batterySoc ?? 0},'
-        '${t.heartRate ?? 0},${t.spo2 ?? 0}',
+        '${t.heartRate ?? 0},${t.spo2 ?? 0},'
+        '${t.harState ?? -1}',
       );
     });
   }
@@ -113,14 +117,18 @@ class CsvRecorder {
     _mode = null;
     _label = null;
 
-    final stat = await file.stat();
-    final id = file.path.split('/').last.replaceAll('.csv', '');
+    // Comprimir el CSV a gzip y borrar el plano. El streaming a CSV se mantiene
+    // durante la captura (robusto ante sesiones de 1h+); la compresión ocurre
+    // una sola vez al cerrar. pandas/`gzip` en el PC leen el .gz directamente.
+    final outFile = await _gzipAndReplace(file);
+    final stat = await outFile.stat();
+    final id = outFile.path.split('/').last.replaceAll('.csv.gz', '');
     final durationMs = DateTime.now().difference(started).inMilliseconds;
 
     await LocalStore.saveRecording(id, {
       'id': id,
       'type': mode.name,
-      'localPath': file.path,
+      'localPath': outFile.path,
       'sizeBytes': stat.size,
       'durationMs': durationMs,
       'sampleRate': mode == RecordingType.ecgRaw ? 500 : 50,
@@ -128,7 +136,23 @@ class CsvRecorder {
       'uploaded': false,
     });
 
-    return file;
+    return outFile;
+  }
+
+  /// Gzip-comprime [csv] → `<archivo>.csv.gz` y elimina el original. Si algo
+  /// falla, deja el CSV plano intacto y lo devuelve sin comprimir.
+  Future<File> _gzipAndReplace(File csv) async {
+    try {
+      final bytes = await csv.readAsBytes();
+      final gz = gzip.encode(bytes);
+      final gzPath = '${csv.path}.gz';
+      final gzFile = File(gzPath);
+      await gzFile.writeAsBytes(gz, flush: true);
+      await csv.delete();
+      return gzFile;
+    } catch (_) {
+      return csv; // fallback: conservar el plano si la compresión falla
+    }
   }
 
   void _writeLine(String line) {
