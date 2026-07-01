@@ -238,7 +238,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 24),
               _metricGrid(telem),
               const SizedBox(height: 24),
-              _activityCard(),
+              _activityCard(telem),
               const SizedBox(height: 80), // FAB clearance
             ],
           ),
@@ -267,7 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label: 'Frecuencia\nCardíaca',
           value: hr != null ? '$hr' : '--',
           unit: 'BPM',
-          weak: hr != null && hrQ < 60,
+          weak: hr != null && hrQ < 1,
         ),
         _MetricCard(
           icon: Icons.water_drop,
@@ -275,7 +275,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label: 'SpO₂',
           value: spo2 != null ? '$spo2' : '--',
           unit: '%',
-          weak: spo2 != null && spo2Q < 60,
+          weak: spo2 != null && spo2Q < 1,
         ),
         _MetricCard(
           icon: Icons.thermostat,
@@ -295,7 +295,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _activityCard() {
+  Widget _activityCard(SupaClockTelemetry telem) {
+    final hs = telem.harState; // 0..3, null = aún sin inferencia (~20 s warmup)
+    final warming = hs == null;
+    final subtitle = warming
+        ? 'Clasificación TinyML — calculando…'
+        : 'Clasificación TinyML en el reloj';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -321,7 +326,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text('Actividad detectada',
                         style: Theme.of(context).textTheme.titleMedium),
                     Text(
-                      'Clasificación TinyML — próximamente',
+                      subtitle,
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -334,19 +339,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: const [
+              children: [
                 _ActivityChip(
                     icon: Icons.airline_seat_recline_normal,
                     label: 'Reposo',
-                    active: true),
+                    active: hs == 0),
                 _ActivityChip(
-                    icon: Icons.directions_walk, label: 'Caminar', active: false),
+                    icon: Icons.directions_walk,
+                    label: 'Caminar',
+                    active: hs == 1),
                 _ActivityChip(
-                    icon: Icons.directions_run, label: 'Correr', active: false),
+                    icon: Icons.directions_run,
+                    label: 'Correr',
+                    active: hs == 2),
                 _ActivityChip(
                     icon: Icons.warning_amber,
                     label: 'Caída',
-                    active: false,
+                    active: hs == 3,
                     danger: true),
               ],
             ),

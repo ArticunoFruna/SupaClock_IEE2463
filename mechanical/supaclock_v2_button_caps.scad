@@ -17,21 +17,21 @@ $fn = 64;
 eps = 0.01;
 
 // --- DEBE COINCIDIR CON EL TOP CASE V2 ---
-hole_d           = 4.0;
+hole_d           = 4.2;     // Debe coincidir con btn_hole_d del top case v2
 wall_thickness   = 2.0;
 
 // V2 geometry: case 98 wide, inner wall at X=96, switch face at X=90.3
 // air_gap = inner_wall_X - switch_face_X = 96 - 90.3 = 5.7
 air_gap_to_sw    = 5.7;
 
-flange_d         = 6.0;
+flange_d         = 6.5;     // Diametro exterior del flange (aumentado para cubrir mejor el agujero)
 flange_h         = 1.5;
-stem_d           = 3.5;
+stem_d           = 3.5;     // Diametro del tallo
 stem_h           = wall_thickness + air_gap_to_sw + 0.2;   // = 7.9
 
-// Retencion permanente
-retention_lip_h  = 0.8;
-retention_lip_d  = 4.3;
+// Retencion permanente optimizada para FDM/PLA (menor altura y pendiente mas suave)
+retention_lip_h  = 0.5;     // Reducido de 0.8 a 0.5 para facilitar insercion sin romper
+retention_lip_d  = 4.4;     // Diametro de retencion (4.4 vs hole_d=4.2 da 0.2mm de interferencia)
 
 // =============================================================================
 

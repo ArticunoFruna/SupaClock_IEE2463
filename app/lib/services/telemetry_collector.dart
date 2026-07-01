@@ -12,9 +12,13 @@ import 'local_store.dart';
 import 'notifications_service.dart';
 
 /// Quality gate for individual TLV samples (HR / SpO2).
-/// Firmware reports a 0..100 byte; below this we treat the sample as suspect
-/// and either ignore (clinical mode off) or surface as "weak signal".
-const int _kQualityGate = 60;
+///
+/// El firmware NO reporta una escala 0..100: el byte `quality` de los TLV 0x01
+/// (HR) y 0x02 (SpO2) es un flag — `1 = buena`, `0 = sin calidad declarada`
+/// (ver ble_har_protocol.md §4.2/§4.3). Una muestra es válida cuando
+/// `quality >= 1`. (Antes el gate era 60, así que con `quality=1` se rechazaban
+/// TODAS las muestras y las curvas por hora de HR/SpO2 nunca se llenaban.)
+const int _kQualityGate = 1;
 
 /// Subscribes to [BleService.telemetryStream] and:
 ///   • appends valid samples to today's `daily_pending` Hive bucket

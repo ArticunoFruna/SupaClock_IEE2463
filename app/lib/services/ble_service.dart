@@ -30,7 +30,31 @@ class TlvTypes {
   static const int steps = 0x05;
   static const int modeEvt = 0x06;
   static const int spotResult = 0x07;
+  static const int harState = 0x08; // salida del modelo HAR (1 byte: estado consolidado)
   static const int pedDbg = 0x10; // debug pedómetro (quitar tras calibrar)
+}
+
+/// Estados del modelo HAR (TLV 0x08). Tolerante a valores fuera de rango:
+/// el firmware advierte que podría añadirse una 5ª clase (har_state = 4) sin
+/// romper el protocolo, así que cualquier valor desconocido cae en [unknown].
+enum HarState {
+  resting(0, 'Reposo'),
+  walking(1, 'Caminar'),
+  running(2, 'Correr'),
+  fall(3, 'Caída'),
+  unknown(-1, 'Desconocido');
+
+  const HarState(this.code, this.label);
+  final int code;
+  final String label;
+
+  static HarState fromCode(int? code) {
+    if (code == null) return HarState.unknown;
+    for (final s in HarState.values) {
+      if (s.code == code) return s;
+    }
+    return HarState.unknown;
+  }
 }
 
 class SupaClockTelemetry {
@@ -43,6 +67,7 @@ class SupaClockTelemetry {
   final int? batteryMv;
   final int? batterySoc;
   final int? powerMode;
+  final int? harState; // 0–3; null antes del primer TLV 0x08 (~20 s tras boot)
   final DateTime timestamp;
 
   SupaClockTelemetry({
@@ -55,6 +80,7 @@ class SupaClockTelemetry {
     this.batteryMv,
     this.batterySoc,
     this.powerMode,
+    this.harState,
     required this.timestamp,
   });
 
@@ -75,9 +101,13 @@ class SupaClockTelemetry {
       batteryMv: updates['bat_mv'] ?? batteryMv,
       batterySoc: updates['bat_soc'] ?? batterySoc,
       powerMode: updates['power_mode'] ?? powerMode,
+      harState: updates['har_state'] ?? harState,
       timestamp: DateTime.now(),
     );
   }
+
+  /// Estado HAR como enum (mapea null → [HarState.unknown]).
+  HarState get activity => HarState.fromCode(harState);
 }
 
 class ImuSample {
@@ -305,6 +335,11 @@ class BleService extends ChangeNotifier {
         case TlvTypes.steps:
           if (len == 4) {
             updates['steps'] = payload.getUint32(0, Endian.little);
+          }
+          break;
+        case TlvTypes.harState:
+          if (len == 1) {
+            updates['har_state'] = payload.getUint8(0);
           }
           break;
         case TlvTypes.pedDbg:

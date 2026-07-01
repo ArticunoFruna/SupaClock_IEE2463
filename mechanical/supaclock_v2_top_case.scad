@@ -38,8 +38,12 @@ altura_total_bottom = altura_base + grosor_pared;   // = 4 (bottom case)
 altura_top     = H_total - altura_total_bottom;     // = 18 (top case)
 
 // Standoffs / pilares
-standoff_od    = 7.0;   // Aumentado de 5.5 a 7.0 para mayor robustez
-standoff_id    = 2.7;   // rosca M3 self-tap en plastico
+standoff_od        = 7.0;   // Aumentado de 5.5 a 7.0 para mayor robustez
+use_inserts        = true;  // true para usar insertos metalicos M3 (heat-set), false para rosca directa
+insert_od          = 4.2;   // Diametro del agujero para el inserto metalico (tipico 4.0 - 4.2 mm)
+insert_depth       = 5.0;   // Profundidad del inserto metalico (longitud del inserto + margen, tipico 4 - 5 mm)
+screw_clearance_d  = 3.2;   // Agujero de alivio para el perno despues del inserto
+standoff_id        = use_inserts ? insert_od : 2.7; // Diametro interior del pilar (segun modo)
 
 // ---------------------- DISPLAY ----------------------------------------------
 display_pos    = [44.28, 38.5];   // PCB-local Y-up
@@ -51,13 +55,13 @@ btn_positions  = [
     [82.05, 15.375],
     [81.95, 27.875]
 ];
-btn_hole_d     = 4.0;
+btn_hole_d     = 4.2;   // Aumentado de 4.0 a 4.2 para evitar roce/atasco del button cap
 btn_z_above_pcb = 1.9;
 
 // ---------------------- USB-C ------------------------------------------------
 usb_pos_y       = 48.0;
-usb_width_y     = 10.0;
-usb_height_z    = 4.0;
+usb_width_y     = 13.0;   // Aumentado de 10.0 a 13.0 para cables convencionales
+usb_height_z    = 7.0;    // Aumentado de 4.0 a 7.0 para cables convencionales
 usb_z_above_pcb = 14.0;   // +1 mm (subido respecto a v2 original = 13.0)
 
 // ---------------------- JACK 3.5 mm ------------------------------------------
@@ -67,6 +71,8 @@ usb_z_above_pcb = 14.0;   // +1 mm (subido respecto a v2 original = 13.0)
 jack_y_pcb     = 18.586;
 jack_d         = 6.5;
 jack_z_above_pcb = 12.6;
+jack_recess_d  = 12.0;   // Diametro del rebaje para el conector en L o tuerca
+jack_recess_x  = 2.65;   // Coordenada X absoluta de fin de rebaje, deja ~0.8mm de pared
 
 // ---------------------- LUGS (mejora #4) -------------------------------------
 // lug_strap_w = ANCHO DE LA CORREA = distancia LIBRE entre caras INTERIORES
@@ -234,11 +240,19 @@ difference() {
             rotate([0, 90, 0])
                 cylinder(h = wall_cutter_depth, d = btn_hole_d);
 
-    // Jack 3.5 mm (pared izquierda). Cutter inicia FUERA del case (x = -4) y entra
-    // hacia la derecha, cubriendo toda la pared curva.
+    // Jack 3.5 mm (pared izquierda) y rebajes para conector en L / tuerca
     translate([-4, jack_y_pcb + pcb_off_y, jack_z])
         rotate([0, 90, 0])
             cylinder(h = wall_cutter_depth, d = jack_d);
+
+    // Rebaje circular para el cuerpo del conector en L o tuerca
+    translate([-4, jack_y_pcb + pcb_off_y, jack_z])
+        rotate([0, 90, 0])
+            cylinder(h = 4 + jack_recess_x, d = jack_recess_d);
+
+    // Canal vertical que corta la pared superior para permitir la salida del cable del conector en L
+    translate([-eps, jack_y_pcb + pcb_off_y - jack_recess_d / 2, jack_z])
+        cube([jack_recess_x + eps, jack_recess_d, altura_top - jack_z + eps]);
 
     // USB-C (pared derecha). Mismo principio: inicia en x = outer_x - r_vert.
     translate([outer_x - r_vert,
@@ -287,9 +301,19 @@ module reinforced_pillar(p) {
             }
         }
         
-        // Agujero roscado central pasante
-        translate([px, py, pcb_thickness - eps])
-            cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+        if (use_inserts) {
+            // Alojamiento del inserto metalico M3 (desde la base del pilar que toca la PCB)
+            translate([px, py, pcb_thickness - eps])
+                cylinder(h = insert_depth + eps, d = insert_od);
+            
+            // Agujero de alivio/paso para el perno por encima del inserto (evita atascos de tornillos largos)
+            translate([px, py, pcb_thickness + insert_depth - eps])
+                cylinder(h = pillar_h - insert_depth + 2 * eps, d = screw_clearance_d);
+        } else {
+            // Agujero roscado central pasante original (self-tap en plastico)
+            translate([px, py, pcb_thickness - eps])
+                cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+        }
     }
 }
 

@@ -35,8 +35,12 @@ pcb_thickness  = 1.6;    // FR4 estandar
 altura_top     = 21.0;
 
 // Standoffs / pilares internos del top case
-standoff_od    = 7.0;    // diametro exterior del pilar (>= cabeza M3 ~7.0mm)
-standoff_id    = 2.7;    // diametro del agujero pasante (rosca M3 self-tap)
+standoff_od        = 7.0;    // diametro exterior del pilar (>= cabeza M3 ~7.0mm)
+use_inserts        = true;   // true para usar insertos metalicos M3 (heat-set), false para rosca directa
+insert_od          = 4.2;    // Diametro del agujero para el inserto metalico (tipico 4.0 - 4.2 mm)
+insert_depth       = 5.0;    // Profundidad del inserto metalico (longitud del inserto + margen, tipico 4 - 5 mm)
+screw_clearance_d  = 3.2;    // Agujero de alivio para el perno despues del inserto
+standoff_id        = use_inserts ? insert_od : 2.7; // Diametro interior del pilar (segun modo)
 
 // ----------------- VENTANA DEL DISPLAY ST7789 1.69" --------------------------
 // J7 esta rotado -90 deg en el PCB => la fila de 8 pines corre HORIZONTAL
@@ -59,7 +63,7 @@ btn_positions  = [
     [82.05, 15.375],   // SW1 SELECT
     [81.95, 27.875]    // SW2 NEXT
 ];
-btn_hole_d     = 4.0;                  // diametro del orificio en la pared
+btn_hole_d     = 4.2;                  // Aumentado de 4.0 a 4.2 para evitar roce/atasco
 btn_z_above_pcb = 1.9;                 // altura del centro del cuerpo sobre la PCB
 
 // ----------------- USB-C del XIAO ESP32-S3 (pared derecha) -------------------
@@ -72,8 +76,8 @@ btn_z_above_pcb = 1.9;                 // altura del centro del cuerpo sobre la 
 // rectangular en la pared. Altura del centerline = pcb_thickness + 11.0
 // (socket 8.5 + XIAO board 1 + 1/2 USB-C body 1.5) = 12.6 en frame top-case.
 usb_pos_y       = 48.0;                // PCB-local Y del centro del USB-C
-usb_width_y     = 10.0;                // ancho del cut a lo largo de Y (USB-C ~9mm)
-usb_height_z    = 4.0;                 // alto del cut a lo largo de Z (USB-C ~3.2mm)
+usb_width_y     = 13.0;                // Aumentado de 10.0 a 13.0 para cables convencionales
+usb_height_z    = 7.0;                 // Aumentado de 4.0 a 7.0 para cables convencionales
 usb_z_above_pcb = 13.0;                // altura del centerline USB-C sobre la PCB
 
 // ----------------- JACK 3.5 mm para AD8232 (RA/LA/RL via cable) --------------
@@ -85,6 +89,8 @@ usb_z_above_pcb = 13.0;                // altura del centerline USB-C sobre la P
 jack_x         = 13.525;               // X (PCB-local) del centro del jack, sobre J13
 jack_d         = 6.5;                  // diametro del agujero pasante en la pared
 jack_z_above_pcb = 12.6;                // altura del eje del jack sobre la PCB
+jack_recess_d  = 12.0;                 // Diametro del rebaje para el conector en L o tuerca
+jack_recess_x  = 1.20;                 // Coordenada X absoluta de fin de rebaje, deja ~0.8mm de pared
 
 // ----------------- AGUJEROS DE MONTAJE (MH1..MH4) ----------------------------
 mh_positions = [
@@ -143,6 +149,15 @@ difference() {
         rotate([0, 90, 0])
             cylinder(h = grosor_pared + 2 * eps, d = jack_d);
 
+    // Rebaje circular para el cuerpo del conector en L o tuerca
+    translate([-eps, 16.586 + pcb_off_y, jack_z])
+        rotate([0, 90, 0])
+            cylinder(h = jack_recess_x + eps, d = jack_recess_d);
+
+    // Canal vertical para salida del cable del conector en L
+    translate([-eps, 16.586 + pcb_off_y - jack_recess_d / 2, jack_z])
+        cube([jack_recess_x + eps, jack_recess_d, altura_top - jack_z + eps]);
+
     // Cutout USB-C en la pared derecha (rectangular, atraviesa grosor_pared)
     translate([outer_x - grosor_pared - eps,
                usb_pos_y + pcb_off_y - usb_width_y / 2,
@@ -191,9 +206,19 @@ module reinforced_pillar(p) {
             }
         }
         
-        // Agujero roscado central pasante
-        translate([px, py, pcb_thickness - eps])
-            cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+        if (use_inserts) {
+            // Alojamiento del inserto metalico M3 (desde la base del pilar que toca la PCB)
+            translate([px, py, pcb_thickness - eps])
+                cylinder(h = insert_depth + eps, d = insert_od);
+            
+            // Agujero de alivio/paso para el perno por encima del inserto (evita atascos de tornillos largos)
+            translate([px, py, pcb_thickness + insert_depth - eps])
+                cylinder(h = pillar_h - insert_depth + 2 * eps, d = screw_clearance_d);
+        } else {
+            // Agujero roscado central pasante original (self-tap en plastico)
+            translate([px, py, pcb_thickness - eps])
+                cylinder(h = pillar_h + 2 * eps, d = standoff_id);
+        }
     }
 }
 
