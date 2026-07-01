@@ -19,6 +19,7 @@
 #include "max30102.h"
 #include "ble_telemetry.h"
 #include "step_algorithm.h"
+#include "har_cnn1d.h"
 #include "gpio_buttons.h"
 #include "ad8232.h"
 #include "esp_adc/adc_continuous.h"
@@ -235,6 +236,9 @@ void imu_task(void *pvParameter) {
             bmi160_fifo_frame_t *f = &frames[i];
             new_steps_total += step_algo_update(&sw_pedometer,
                 f->ax, f->ay, f->az, f->gx, f->gy, f->gz, sample_ts);
+            /* Mismo stream de 50 Hz alimenta el ring del HAR (un solo lector del
+             * BMI160 → sin contención I2C ni FIFO overflow). */
+            har_cnn1d_push_sample(f->ax, f->ay, f->az, f->gx, f->gy, f->gz);
             sample_ts += 20;  /* 50 Hz uniforme */
 
             /* Envío IMU directo (preserva el stream a 50 Hz) */
@@ -528,6 +532,50 @@ void system_task(void *pvParameter) {
     }
 }
 
+/* ─────────────── HAR: callback de inferencia (corre en har_task, core 1) ───────────────
+ *
+ * El modelo entrega probs[4] crudas por ventana (cada 2 s). Aquí aplicamos el
+ * mismo post-proceso documentado en ble_har_protocol.md §2.4:
+ *   1. EMA (α=0.5) sobre las probs, inicializado dominante en RESTING.
+ *   2. Consolidación: el estado solo cambia tras 3 ventanas consecutivas con el
+ *      mismo argmax(EMA) → histéresis anti-parpadeo.
+ * El estado consolidado se publica a app_state (UI local) y al TLV 0x08 (BLE).
+ * No bloquear aquí: es el callback de la task del HAR. */
+static void on_har_result(const har_result_t *result, void *user) {
+    (void)user;
+    static float       s_ema[HAR_NUM_CLASSES] = {1.0f, 0.0f, 0.0f, 0.0f};
+    static har_state_t s_candidate    = HAR_STATE_RESTING;
+    static har_state_t s_consolidated = HAR_STATE_RESTING;
+    static int         s_consec       = 0;
+
+    /* EMA sobre todas las salidas, pero argmax SOLO sobre las clases activas
+     * (escaleras/idx 3 deshabilitada hasta tener dataset → ver HAR_ACTIVE_CLASSES). */
+    int argmax = 0;
+    for (int i = 0; i < HAR_NUM_CLASSES; ++i) {
+        s_ema[i] = 0.5f * result->probs[i] + 0.5f * s_ema[i];
+        if (i < HAR_ACTIVE_CLASSES && s_ema[i] > s_ema[argmax]) argmax = i;
+    }
+
+    if (argmax == (int)s_candidate) {
+        if (s_consec < 3) s_consec++;
+    } else {
+        s_candidate = (har_state_t)argmax;
+        s_consec = 1;
+    }
+    if (s_consec >= 3) s_consolidated = s_candidate;
+
+    shared_sensor_data_t *sd = app_state_lock(10);
+    if (sd) {
+        sd->har_state = (uint8_t)s_consolidated;
+        sd->har_updated_ms = now_ms();
+        app_state_unlock();
+    }
+
+    /* TLV 0x08 al buffer agregado (sin forzar flush: 0xFF). */
+    uint8_t state_val = (uint8_t)s_consolidated;
+    ble_tx_push(BLE_TLV_TYPE_HAR_STATE, &state_val, 1, 0xFF);
+}
+
 /* ─────────────── ble_tx_task: flush periódico del buffer agregado ─────────────── */
 void ble_tx_task(void *pvParameter) {
     while (1) {
@@ -649,6 +697,17 @@ void supaclock_app_run(void) {
     /* ── FASE 3: BLE ── */
     ESP_LOGI(TAG, "[Fase 3] BLE...");
     if (ble_telemetry_init() != ESP_OK) ESP_LOGE(TAG, "BLE Stack falló");
+
+    /* ── FASE 4: HAR (TinyML, core 1) ──
+     * Detección de actividad: reposo/caminar/correr (escaleras pendiente dataset).
+     * La har_task se crea pinned a core 1 (prio 4) como consumidor de inferencia;
+     * NO lee el sensor: imu_task lo alimenta vía har_cnn1d_push_sample() con el
+     * mismo stream de 50 Hz del FIFO → un solo lector del BMI160, sin contención
+     * I2C ni FIFO overflow. Va después del BLE porque on_har_result() empuja 0x08. */
+    ESP_LOGI(TAG, "[Fase 4] HAR (TinyML)...");
+    if (har_cnn1d_init(on_har_result, NULL) != ESP_OK) {
+        ESP_LOGW(TAG, "HAR init falló (sigue sin clasificación de actividad)");
+    }
 
     /* Tasks */
     xTaskCreate(gui_task,    "gui_task",    4096, NULL, 5, NULL);

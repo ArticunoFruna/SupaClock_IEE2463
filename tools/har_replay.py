@@ -33,14 +33,14 @@ HOP = 100              # 50 % de solapamiento
 NUM_CHANNELS = 6
 EMA_ALPHA = 0.5
 CONSEC_NEEDED = 3
-CLASS_NAMES = ['Reposo', 'Caminar', 'Correr', 'Caída']  # idx 0..3
+CLASS_NAMES = ['Reposo', 'Caminar', 'Correr', 'Escaleras']  # idx 0..3
 
 # Alias de la columna `label` manual → índice de clase (igual que train_har_cnn.py).
 LABEL_ALIASES = {
     'resting': 0, 'rest': 0,
     'walking': 1, 'walk': 1, 'step': 1,
     'running': 2, 'run': 2,
-    'fall': 3, 'emerg': 3, 'emergency': 3,
+    'stairs': 3, 'stair': 3, 'escaleras': 3,
 }
 
 

@@ -115,7 +115,7 @@ static void run_inference_on_window(void) {
     har_result_t r = {
         .state        = (har_state_t)argmax,
         .confidence   = probs[argmax],
-        .fall_event   = (argmax == HAR_STATE_FALL),
+        .fall_event   = false,  /* OBSOLETO: la 4ta clase ahora es escaleras (no caída) */
         .timestamp_us = esp_timer_get_time(),
     };
     memcpy(r.probs, probs, sizeof(probs));
@@ -124,65 +124,42 @@ static void run_inference_on_window(void) {
     if (s_cb) s_cb(&r, s_cb_user);
 }
 
-/* ───────────── Task principal ───────────── */
+/* ───────────── Task principal (consumidor de inferencia, core 1) ─────────────
+ *
+ * El HAR ya NO lee el sensor: lo alimenta imu_task vía har_cnn1d_push_sample()
+ * con el mismo stream de 50 Hz que drena del FIFO del BMI160 (un solo lector →
+ * sin contención I2C ni riesgo de FIFO overflow). Esta task solo espera la señal
+ * de "ventana lista" (cada HOP muestras) y corre la CNN — la parte pesada — en
+ * core 1, fuera del camino crítico de imu_task. */
 static void har_task(void *arg) {
     (void)arg;
-    TickType_t period = pdMS_TO_TICKS(1000 / HAR_SAMPLE_RATE_HZ);
-    TickType_t last = xTaskGetTickCount();
-
-    // Acumuladores estáticos para promediar cada 2 muestras físicas (100 Hz -> 50 Hz)
-    static int32_t s_acc_ax = 0, s_acc_ay = 0, s_acc_az = 0;
-    static int32_t s_acc_gx = 0, s_acc_gy = 0, s_acc_gz = 0;
-    static int s_acc_count = 0;
-
     while (1) {
-        vTaskDelayUntil(&last, period);
+        /* Bloquea hasta que push_sample acumule HAR_HOP_SIZE muestras nuevas. */
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         if (s_paused) continue;
+        run_inference_on_window();
+    }
+}
 
-        int16_t ax, ay, az, gx, gy, gz;
-        if (bmi160_read_accel_gyro(&ax, &ay, &az, &gx, &gy, &gz) != ESP_OK) {
-            continue;
-        }
+/* Alimenta una muestra de 50 Hz al ring del HAR. Llamar desde imu_task por cada
+ * frame drenado del FIFO. Barato (escritura al ring + contador); la inferencia se
+ * dispara en core 1 cada HOP muestras. La ventana de carrera entre la escritura
+ * aquí y la lectura en run_inference es despreciable (~10 ms de inferencia vs 2 s
+ * en sobrescribir 100 muestras). */
+void har_cnn1d_push_sample(int16_t ax, int16_t ay, int16_t az,
+                           int16_t gx, int16_t gy, int16_t gz) {
+    if (s_paused) return;
+    s_ring[s_write_idx][0] = ax;
+    s_ring[s_write_idx][1] = ay;
+    s_ring[s_write_idx][2] = az;
+    s_ring[s_write_idx][3] = gx;
+    s_ring[s_write_idx][4] = gy;
+    s_ring[s_write_idx][5] = gz;
+    s_write_idx = (s_write_idx + 1) % HAR_WINDOW_SIZE;
 
-        // Acumular muestras físicas
-        s_acc_ax += ax;
-        s_acc_ay += ay;
-        s_acc_az += az;
-        s_acc_gx += gx;
-        s_acc_gy += gy;
-        s_acc_gz += gz;
-        s_acc_count++;
-
-        // Promediar y procesar cada 2 muestras físicas (frecuencia efectiva de 50 Hz)
-        if (s_acc_count >= 2) {
-            int16_t avg_ax = s_acc_ax / 2;
-            int16_t avg_ay = s_acc_ay / 2;
-            int16_t avg_az = s_acc_az / 2;
-            int16_t avg_gx = s_acc_gx / 2;
-            int16_t avg_gy = s_acc_gy / 2;
-            int16_t avg_gz = s_acc_gz / 2;
-
-            // Resetear acumulador
-            s_acc_ax = 0; s_acc_ay = 0; s_acc_az = 0;
-            s_acc_gx = 0; s_acc_gy = 0; s_acc_gz = 0;
-            s_acc_count = 0;
-
-            /* Push al ring */
-            s_ring[s_write_idx][0] = avg_ax;
-            s_ring[s_write_idx][1] = avg_ay;
-            s_ring[s_write_idx][2] = avg_az;
-            s_ring[s_write_idx][3] = avg_gx;
-            s_ring[s_write_idx][4] = avg_gy;
-            s_ring[s_write_idx][5] = avg_gz;
-            s_write_idx = (s_write_idx + 1) % HAR_WINDOW_SIZE;
-            s_samples_since_inference++;
-
-            /* Inferencia cada HOP muestras (100 muestras / 50 Hz = 2 s) */
-            if (s_samples_since_inference >= HAR_HOP_SIZE) {
-                s_samples_since_inference = 0;
-                run_inference_on_window();
-            }
-        }
+    if (++s_samples_since_inference >= HAR_HOP_SIZE) {
+        s_samples_since_inference = 0;
+        if (s_task_handle) xTaskNotifyGive(s_task_handle);
     }
 }
 

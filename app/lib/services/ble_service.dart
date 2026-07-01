@@ -41,7 +41,7 @@ enum HarState {
   resting(0, 'Reposo'),
   walking(1, 'Caminar'),
   running(2, 'Correr'),
-  fall(3, 'Caída'),
+  stairs(3, 'Escaleras'),
   unknown(-1, 'Desconocido');
 
   const HarState(this.code, this.label);

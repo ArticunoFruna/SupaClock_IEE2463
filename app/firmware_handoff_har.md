@@ -12,18 +12,59 @@
 
 ---
 
-## 0. TL;DR para el equipo de firmware
+## ⚠️ ACTUALIZACIÓN (este avance) — el firmware YA fue integrado en el repo
 
-| # | Tema | ¿Acción de firmware? |
+El lado app pidió integrar el HAR directamente, así que **se escribió la integración
+de firmware en este commit** (sin compilar/flashear — pendiente de validación del
+dueño del firmware). Cambios aplicados:
+
+- **`har_cnn1d` cableado en `supaclock_app.c`**: `har_cnn1d_init(on_har_result, NULL)`
+  en una nueva "Fase 4", con `on_har_result()` que aplica **EMA (α=0.5) + consolidación
+  3-consecutivas** (igual que `ble_har_protocol.md §2.4`) y publica a `app_state.har_state`
+  + `ble_tx_push(BLE_TLV_TYPE_HAR_STATE, …)`.
+- **`app_state.h`**: nuevos campos `har_state` + `har_updated_ms`.
+- **`ble_telemetry.h`**: nuevo macro `BLE_TLV_TYPE_HAR_STATE 0x08`.
+- **4ta clase redefinida**: `HAR_STATE_FALL` → **`HAR_STATE_STAIRS`** (subir/bajar
+  escaleras) en `har_cnn1d.h/.c`; `fall_event` quedó obsoleto (siempre `false`).
+  Propagado a protocolo, app y `tools/train_har_cnn.py` + `tools/har_replay.py`.
+
+**Decisiones aplicadas tras revisión (este avance):**
+
+- ✅ **Todo a 50 Hz, un solo lector.** El HAR ya NO lee el BMI160 a 100 Hz: ahora
+  `imu_task` lo alimenta vía `har_cnn1d_push_sample()` con el mismo stream de 50 Hz
+  que drena del FIFO. La `har_task` quedó como consumidor de inferencia (core 1,
+  disparada por `xTaskNotifyGive` cada HOP). **Esto elimina la contención I2C y el
+  riesgo de FIFO overflow** que tenía el diseño anterior. El modelo es 50 Hz nativo,
+  así que no cambia su comportamiento. → `ble_har_protocol.md §2.2` quedó obsoleto
+  en la parte de "100 Hz + promedio de 2"; conviene actualizarlo.
+- ✅ **Escaleras deshabilitada por ahora.** No hay dataset de escaleras, así que el
+  consumidor hace argmax solo sobre 3 clases (`HAR_ACTIVE_CLASSES=3`); el modelo
+  sigue emitiendo 4 probs pero la clase 3 no se reporta. La app oculta el chip.
+- ✅ **Umbrales del pedómetro calibrados con datos reales** de walking
+  (`tools/calibrate_steps.py` sobre `data_ml/supaclock_imu_walking_*.csv`):
+  `AMP_MIN 600→900`, `WALK_BAND_LO 0.70→0.60`. Ver §6.
+
+**Acciones que SÍ quedan para el dueño del firmware/ML:**
+
+1. 🔴 **Compilar + flashear y validar** la integración (es C sin probar).
+2. 🔴 **Reentrenar con escaleras** cuando haya datos → subir `HAR_ACTIVE_CLASSES` a 4
+   y re-habilitar el chip en la app. Pipeline: `tools/train_har_cnn.py` (ya en `stairs`)
+   → `.tflite` → `har_model_data.cc`.
+3. 🟡 **Validar AMP_MIN con una sesión de REPOSO** (la calibración solo tenía walking;
+   confirmar que 900 rechaza el ruido en reposo sin perder pasos suaves).
+4. ✅ Commitear el `.tflite` INT8 exacto (ver §3).
+
+---
+
+## 0. TL;DR (estado tras la integración)
+
+| # | Tema | Estado |
 |---|---|---|
-| 1 | App ahora consume el **TLV 0x08** (estado HAR) | ❌ Ninguna — ya lo emiten |
-| 2 | App alineó el gate de `quality` a **flag 0/1** | ❌ Ninguna — solo **confirmar** semántica |
-| 3 | **IMU a 50 Hz en TODOS los modos** | ⚠️ **Confirmar + actualizar doc** (hoy `ble_har_protocol.md §3.2/§5` dice variable) |
-| 4 | Exportar el **`.tflite` exacto** que generó `har_model_data.cc` | ✅ **Sí** — commitear el archivo |
-| 5 | **TLV 0x09** opcional con probs crudas (spec abajo) | 🟡 **Opcional** — solo si quieren validación directa |
-
-**El camino por defecto NO necesita cambios de firmware** (puntos 1–2 ya están, 3–4
-son confirmación/artefacto). El punto 5 es un *nice-to-have*.
+| 1 | **TLV 0x08** emitido por firmware + consumido por app | ✅ **Hecho** (validar al flashear) |
+| 2 | `quality` como **flag 0/1** | ✅ App alineada — solo **confirmar** semántica |
+| 3 | **IMU a 50 Hz en TODOS los modos** | ⚠️ **Confirmar + actualizar** `ble_har_protocol.md §3.2/§5` |
+| 4 | Exportar el **`.tflite` exacto** + **reentrenar con escaleras** | 🔴 **Pendiente** (dueño firmware/ML) |
+| 5 | **TLV 0x09** opcional con probs crudas (spec abajo) | 🟡 **Opcional** |
 
 ---
 

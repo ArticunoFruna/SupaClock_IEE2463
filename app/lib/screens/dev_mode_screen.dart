@@ -40,7 +40,7 @@ class _DevModeScreenState extends State<DevModeScreen>
   Timer? _redrawTimer;
 
   // Etiqueta de actividad para grabaciones IMU del HAR.
-  static const List<String> _harLabels = ['resting', 'walking', 'running', 'fall'];
+  static const List<String> _harLabels = ['resting', 'walking', 'running', 'stairs'];
   String _harLabel = 'resting';
 
   final TextEditingController _cmdController = TextEditingController(text: '0x01');
@@ -98,6 +98,40 @@ class _DevModeScreenState extends State<DevModeScreen>
       await ble.startEcgStream();
     }
     setState(() => _ecgMode = !_ecgMode);
+  }
+
+  /// Pregunta el nº real de pasos dados en la grabación (ground-truth).
+  /// Devuelve null si el usuario omite (p. ej. grabaciones de reposo).
+  Future<int?> _askSteps() async {
+    final ctrl = TextEditingController();
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pasos reales'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: '¿Cuántos pasos diste? (contados)',
+            hintText: 'ej. 50 · vacío = omitir',
+          ),
+          onSubmitted: (v) => Navigator.pop(ctx, int.tryParse(v.trim())),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: const Text('Omitir'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, int.tryParse(ctrl.text.trim())),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    return result;
   }
 
   @override
@@ -208,12 +242,20 @@ class _DevModeScreenState extends State<DevModeScreen>
             ),
             onPressed: () async {
               if (_recorder.isRecording) {
-                final f = await _recorder.stop();
+                var f = await _recorder.stop();
                 setState(() {});
                 if (f != null && mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Guardado: ${f.path.split('/').last}')),
-                  );
+                  // Ground-truth de pasos para calibrar el pedómetro.
+                  final steps = await _askSteps();
+                  if (steps != null) {
+                    f = await _recorder.tagGroundTruthSteps(f, steps);
+                    setState(() {});
+                  }
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Guardado: ${f.path.split('/').last}')),
+                    );
+                  }
                 }
               } else {
                 await _recorder.startImu(label: _harLabel);

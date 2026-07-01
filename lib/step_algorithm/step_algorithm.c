@@ -33,13 +33,21 @@ static const char *STEP_TAG = "STEP_FFT";
 #define LP_ALPHA          0.40f       // pasa-bajos ≈ 5 Hz   (quita jitter)
 
 // --- Envolvente adaptativa y detector temporal ---
+// Recalibrado 2026-06-25 con datos NATIVOS de 50 Hz en la muñeca (la calibración
+// anterior usó datos de 100 Hz → escala equivocada). Con tools/sim_steps.py sobre
+// data_ml/supaclock_imu_*20260625*: caminar tiene amplitud pico-valle ~6000–7600,
+// el movimiento de muñeca sin caminar (reposo) ~decenas con picos transitorios.
+// AMP_MIN=2200 deja reposo→0 pasos falsos y walking exacto (50/50, 20/19), con
+// ~3x de margen bajo la caminata real.
 #define ENV_DECAY         0.04f       // velocidad de adaptación del umbral
-#define AMP_MIN           600.0f      // amplitud pico-valle mínima (LSB ≈ 0.04 g)
+#define AMP_MIN           2200.0f     // amplitud pico-valle mínima (LSB)
 #define HYST_FRAC         0.15f       // histéresis = 15% de la amplitud
 
 // --- Gate espectral (FFT) ---
-#define WALK_BAND_LO_HZ   0.70f
-#define WALK_BAND_HI_HZ   3.00f
+// Banda ANCHA a propósito: la caminata excita la frecuencia de zancada (~0.7–1 Hz,
+// pico FFT dominante en los datos) Y la de paso (~1.5–2 Hz); correr llega a ~3 Hz.
+#define WALK_BAND_LO_HZ   0.60f       // bajado 0.70→0.60 para zancada lenta
+#define WALK_BAND_HI_HZ   3.00f       // se mantiene: cubre la cadencia de correr
 // Prominencia espectral mínima del pico de caminata respecto al piso de ruido
 // medio (peak / mean). Robusto a armónicos: cada pisada es un impacto rico en
 // armónicos, así que la fracción de energía en banda (inband/total) se diluye,
