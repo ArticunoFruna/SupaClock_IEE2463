@@ -352,11 +352,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.directions_run,
                     label: 'Correr',
                     active: hs == 2),
-                _ActivityChip(
-                    icon: Icons.warning_amber,
-                    label: 'Caída',
-                    active: hs == 3,
-                    danger: true),
+                // 'Escaleras' (estado 3) deshabilitado hasta tener dataset:
+                // el firmware no reporta la clase 3 (HAR_ACTIVE_CLASSES=3).
               ],
             ),
           ],
@@ -456,18 +453,15 @@ class _ActivityChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool active;
-  final bool danger;
   const _ActivityChip({
     required this.icon,
     required this.label,
     required this.active,
-    this.danger = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        danger ? AppTheme.danger : (active ? AppTheme.primary : AppTheme.textMuted);
+    final color = active ? AppTheme.primary : AppTheme.textMuted;
     return Column(
       children: [
         Container(

@@ -63,7 +63,7 @@
 │     │                                                                  │
 │     ▼ ResNet-1D + LSTM INT8 TFLite Micro (624 KB en PSRAM)            │
 │     │ Arena 384 KB en SRAM interna                                     │
-│     │ Probs[4]: RESTING / WALKING / RUNNING / FALL                    │
+│     │ Probs[4]: RESTING / WALKING / RUNNING / STAIRS                  │
 │     │                                                                  │
 │     ▼ EMA α=0.5 sobre probs + consolidación 3 consecutivas            │
 │     │                                                                  │
@@ -113,13 +113,18 @@ llama a `ble_telemetry_send_imu()` (envío directo, sin buffer agregado).
 
 ### 2.2 Ring buffer y ventana de inferencia
 
-El `har_task` corre en core 1 independientemente del `imu_task`. Lee el BMI160
-directamente a 100 Hz físicos y lo promedia de 2 en 2 muestras para obtener
-una frecuencia efectiva de **50 Hz** para el modelo:
+El `har_task` corre en core 1 como **consumidor de inferencia**. **No lee el
+sensor**: `imu_task` (core 0) drena el FIFO del BMI160 a **50 Hz** y alimenta el
+ring del HAR con cada muestra vía `har_cnn1d_push_sample()`. Así hay un único
+lector del bus I2C (sin contención ni FIFO overflow). El modelo es 50 Hz nativo.
 
 ```
-100 Hz físicos → promedio cada 2 muestras → 50 Hz efectivos → ring buffer
+BMI160 FIFO @50 Hz → imu_task → har_cnn1d_push_sample() → ring buffer (50 Hz)
+                                                          → notify → har_task (infiere)
 ```
+
+> **Nota:** el diseño anterior leía el BMI160 a 100 Hz desde la har_task y
+> promediaba 2→1; se reemplazó por este feed único de 50 Hz (2026-06-25).
 
 **Ring buffer** `s_ring[200][6]` (int16, 2.4 KB en SRAM interna):
 - Tamaño: `HAR_WINDOW_SIZE = 200` muestras × 6 canales.
@@ -593,7 +598,7 @@ data:
 | `0` | `HAR_STATE_RESTING` | Reposo / inactivo | "Reposo" |
 | `1` | `HAR_STATE_WALKING` | Caminando | "Caminar" |
 | `2` | `HAR_STATE_RUNNING` | Corriendo | "Correr" |
-| `3` | `HAR_STATE_FALL` | Caída detectada | "Caida!" |
+| `3` | `HAR_STATE_STAIRS` | Subir/bajar escaleras | "Escaleras" |
 
 **Frecuencia de emisión**:
 - El modelo infiere cada 2 s. Solo emite TLV cuando el estado **consolidado**
@@ -648,7 +653,7 @@ const int powerModeSaver  = 2;
 const int harStateResting = 0;
 const int harStateWalking = 1;
 const int harStateRunning = 2;
-const int harStateFall    = 3;
+const int harStateStairs  = 3;
 ```
 
 ### TLV Types (byte `type` de cada record)

@@ -15,11 +15,16 @@ typedef struct {
     uint8_t  spo2_pct;
     bool     finger_present;
 
+    /* Estado HAR consolidado (0=reposo 1=caminar 2=correr 3=escaleras).
+     * Lo escribe on_har_result() desde la har_task; lo lee la UI local y el TLV 0x08. */
+    uint8_t  har_state;
+
     /* Timestamps de última actualización (ms desde boot) */
     uint32_t hr_updated_ms;
     uint32_t spo2_updated_ms;
     uint32_t temp_updated_ms;
     uint32_t bat_updated_ms;
+    uint32_t har_updated_ms;
 } shared_sensor_data_t;
 
 /**

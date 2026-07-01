@@ -155,6 +155,30 @@ class CsvRecorder {
     }
   }
 
+  /// Re-etiqueta una grabación IMU con el nº REAL de pasos (ground-truth):
+  /// renombra el archivo a `..._<N>steps.csv.gz` y lo registra en la metadata.
+  /// Así `tools/sim_steps.py --truth` y el entrenamiento lo leen del nombre.
+  Future<File> tagGroundTruthSteps(File gz, int steps) async {
+    final id = gz.path.split('/').last.replaceAll('.csv.gz', '');
+    final newPath = gz.path.replaceFirst('.csv.gz', '_${steps}steps.csv.gz');
+    File out = gz;
+    try {
+      out = await gz.rename(newPath);
+    } catch (_) {
+      return gz; // si falla el rename, conservar el original
+    }
+    final newId = out.path.split('/').last.replaceAll('.csv.gz', '');
+    final rec = LocalStore.getRecording(id);
+    if (rec != null) {
+      await LocalStore.deleteRecording(id);
+      rec['id'] = newId;
+      rec['localPath'] = out.path;
+      rec['groundTruthSteps'] = steps;
+      await LocalStore.saveRecording(newId, rec);
+    }
+    return out;
+  }
+
   void _writeLine(String line) {
     final sink = _sink;
     if (sink == null) return;

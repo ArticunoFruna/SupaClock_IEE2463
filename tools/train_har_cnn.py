@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 WINDOW_SIZE = 200  # 200 muestras (aprox 4.0s a 50Hz)
 OVERLAP = 100      # 50% solapamiento
 NUM_CHANNELS = 6   # ax, ay, az, gx, gy, gz
-CLASSES = {'rest': 0, 'walk': 1, 'run': 2, 'fall': 3}
+CLASSES = {'rest': 0, 'walk': 1, 'run': 2, 'stairs': 3}
 
 def load_data(data_dir):
     X = []
@@ -27,12 +27,12 @@ def load_data(data_dir):
         
     # Mapeo de las etiquetas que escribe el recorder Flutter (csv_recorder.dart)
     # a los índices del modelo. 'resting'/'walking'/'running' → indices fijos;
-    # 'fall' es la 4ª clase.
+    # 'stairs' (subir/bajar escaleras) es la 4ª clase.
     LABEL_ALIASES = {
         'resting': 'rest', 'rest': 'rest',
         'walking': 'walk', 'walk': 'walk', 'step': 'walk',
         'running': 'run',  'run': 'run',
-        'fall': 'fall',    'emerg': 'fall', 'emergency': 'fall',
+        'stairs': 'stairs', 'stair': 'stairs', 'escaleras': 'stairs',
     }
 
     def label_for_row(row, fallback):
@@ -46,7 +46,7 @@ def load_data(data_dir):
     def fallback_label_from_name(path):
         s = os.path.basename(path).lower()
         if 'run' in s:                                 return CLASSES['run']
-        if 'fall' in s or 'emerg' in s:                return CLASSES['fall']
+        if 'stair' in s or 'escaler' in s:             return CLASSES['stairs']
         if 'walk' in s or 'step' in s:                 return CLASSES['walk']
         return CLASSES['rest']
 

@@ -60,8 +60,8 @@
             \item \textbf{Entrega 4}: demostraci\'on del ECG en PCB, avances ML y cierre hacia el 100\%.
         \end{itemize}
         \column{0.53\textwidth}
-        \begin{block}{Tesis de esta entrega}
-            Ya no estamos validando componentes aislados: estamos mostrando un prototipo funcional al 90\%, con los riesgos principales concentrados en manufactura, carcasa final y validaci\'on repetible.
+        \begin{block}{En esta entrega}
+            Ya no estamos validando componentes aislados: estamos mostrando un prototipo funcional al 90\%, con los riesgos principales concentrados en manufactura, carcasa final y validaci\'on.
         \end{block}
         \vspace{0.2cm}
         \centering
@@ -78,8 +78,8 @@
         \begin{itemize}\itemsep0.14cm
             \item Mostrar \textbf{ECG funcionando en la PCB}, con captura real y transmisi\'on hacia la app.
             \item Presentar los avances de \textbf{Machine Learning} para reconocimiento de actividad humana.
-            \item Explicar la \textbf{PCB final fabricada en China}, orientada a reducir altura y mejorar repetibilidad.
-            \item Definir qu\'e falta para cerrar el \textbf{100\%}: carcasa, validaci\'on, dataset y demo final.
+            \item La \textbf{PCB final fabricada en China}, orientada a reducir altura y mejorar tolerancias de mediciones.
+            \item Definir qu\'e falta para cerrar el \textbf{100\%}: carcasa final, validaci\'on, dataset y demo.
         \end{itemize}
         \column{0.42\textwidth}
         \centering
@@ -90,7 +90,7 @@
         \end{tikzpicture}
         \vspace{0.25cm}
         \begin{alertblock}{Criterio de avance}
-            \scriptsize El 10\% restante no es ``hacer que prenda'': es hacer que sea repetible, usable y validable como reloj cerrado.
+            \scriptsize El 10\% restante no es ``hacer que prenda'': es hacer que sea repetible, usable y validable como reloj.
         \end{alertblock}
     \end{columns}
 \end{frame}
@@ -98,20 +98,20 @@
 \begin{frame}{Estado del proyecto al 90\%}
     \scriptsize
     \centering
-    \begin{tabular}{p{2.6cm}p{4.4cm}p{4.4cm}p{1.5cm}}
+    \begin{tabular}{p{2.6cm}p{4.3cm}p{4.3cm}p{1.5cm}}
         \toprule
         \textbf{Bloque} & \textbf{Estado actual} & \textbf{Cierre hacia 100\%} & \textbf{Avance} \\
         \midrule
         ECG + PCB & Captura real desde AD8232 en carrier; streaming BLE a $\sim$500\,Hz. & Validar con carcasa cerrada, electrodos definitivos y ruido real. & \ok \\
         App + BLE & Dashboard, modo dev, REC IMU/ECG, consola y comandos. & Pulir experiencia de usuario y persistencia final de sesiones. & \ok \\
-        Machine Learning & CNN 1D/TFLite, ventana 200$\times$6, modelo embebible. & Dataset final, matriz de confusi\'on y prueba en uso real. & \warnstate \\
-        PCB final & Carrier validado; versiones v3/v4 orientadas a reglas JLCPCB. & DRC final, pedido, ensamble y bring-up de placa fabricada en China. & \warnstate \\
+        Machine Learning & 3 clases corriendo en Core 1 (reposo/caminar/correr). & A\~nadir escaleras (4\textsuperscript{a} clase) y data augmentation. & \warnstate \\
+        PCB final & Carrier validado & DRC final, pedido, ensamble y bring-up de placa fabricada en China. & \warnstate \\
         Carcasa & Prototipo impreso permiti\'o detectar tolerancias, altura y contacto sensor-piel. & Redise\~no compacto alineado a PCB final y sensores. & \warnstate \\
         \bottomrule
     \end{tabular}
     \vspace{0.35cm}
     \begin{block}{Lectura del avance}
-        \scriptsize El proyecto se mueve desde una demostraci\'on funcional de laboratorio hacia una unidad wearable repetible.
+        \scriptsize El proyecto se mueve desde una demostraci\'on funcional a algo usable día a día.
     \end{block}
 \end{frame}
 
@@ -135,7 +135,7 @@
         \end{itemize}
         \vspace{0.2cm}
         \begin{block}{Resultado central}
-            \scriptsize El ECG ya no depende de protoboard: funciona desde la integraci\'on f\'isica del reloj.
+            \scriptsize El ECG está plenamente funcional.
         \end{block}
     \end{columns}
 \end{frame}
@@ -150,7 +150,7 @@
         \vspace{0.2cm}
         \metric{23.400}{muestras registradas}\\[0.35cm]
         \metric{46,8\,s}{duraci\'on capturada}\\[0.35cm]
-        \metric{500,2\,Hz}{frecuencia estimada}\\[0.35cm]
+        \metric{500\,Hz}{frecuencia muestreo}\\[0.35cm]
         \metric{1143--3447}{rango ADC raw}\\[0.25cm]
         \begin{block}{Cadena validada}
             \scriptsize PCB/AD8232 $\rightarrow$ ADC/DMA $\rightarrow$ BLE 20 B (10$\times$int16) $\rightarrow$ Flutter $\rightarrow$ CSV/app.
@@ -195,59 +195,222 @@
 
 \section{Machine Learning}
 
-\begin{frame}{Avances de Machine Learning}
+\begin{frame}{Evolución del Clasificador HAR (Upgrade del Modelo)}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{El problema anterior (Umbrales)}
+        \begin{itemize}\itemsep0.10cm
+            \item Alta propensión a falsos positivos en reposo ante movimientos cotidianos (escribir, rascarse).
+            \item Dificultad para discernir entre caminar y correr.
+        \end{itemize}
+        \vspace{0.2cm}
+        \textbf{La solución (CNN 1D)}
+        \begin{itemize}\itemsep0.10cm
+            \item Extrae correlación espacio-temporal en 3 ejes.
+            \item Ventana de 4\,s (200 muestras) filtra transitorios.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{C\'omo lo metimos en el reloj}
+        \begin{itemize}\itemsep0.10cm
+            \item \textbf{Corre en el Core 1}: la inferencia va en paralelo, sin frenar la pantalla ni el BLE.
+            \item \textbf{Es r\'apido}: menos de 10\,ms por ventana, apoyado en las instrucciones vectoriales ESP-NN.
+            \item \textbf{Un solo lector del IMU}: se alimenta del mismo stream de 50\,Hz que el pod\'ometro, as\'i evitamos pelear por el bus y perder muestras.
+        \end{itemize}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Arquitectura de la Red CNN 1D Embebida}
     \begin{columns}[T]
         \column{0.52\textwidth}
-        \footnotesize
-        \textbf{Pipeline HAR actual}
-        \begin{itemize}\itemsep0.11cm
-            \item Sensor BMI160 como fuente de aceler\'ometro y giroscopio.
-            \item Ventanas de 200 muestras $\times$ 6 canales.
-            \item Frecuencia efectiva de 50\,Hz: 4\,s por ventana.
-            \item Traslape de 50\%: inferencia cada 2\,s.
-            \item Salida de 4 clases: reposo, caminar, correr, ca\'ida.
+        \scriptsize
+        \begin{itemize}\itemsep0.08cm
+            \item \textbf{Entrada}: Tensor $200 \times 6$ (Acel/Giro a 50\,Hz) normalizado en rango $[-1.0, 1.0]$.
+            \item \textbf{Cuerpo Convolucional (Extracción)}:
+                \begin{itemize}\itemsep0.02cm
+                    \item Conv1D (32 fil, k=5) + MaxPool: Rasgos inerciales.
+                    \item Conv1D (64 fil, k=5) + MaxPool: Ciclos de marcha.
+                    \item Conv1D (64 fil, k=3) + MaxPool: Rasgos rápidos.
+                    \item Conv1D (128 fil, k=3): Patrones abstractos.
+                \end{itemize}
+            \item \textbf{Global Average Pooling (GAP)}: Promedia la dimensión temporal ($25 \times 128 \rightarrow 128$). Reduce parámetros densos de 3200 a 128, logrando un modelo de sólo 73\,KB.
+            \item \textbf{Clasificador Final}: Capa Dense (64, relu) con Dropout (0.3) y salida Softmax de 4 clases. Para esta entrega cambiamos la 4\textsuperscript{a} clase de \emph{ca\'ida} a \emph{escaleras}; hoy corremos con \alert{3 clases activas} (reposo, caminar, correr) y dejamos escaleras lista para activar en la entrega final.
         \end{itemize}
+        
         \column{0.48\textwidth}
         \centering
         \begin{tikzpicture}[
-            block/.style={draw=main, rounded corners=3pt, fill=main!9, align=center, minimum width=2.2cm, minimum height=0.65cm, font=\scriptsize},
+            node distance=0.18cm,
+            layer/.style={draw=main, fill=main!9, rounded corners=2pt, align=center, font=\tiny, minimum width=2.6cm, minimum height=0.32cm},
+            pool/.style={layer, fill=accent!12, draw=accent},
+            gap/.style={layer, fill=orange!15, draw=orange},
+            dense/.style={layer, fill=purple!12, draw=purple},
             arr/.style={-Stealth, thick, main}
         ]
-            \node[block] (imu) {BMI160\\100\,Hz};
-            \node[block, right=0.30cm of imu] (down) {Downsample\\50\,Hz};
-            \node[block, below=0.38cm of down] (win) {Ventana\\200$\times$6};
-            \node[block, left=0.30cm of win] (cnn) {CNN 1D\\TFLite};
-            \node[block, below=0.38cm of cnn, fill=accent!12, draw=accent] (out) {Estado HAR\\0--3};
-            \draw[arr] (imu) -- (down);
-            \draw[arr] (down) -- (win);
-            \draw[arr] (win) -- (cnn);
-            \draw[arr] (cnn) -- (out);
+            \node[layer] (in) {Entrada: $200 \times 6$};
+            \node[layer, below=of in] (c1) {Conv1D (32 fil, k=5) + MP};
+            \node[layer, below=of c1] (c2) {Conv1D (64 fil, k=5) + MP};
+            \node[layer, below=of c2] (c3) {Conv1D (64 fil, k=3) + MP};
+            \node[layer, below=of c3] (c4) {Conv1D (128 fil, k=3)};
+            \node[gap, below=of c4] (gap) {Global Average Pool (GAP)};
+            \node[dense, below=of gap] (d1) {Dense (64) + Dropout (0.3)};
+            \node[dense, below=of d1, fill=main!20, draw=main] (out) {Softmax 4 clases (3 activas)};
+
+            \draw[arr] (in) -- (c1);
+            \draw[arr] (c1) -- (c2);
+            \draw[arr] (c2) -- (c3);
+            \draw[arr] (c3) -- (c4);
+            \draw[arr] (c4) -- (gap);
+            \draw[arr] (gap) -- (d1);
+            \draw[arr] (d1) -- (out);
         \end{tikzpicture}
-        \vspace{0.22cm}
-        \begin{block}{Estado honesto}
-            \scriptsize El pipeline est\'a montado y exporta TFLite; falta consolidar dataset real y reportar desempe\~no final con matriz de confusi\'on.
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Resultados: qu\'e tan bien clasifica (limpio vs.\ con ruido)}
+    \begin{columns}[T]
+        \column{0.55\textwidth}
+        \centering
+        \begin{tikzpicture}
+        \begin{axis}[
+            ybar, bar width=8pt,
+            width=\linewidth, height=4.5cm,
+            ymin=90, ymax=101,
+            ylabel={\scriptsize Exactitud (\%)},
+            symbolic x coords={Model A, Model B, Model C},
+            xtick=data,
+            x tick label style={font=\scriptsize},
+            y tick label style={font=\tiny},
+            legend style={font=\tiny, at={(0.5,1.02)}, anchor=south, legend columns=2},
+            nodes near coords, nodes near coords style={font=\tiny, /pgf/number format/fixed, /pgf/number format/precision=1},
+            enlarge x limits=0.3,
+        ]
+        \addplot[fill=main!70, draw=main] coordinates {(Model A,98.95) (Model B,98.29) (Model C,98.82)};
+        \addplot[fill=warn!60, draw=warn] coordinates {(Model A,98.16) (Model B,98.43) (Model C,94.88)};
+        \legend{Datos limpios, Con ruido ($\sigma$=0.05)}
+        \end{axis}
+        \end{tikzpicture}
+        \vspace{0.05cm}
+        \scriptsize Probamos cada variante con datos limpios y con una copia ruidosa que imita el jitter real del sensor (tama\~nos: A 58\,KB, B 188\,KB, C 73\,KB).
+        \column{0.45\textwidth}
+        \scriptsize
+        \textbf{Por clase (Model C, 3 clases activas)}
+        \begin{itemize}\itemsep0.06cm
+            \item \textbf{Reposo}: precisi\'on 99.5\,\% / recall 98.8\,\%
+            \item \textbf{Caminar}: 99.1\,\% / 99.6\,\%
+            \item \textbf{Correr}: 95.9\,\% / 97.5\,\%
+        \end{itemize}
+        \vspace{0.1cm}
+        \begin{block}{Lo que elegimos}
+            \scriptsize Nos quedamos con \textbf{Model C} (73\,KB): el m\'as compacto para el reloj. En limpio anda muy bien; su flaqueza es el ruido, y eso lo cerramos con \emph{data augmentation}. La 4\textsuperscript{a} clase (escaleras) entra en la entrega final.
         \end{block}
     \end{columns}
 \end{frame}
 
-\begin{frame}{Entrenamiento y artefactos del modelo}
+\begin{frame}{Análisis de Diseño: ¿Profundidad o Ancho?}
     \begin{columns}[T]
-        \column{0.58\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{har_training_history_e4.jpg}
-        \column{0.42\textwidth}
+        \column{0.50\textwidth}
         \footnotesize
-        \textbf{Artefactos ya generados}
-        \begin{itemize}\itemsep0.12cm
-            \item \texttt{tools/train\_har\_cnn.py}: entrenamiento CNN 1D.
-            \item \texttt{har\_model.tflite}: modelo exportado ($\sim$58\,KB).
-            \item \texttt{lib/har\_cnn1d/har\_model.c}: blob embebible.
-            \item Recorder Flutter para capturar CSV etiquetados.
+        \textbf{Más Filtros (Model B - Ancho)}
+        \begin{itemize}\itemsep0.10cm
+            \item Tamaño crece a 188.32\,KB (3.2x).
+            \item Consume mucha SRAM (Tensor Arena).
+            \item Robusto al ruido por redundancia, pero propenso a sobreajuste.
         \end{itemize}
-        \vspace{0.2cm}
-        \begin{alertblock}{Siguiente evidencia}
-            \scriptsize Entrenamiento con dataset final real + matriz de confusi\'on por clase.
+        \vspace{0.15cm}
+        \textbf{Más Capas (Model C - Profundo)}
+        \begin{itemize}\itemsep0.10cm
+            \item Tamaño compacto de 73\,KB.
+            \item Rasgos jerárquicos de alto nivel.
+            \item Propaga ruido de alta frecuencia.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \footnotesize
+        \begin{alertblock}{Decisión de Diseño (Siguiente Avance)}
+            La profundidad (más capas) es superior en microcontroladores por eficiencia de memoria. \\
+            \vspace{0.15cm}
+            Para corregir la sensibilidad al ruido del Model C, en el tramo final aplicaremos \textbf{data augmentation} (a\~nadir ruido Gaussiano durante el entrenamiento).
         \end{alertblock}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Integraci\'on HAR de extremo a extremo (este avance)}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{\textcolor{main}{Firmware (ESP32-S3)}}
+        \begin{itemize}\itemsep0.10cm
+            \item HAR \textbf{cableado} en la app principal: \texttt{har\_task} en \textbf{Core 1}, con post-proceso \textbf{EMA ($\alpha$=0.5)} + consolidaci\'on por 3 ventanas $\rightarrow$ estado estable.
+            \item Estado publicado a la UI local y por BLE como \textbf{TLV \texttt{0x08}}.
+            \item 4ta clase redefinida: \alert{ca\'ida $\rightarrow$ subir/bajar escaleras} (m\'as entrenable); hoy desactivada, se activa en la entrega final.
+            \item Contador de pasos \textbf{h\'ibrido} en producci\'on: \textbf{gate espectral (FFT)} + medici\'on por \textbf{umbral} en dominio del tiempo.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{\textcolor{main}{App + pipeline de depuraci\'on}}
+        \begin{itemize}\itemsep0.10cm
+            \item Estado de actividad \textbf{en vivo} en el dashboard (consume el TLV \texttt{0x08}).
+            \item Grabador de sesi\'on \textbf{IMU + estado HAR} comprimido (\texttt{.csv.gz}, $\sim$1\,MB/hora).
+            \item \textbf{Replay en PC} (\texttt{har\_replay.py}): re-corre el \texttt{.tflite} sobre lo grabado $\rightarrow$ probabilidades y \textbf{matriz de confusi\'on}.
+            \item Correcci\'on de calidad de se\~nal (flag \texttt{0/1}) que falseaba ``se\~nal d\'ebil'' y vaciaba las estad\'isticas.
+        \end{itemize}
+    \end{columns}
+    \vspace{0.20cm}
+    \begin{block}{Por qu\'e importa}
+        \scriptsize Cerramos el lazo modelo$\rightarrow$reloj$\rightarrow$app$\rightarrow$an\'alisis: ahora podemos \textbf{medir} el desempe\~no del clasificador con datos reales, no solo entrenarlo en s\'intesis.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Matriz de confusi\'on (Model C, datos limpios)}
+    \begin{columns}[T]
+        \column{0.56\textwidth}
+        \centering
+        \scriptsize Filas = clase real \quad columnas = predicci\'on \quad (\% por fila)
+        \vspace{0.25cm}
+
+        \begin{tikzpicture}[
+            cell/.style={minimum width=1.4cm, minimum height=1.0cm, font=\small\bfseries},
+            diag/.style={cell, fill=accent!85, text=white},
+            off/.style={cell, text=darkink},
+            hdr/.style={font=\scriptsize\bfseries, text=main}
+        ]
+            % Encabezados de columna (predicci\'on)
+            \node[hdr] at (0,3.05)   {Reposo};
+            \node[hdr] at (1.5,3.05) {Caminar};
+            \node[hdr] at (3.0,3.05) {Correr};
+            % Encabezados de fila (clase real)
+            \node[hdr, rotate=90] at (-1.25,2.2) {Reposo};
+            \node[hdr, rotate=90] at (-1.25,1.1) {Caminar};
+            \node[hdr, rotate=90] at (-1.25,0.0) {Correr};
+            % Fila Reposo
+            \node[diag]            at (0,2.2)   {98.8};
+            \node[off, fill=warn!14] at (1.5,2.2) {1.2};
+            \node[off, fill=softgray] at (3.0,2.2) {0.0};
+            % Fila Caminar
+            \node[off, fill=softgray] at (0,1.1)   {0.2};
+            \node[diag]            at (1.5,1.1) {99.6};
+            \node[off, fill=warn!10] at (3.0,1.1) {0.2};
+            % Fila Correr
+            \node[off, fill=softgray] at (0,0.0)   {0.0};
+            \node[off, fill=warn!32] at (1.5,0.0) {2.5};
+            \node[diag]            at (3.0,0.0) {97.5};
+        \end{tikzpicture}
+
+        \vspace{0.15cm}
+        {\scriptsize La diagonal es el \emph{recall} por clase (test set 20\%).}
+        \column{0.44\textwidth}
+        \footnotesize
+        \textbf{C\'omo leerla}
+        \begin{itemize}\itemsep0.10cm
+            \item Diagonal alta = el modelo acierta la clase real.
+            \item La \'unica confusi\'on real es \textbf{correr $\leftrightarrow$ caminar} ($\sim$2.5\%): comparten cadencia, es la frontera m\'as fina.
+            \item \textbf{Reposo casi sin errores}: escribir o rascarse ya no se cuela como actividad (el problema que ten\'ian los umbrales).
+        \end{itemize}
+        \vspace{0.1cm}
+        \begin{block}{Escaleras (4\textsuperscript{a} clase)}
+            \scriptsize Hoy desactivada; con su dataset la matriz pasa a $4\times4$ en la entrega final.
+        \end{block}
     \end{columns}
 \end{frame}
 
@@ -345,9 +508,9 @@
             \item Video/evidencia.
         \end{itemize}
     \end{columns}
-    \vspace{0.32cm}
+    \vspace{0.12cm}
     \begin{alertblock}{Criterio de t\'ermino}
-        \scriptsize El 100\% se logra cuando el reloj mide ECG/biometr\'ia, clasifica actividad y se puede usar cerrado con una placa/carcasa repetible.
+        \scriptsize El 100\% se logra cuando el reloj mide ECG/biometr\'ia, clasifica actividad y se usa cerrado con placa/carcasa repetible.
     \end{alertblock}
 \end{frame}
 
@@ -376,18 +539,18 @@
     \begin{columns}[T]
         \column{0.42\textwidth}
         \scriptsize
-        \begin{tabular}{l l}
+        \begin{tabular}{@{}l p{2.7cm}@{}}
             \toprule
             \textbf{Bloque} & \textbf{Estado Entrega 4} \\
             \midrule
-            BMI160 IMU & ML/CSV en uso \\
-            MAX30102 PPG & integrado, validaci\'on final pendiente \\
-            MAX30205 Temp. & integrado, offset carcasa pendiente \\
+            BMI160 IMU & ML + pasos h\'ibridos \\
+            MAX30102 PPG & integrado, falta validaci\'on \\
+            MAX30205 Temp. & integrado, falta offset \\
             MAX17048 Fuel & telemetr\'ia disponible \\
             AD8232 ECG & \textbf{funcionando en PCB} \\
             ST7789 Display & GUI funcional \\
             App m\'ovil & BLE + REC + dashboard \\
-            TinyML HAR & pipeline entrenable/embebible \\
+            TinyML HAR & \textbf{integrado en Core 1} \\
             PCB final & camino JLCPCB \\
             \bottomrule
         \end{tabular}
@@ -414,5 +577,7 @@
         El proyecto ya demuestra funcionamiento; la etapa final convierte ese funcionamiento en un reloj repetible, compacto y defendible.
     \end{block}
 \end{frame}
+
+
 
 \end{document}
