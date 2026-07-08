@@ -173,6 +173,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       linkColor = AppTheme.textMuted;
     }
 
+    // Muestra CTA "Emparejar" cuando no hay bond guardado y no está conectado.
+    final bool showPairCta = !kIsWeb && !ble.isConnected && !ble.hasBond;
+
     return ValueListenableBuilder(
       valueListenable: LocalStore.syncListenable(),
       builder: (context, _, _) {
@@ -186,6 +189,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Icon(linkIcon, size: 14, color: linkColor),
               const SizedBox(width: 6),
               Text(linkText, style: TextStyle(fontSize: 12, color: linkColor)),
+              if (showPairCta) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    ble.startScan();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BleDebugScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.secondary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'Emparejar',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const Spacer(),
               if (pending > 0) ...[
                 const Icon(Icons.sync_problem, size: 14, color: AppTheme.warning),

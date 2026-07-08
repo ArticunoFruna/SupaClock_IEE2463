@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "st7789.h"
+#include "gc9a01.h"
 #include "lvgl.h"
 #include "esp_log.h"
 #include "esp_timer.h" // For monotonic time in ESP32
@@ -23,7 +23,7 @@ void mi_pantalla_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_
     uint16_t h = area->y2 - area->y1 + 1;
     
     // Nuestro driver st7789 recibe sin problemas este lienzo parcial y lo vuelca usando DMA / Polling
-    st7789_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
+    gc9a01_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
     
     // Le indicamos a LVGL que el SPI ya terminó de enviar este lote
     lv_disp_flush_ready(disp_drv);
@@ -46,8 +46,8 @@ extern "C" void app_main(void) {
     ESP_LOGI(TAG, "Iniciando Test GUI...");
 
     // Inicializar Pantalla Hardware
-    st7789_init();
-    st7789_fill_screen(0x0000); // Negro de fondo
+    gc9a01_init();
+    gc9a01_fill_screen(0x0000); // Negro de fondo
 
     // Inicializar LVGL Software
     lv_init();
@@ -56,7 +56,7 @@ extern "C" void app_main(void) {
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = 240;
-    disp_drv.ver_res = 280;
+    disp_drv.ver_res = 240;
     disp_drv.flush_cb = mi_pantalla_flush;
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);

@@ -74,6 +74,8 @@ class _SupaClockAppState extends State<SupaClockApp> with WidgetsBindingObserver
     _wired = true;
 
     final ble = context.read<BleService>();
+    // Intento de reconexión al reloj bondeado; no bloquea el build.
+    unawaited(ble.tryAutoReconnect());
     _collector = TelemetryCollector(ble, _fs, _auth, _notif)..start();
 
     final uid = _auth.currentUser?.uid;

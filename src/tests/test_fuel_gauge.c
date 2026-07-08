@@ -7,7 +7,7 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "lvgl.h"
-#include "st7789.h"
+#include "gc9a01.h"
 #include "i2c_bus.h"
 #include "max17048.h"
 
@@ -32,7 +32,7 @@ void main_pantalla_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_colo
     uint16_t w = area->x2 - area->x1 + 1;
     uint16_t h = area->y2 - area->y1 + 1;
     
-    st7789_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
+    gc9a01_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
     lv_disp_flush_ready(disp_drv);
 }
 
@@ -128,8 +128,8 @@ void app_main(void) {
 
     xGuiSemaphore = xSemaphoreCreateMutex();
 
-    st7789_init();
-    st7789_fill_screen(0x0000); 
+    gc9a01_init();
+    gc9a01_fill_screen(0x0000); 
 
     if (i2c_master_init() != ESP_OK) ESP_LOGE(TAG, "I2C Bus failed!");
     

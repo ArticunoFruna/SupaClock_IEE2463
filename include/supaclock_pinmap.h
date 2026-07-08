@@ -124,6 +124,16 @@
 /* ───── IMU INT1 (BMI160) ───── */
 #define SUPA_PIN_BMI160_INT1    (-1)   /* no cableada en carrier v1 */
 
+/* ───── Touch CST816S (Waveshare 1.28" Touch LCD) ─────
+ * XIAO ESP32-S3 Plus expone GPIOs extra por B2B/castellations traseras
+ * (D11..D18 = GPIO38, 39, 40, 41, 42, 10, 13, 12). Usamos D11 y D12 con
+ * jumpers al FPC del panel; el I2C ya existe compartido (SDA=5, SCL=6).
+ * GPIO12 (D18) se evita por conflicto con JTAG TDO.
+ */
+#define SUPA_PIN_TOUCH_INT      38     /* D11 XIAO ESP32-S3 Plus, falling-edge */
+#define SUPA_PIN_TOUCH_RST      39     /* D12 XIAO ESP32-S3 Plus, active-low   */
+#define SUPA_I2C_ADDR_TOUCH     0x15   /* CST816S 7-bit                        */
+
 #endif /* SUPACLOCK_BOARD_C3 */
 
 #endif /* SUPACLOCK_PINMAP_H */

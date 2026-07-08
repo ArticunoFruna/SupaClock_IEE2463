@@ -106,4 +106,19 @@ esp_err_t ble_tx_flush(uint8_t power_mode_val);
 bool ble_telemetry_is_ecg_mode_active(void);
 void ble_telemetry_set_ecg_mode(bool enable);
 
+/* ─────────── Bonding / Pairing ─────────── */
+
+/** True si hay al menos un peer bondeado guardado en NVS. */
+bool ble_telemetry_is_paired(void);
+
+/** Borra todos los bonds en NVS. Se puede invocar en runtime. */
+void ble_telemetry_erase_bonds(void);
+
+/**
+ * Registra un callback para el comando SYNC_TIME (opcode 0x02).
+ * El callback recibe el timestamp unix (segundos, u32 LE) enviado por la app.
+ * Pasar NULL desregistra.
+ */
+void ble_telemetry_set_time_sync_cb(void (*cb)(uint32_t unix_ts));
+
 #endif /* BLE_TELEMETRY_H */

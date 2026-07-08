@@ -65,6 +65,7 @@ class _BleDebugBody extends StatelessWidget {
           const Divider(height: 1),
           // Botones de acción
           _buildActionBar(context, ble),
+          _buildBondStatus(context, ble),
           const Divider(height: 1),
           // Log en vivo (como un terminal)
           Expanded(child: _buildLogConsole(context, ble)),
@@ -145,6 +146,63 @@ class _BleDebugBody extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBondStatus(BuildContext context, BleService ble) {
+    final id = ble.remoteId;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: isDark ? const Color(0xFF141822) : const Color(0xFFF7F8FA),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                id != null ? Icons.link : Icons.link_off,
+                size: 16,
+                color: id != null ? AppTheme.spo2 : AppTheme.textMuted,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  id != null ? 'Bond: $id' : 'Sin bond guardado',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: ble.isConnected ? () => ble.syncTime() : null,
+                  icon: const Icon(Icons.schedule, size: 18),
+                  label: const Text('Sync time'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: (id != null || ble.isConnected)
+                      ? () => ble.unpair()
+                      : null,
+                  icon: const Icon(Icons.link_off, size: 18),
+                  label: const Text('Desemparejar'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.danger,
+                    side: const BorderSide(color: AppTheme.danger),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

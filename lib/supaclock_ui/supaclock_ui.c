@@ -3,13 +3,15 @@
 #include <string.h>
 #include <math.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "lvgl.h"
-#include "st7789.h"
+#include "gc9a01.h"
+#include "cst816s.h"
 #include "max30102.h"
 #include "ble_telemetry.h"
 #include "power_modes.h"
@@ -160,37 +162,59 @@ static void display_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_
     uint16_t x = area->x1, y = area->y1;
     uint16_t w = area->x2 - area->x1 + 1;
     uint16_t h = area->y2 - area->y1 + 1;
-    st7789_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
+    gc9a01_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
     lv_disp_flush_ready(disp_drv);
 }
 
-/* ── Screen Builders ── */
-static lv_obj_t * create_card(lv_obj_t * parent, int x, int y, int w, int h) {
-    lv_obj_t * card = lv_obj_create(parent);
-    lv_obj_set_size(card, w, h);
-    lv_obj_align(card, LV_ALIGN_TOP_LEFT, x, y);
-    lv_obj_set_style_bg_color(card, lv_color_hex(TH->surface), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(card, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_radius(card, 10, LV_PART_MAIN);
-    lv_obj_set_style_border_width(card, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(card, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
-    return card;
+/* ── Touch activity flag ──
+ * Escrito desde touch_read_cb (contexto de la tarea GUI, no ISR) y leído
+ * desde gui_task en supaclock_app.c. atomic_bool alcanza porque ambos
+ * corren en tareas y no hay ISR involucrado. */
+static atomic_bool s_touch_activity = ATOMIC_VAR_INIT(false);
+
+void ui_notify_touch_activity(void) {
+    atomic_store(&s_touch_activity, true);
 }
 
+bool ui_take_and_clear_touch_activity(void) {
+    return atomic_exchange(&s_touch_activity, false);
+}
+
+static void touch_read_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {
+    (void)drv;
+    cst816s_touch_t t;
+    cst816s_read(&t);
+    if (t.pressed) {
+        data->state   = LV_INDEV_STATE_PR;
+        data->point.x = t.x;
+        data->point.y = t.y;
+        ui_notify_touch_activity();
+    } else {
+        data->state = LV_INDEV_STATE_REL;
+    }
+}
+
+/* ── Screen Builders ── */
 static lv_obj_t *make_screen(const char *title) {
     lv_obj_t *scr = lv_obj_create(NULL);
+    /* Panel Waveshare Ø240 redondo, framebuffer 240x240 rectangular. NO usamos
+     * clip_corner + radius CIRCLE: con eso LVGL nunca invalida las 4 esquinas
+     * y la RAM del panel se queda con basura (blancos, ruido). Mejor pintar
+     * el rect completo con TH->bg — las esquinas caen fuera del bezel y no se
+     * ven, pero el framebuffer queda inicializado limpio. */
     lv_obj_set_style_bg_color(scr, lv_color_hex(TH->bg), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_pad_all(scr, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(scr, 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(scr, 0, LV_PART_MAIN);
     lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t *t = lv_label_create(scr);
     lv_label_set_text_safe(t, title);
     lv_obj_set_style_text_color(t, lv_color_hex(TH->accent), LV_PART_MAIN);
     lv_obj_set_style_text_font(t, FONT_LABEL, LV_PART_MAIN);
-    lv_obj_align(t, LV_ALIGN_TOP_MID, 0, 6);
+    /* Título más adentro para no chocar con el bezel curvo (arco superior). */
+    lv_obj_align(t, LV_ALIGN_TOP_MID, 0, 18);
     return scr;
 }
 
@@ -210,40 +234,61 @@ static void build_home(void) {
     lv_obj_t *s = scr_obj[SCREEN_HOME];
 
     home_clock = make_label(s, FONT_HERO, TH->text,
-                            LV_ALIGN_TOP_MID, 0, 34, "--:--");
+                            LV_ALIGN_TOP_MID, 0, 46, "--:--");
 
     home_mode  = make_label(s, FONT_LABEL, TH->text_dim,
-                            LV_ALIGN_TOP_MID, 0, 100, "MODE: SPORT");
+                            LV_ALIGN_TOP_MID, 0, 110, "MODE: SPORT");
 
-    int card_w = 100;
-    int card_h = 66;
-    int pad_x = 15;
-    int pad_y = 126;
-    int gap = 8;
+    /* Cards 2x2 apretadas al disco Ø240. Restricción: la esquina BR de la row2
+     * debe caer dentro de r=120 desde (120,120). Con card 72x36, col_ofs=39,
+     * row2_y=+72: corner en (43, 210), dist=sqrt(77²+90²)=118.4 → adentro con
+     * ~2 px de aire respecto al bezel. */
+    int card_w = 72;
+    int card_h = 36;
+    int gap    = 6;
+    int col_ofs = (card_w + gap) / 2;   /* ±39 desde el centro */
+    int row1_y  = 30;
+    int row2_y  = row1_y + card_h + gap;  /* +72 */
 
-    lv_obj_t * card_steps = create_card(s, pad_x, pad_y, card_w, card_h);
-    lv_obj_t * card_bat   = create_card(s, pad_x + card_w + gap, pad_y, card_w, card_h);
-    lv_obj_t * card_hr    = create_card(s, pad_x, pad_y + card_h + gap, card_w, card_h);
-    lv_obj_t * card_act   = create_card(s, pad_x + card_w + gap, pad_y + card_h + gap, card_w, card_h);
+    lv_obj_t *card_steps = lv_obj_create(s);
+    lv_obj_t *card_bat   = lv_obj_create(s);
+    lv_obj_t *card_hr    = lv_obj_create(s);
+    lv_obj_t *card_act   = lv_obj_create(s);
+    lv_obj_t *cards[4] = {card_steps, card_bat, card_hr, card_act};
+    for (int i = 0; i < 4; i++) {
+        lv_obj_set_size(cards[i], card_w, card_h);
+        lv_obj_set_style_bg_color(cards[i], lv_color_hex(TH->surface), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(cards[i], LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_set_style_radius(cards[i], 10, LV_PART_MAIN);
+        lv_obj_set_style_border_width(cards[i], 0, LV_PART_MAIN);
+        lv_obj_set_style_pad_all(cards[i], 0, LV_PART_MAIN);
+        lv_obj_clear_flag(cards[i], LV_OBJ_FLAG_SCROLLABLE);
+    }
+    lv_obj_align(card_steps, LV_ALIGN_CENTER, -col_ofs, row1_y);
+    lv_obj_align(card_bat,   LV_ALIGN_CENTER, +col_ofs, row1_y);
+    lv_obj_align(card_hr,    LV_ALIGN_CENTER, -col_ofs, row2_y);
+    lv_obj_align(card_act,   LV_ALIGN_CENTER, +col_ofs, row2_y);
 
-    home_steps = make_label(card_steps, FONT_VALUE, TH->c_steps, LV_ALIGN_CENTER, 0, 0, LV_SYMBOL_LIST " 0");
+    home_steps = make_label(card_steps, FONT_LABEL, TH->c_steps, LV_ALIGN_CENTER, 0, 0, LV_SYMBOL_LIST " 0");
 
     home_bat_arc = lv_arc_create(card_bat);
-    lv_obj_set_size(home_bat_arc, 60, 60);
+    /* Arc ajustado al card 72x36. Stroke 4 deja anillo visible sin invadir el
+     * interior del label. El label "100%" (font 16 ~40px de ancho) sale del
+     * bounding box del arc pero queda dentro del card. */
+    lv_obj_set_size(home_bat_arc, 32, 32);
     lv_obj_align(home_bat_arc, LV_ALIGN_CENTER, 0, 0);
     lv_arc_set_rotation(home_bat_arc, 270);
     lv_arc_set_bg_angles(home_bat_arc, 0, 360);
     lv_obj_remove_style(home_bat_arc, NULL, LV_PART_KNOB);
     lv_obj_clear_flag(home_bat_arc, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_style_arc_width(home_bat_arc, 6, LV_PART_MAIN);
-    lv_obj_set_style_arc_width(home_bat_arc, 6, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_width(home_bat_arc, 4, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(home_bat_arc, 4, LV_PART_INDICATOR);
     lv_obj_set_style_arc_color(home_bat_arc, lv_color_hex(TH->surface), LV_PART_MAIN);
     lv_obj_set_style_arc_color(home_bat_arc, lv_color_hex(TH->c_batt), LV_PART_INDICATOR);
 
     home_bat = make_label(home_bat_arc, FONT_LABEL, TH->text, LV_ALIGN_CENTER, 0, 0, "--%");
 
-    home_hr = make_label(card_hr, FONT_VALUE, TH->c_hr, LV_ALIGN_CENTER, 0, 0, LV_SYMBOL_TINT " --");
-
+    home_hr  = make_label(card_hr,  FONT_LABEL, TH->c_hr,       LV_ALIGN_CENTER, 0, 0, LV_SYMBOL_TINT " --");
     home_act = make_label(card_act, FONT_LABEL, TH->c_activity, LV_ALIGN_CENTER, 0, 0, LV_SYMBOL_CHARGE " --");
 }
 
@@ -251,14 +296,17 @@ static void build_bio(void) {
     scr_obj[SCREEN_BIO] = make_screen("BIOMETRIA");
     lv_obj_t *s = scr_obj[SCREEN_BIO];
 
-    bio_hr     = make_label(s, FONT_VALUE, TH->c_hr, LV_ALIGN_TOP_LEFT, 20, 40,  LV_SYMBOL_TINT " -- bpm");
-    bio_age_hr = make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_TOP_LEFT, 20, 72, "");
+    /* Layout vertical centrado: título arriba (y=18), 3 valores + edad de 2
+     * de ellos, estado abajo. Todo alineado a LV_ALIGN_TOP_MID para caber
+     * en el chord horizontal del disco a cada altura. */
+    bio_hr       = make_label(s, FONT_VALUE, TH->c_hr,     LV_ALIGN_TOP_MID, 0, 46,  LV_SYMBOL_TINT " -- bpm");
+    bio_age_hr   = make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_TOP_MID, 0, 78,  "");
 
-    bio_spo2     = make_label(s, FONT_VALUE, TH->c_spo2, LV_ALIGN_TOP_LEFT, 20, 104, LV_SYMBOL_TINT " --%");
-    bio_age_spo2 = make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_TOP_LEFT, 20, 136, "");
+    bio_spo2     = make_label(s, FONT_VALUE, TH->c_spo2,   LV_ALIGN_TOP_MID, 0, 100, LV_SYMBOL_TINT " --%");
+    bio_age_spo2 = make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_TOP_MID, 0, 132, "");
 
-    bio_temp   = make_label(s, FONT_VALUE, TH->c_temp, LV_ALIGN_TOP_LEFT, 20, 168, LV_SYMBOL_WARNING " --.- C");
-    bio_status = make_label(s, FONT_LABEL, TH->ok, LV_ALIGN_TOP_LEFT, 20, 212, "Estado: --");
+    bio_temp     = make_label(s, FONT_VALUE, TH->c_temp,   LV_ALIGN_TOP_MID, 0, 154, LV_SYMBOL_WARNING " --.- C");
+    bio_status   = make_label(s, FONT_LABEL, TH->ok,       LV_ALIGN_TOP_MID, 0, 200, "Estado: --");
 }
 
 static void build_hrspot(void) {
@@ -288,8 +336,11 @@ static void build_hrspot(void) {
                                  LV_ALIGN_CENTER, 0, 38, "");
     hrspot_result   = make_label(s, FONT_VALUE, TH->text,
                                  LV_ALIGN_CENTER, 0, 0, "");
+    /* Bottom -20 dejaba la baseline en Y=220; con texto largo como
+     * "Apoye bien el dedo" (~150 px de ancho) la esquina caía fuera del disco.
+     * -32 corre el label 12 px arriba y lo mete adentro con margen. */
     hrspot_quality  = make_label(s, FONT_LABEL, TH->text_dim,
-                                 LV_ALIGN_BOTTOM_MID, 0, -20, "");
+                                 LV_ALIGN_BOTTOM_MID, 0, -32, "");
 }
 
 static void build_ecg(void) {
@@ -307,17 +358,17 @@ static void build_ecg(void) {
     lv_obj_add_flag(ecg_timer, LV_OBJ_FLAG_HIDDEN);
 
     ecg_wave = lv_line_create(s);
-    lv_obj_set_size(ecg_wave, 220, 90);
-    lv_obj_align(ecg_wave, LV_ALIGN_CENTER, 0, 28);
+    lv_obj_set_size(ecg_wave, 180, 90);
+    lv_obj_align(ecg_wave, LV_ALIGN_CENTER, 0, 20);
     lv_obj_set_style_line_color(ecg_wave, lv_color_hex(TH->accent), LV_PART_MAIN);
     lv_obj_set_style_line_width(ecg_wave, 3, LV_PART_MAIN);
     lv_obj_set_style_line_rounded(ecg_wave, true, LV_PART_MAIN);
-    for (int i = 0; i < ECG_PTS; i++) { ecg_pts[i].x = (lv_coord_t)(i * 220 / (ECG_PTS - 1)); ecg_pts[i].y = 45; }
+    for (int i = 0; i < ECG_PTS; i++) { ecg_pts[i].x = (lv_coord_t)(i * 180 / (ECG_PTS - 1)); ecg_pts[i].y = 45; }
     lv_line_set_points(ecg_wave, ecg_pts, ECG_PTS);
     lv_obj_add_flag(ecg_wave, LV_OBJ_FLAG_HIDDEN);
 
     ecg_rec = make_label(s, FONT_VALUE, TH->alert,
-                         LV_ALIGN_BOTTOM_MID, 12, -20, "REC");
+                         LV_ALIGN_BOTTOM_MID, 8, -34, "REC");
     lv_obj_add_flag(ecg_rec, LV_OBJ_FLAG_HIDDEN);
 
     ecg_rec_circle = lv_obj_create(s);
@@ -332,14 +383,16 @@ static void build_ecg(void) {
 static void build_menu(void) {
     scr_obj[SCREEN_MENU] = make_screen("MENU");
     lv_obj_t *s = scr_obj[SCREEN_MENU];
+    /* Rows apretados al disco: width 150 y y_step 32 mantienen la 5ta fila
+     * (max_vis) en Y≈208 con esquina dentro del r=120. */
     for (int i = 0; i < MENU_ITEM_COUNT; i++) {
         menu_rows[i] = lv_label_create(s);
         lv_obj_set_style_text_font(menu_rows[i], FONT_LABEL, LV_PART_MAIN);
         lv_label_set_text_safe(menu_rows[i], MENU_LABELS[i]);
-        lv_obj_set_width(menu_rows[i], 220);
-        lv_obj_set_style_pad_all(menu_rows[i], 6, LV_PART_MAIN);
+        lv_obj_set_width(menu_rows[i], 150);
+        lv_obj_set_style_pad_all(menu_rows[i], 4, LV_PART_MAIN);
         lv_obj_set_style_radius(menu_rows[i], 6, LV_PART_MAIN);
-        lv_obj_align(menu_rows[i], LV_ALIGN_TOP_MID, 0, 35 + i * 40);
+        lv_obj_align(menu_rows[i], LV_ALIGN_TOP_MID, 0, 48 + i * 32);
     }
 }
 
@@ -348,36 +401,36 @@ static void build_mode(void) {
     lv_obj_t *s = scr_obj[SCREEN_MODE];
 
     mode_active_label = make_label(s, FONT_LABEL, TH->ok,
-                                   LV_ALIGN_TOP_MID, 0, 30, "Activo: SPORT");
+                                   LV_ALIGN_TOP_MID, 0, 42, "Activo: SPORT");
 
     for (int i = 0; i < MODE_ITEM_COUNT; i++) {
         mode_rows[i] = lv_label_create(s);
         lv_obj_set_style_text_font(mode_rows[i], FONT_LABEL, LV_PART_MAIN);
         lv_label_set_text_safe(mode_rows[i], MODE_LABELS[i]);
-        lv_obj_set_width(mode_rows[i], 220);
+        lv_obj_set_width(mode_rows[i], 160);
         lv_obj_set_style_pad_all(mode_rows[i], 8, LV_PART_MAIN);
         lv_obj_set_style_radius(mode_rows[i], 6, LV_PART_MAIN);
-        lv_obj_align(mode_rows[i], LV_ALIGN_TOP_MID, 0, 60 + i * 55);
+        lv_obj_align(mode_rows[i], LV_ALIGN_TOP_MID, 0, 68 + i * 48);
     }
 
-    make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_BOTTOM_MID, 0, -8,
-               "SELECT: aplicar  L_NEXT: salir");
+    make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_BOTTOM_MID, 0, -24,
+               "SELECT: aplicar");
 }
 
 static void build_settings(void) {
-    scr_obj[SCREEN_SETTINGS] = make_screen("AUTO-OFF PANT.");
+    scr_obj[SCREEN_SETTINGS] = make_screen("AUTO-OFF");
     lv_obj_t *s = scr_obj[SCREEN_SETTINGS];
 
     for (int i = 0; i < SETTINGS_ITEM_COUNT; i++) {
         settings_rows[i] = lv_label_create(s);
         lv_obj_set_style_text_font(settings_rows[i], FONT_LABEL, LV_PART_MAIN);
-        lv_obj_set_width(settings_rows[i], 220);
+        lv_obj_set_width(settings_rows[i], 180);
         lv_obj_set_style_pad_all(settings_rows[i], 8, LV_PART_MAIN);
         lv_obj_set_style_radius(settings_rows[i], 6, LV_PART_MAIN);
-        lv_obj_align(settings_rows[i], LV_ALIGN_TOP_MID, 0, 50 + i * 55);
+        lv_obj_align(settings_rows[i], LV_ALIGN_TOP_MID, 0, 58 + i * 48);
     }
-    make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_BOTTOM_MID, 0, -8,
-               "SELECT: cambiar  L_NEXT: salir");
+    make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_BOTTOM_MID, 0, -24,
+               "SELECT: cambiar");
 }
 
 static void build_theme(void) {
@@ -385,19 +438,21 @@ static void build_theme(void) {
     lv_obj_t *s = scr_obj[SCREEN_THEME];
 
     theme_active_label = make_label(s, FONT_LABEL, TH->ok,
-                                    LV_ALIGN_TOP_MID, 0, 30, "Activo: --");
+                                    LV_ALIGN_TOP_MID, 0, 42, "Activo: --");
 
+    /* 4 temas: y_step 32 mantiene la última fila (i=3) en Y≈160+28, cuerda
+     * a Y=188 = 99 hemi → width 140 cabe con margen. */
     for (int i = 0; i < THEME_ITEM_COUNT; i++) {
         theme_rows[i] = lv_label_create(s);
         lv_obj_set_style_text_font(theme_rows[i], FONT_LABEL, LV_PART_MAIN);
         lv_label_set_text_safe(theme_rows[i], ui_theme_name((ui_theme_id_t)i));
-        lv_obj_set_width(theme_rows[i], 220);
-        lv_obj_set_style_pad_all(theme_rows[i], 8, LV_PART_MAIN);
+        lv_obj_set_width(theme_rows[i], 140);
+        lv_obj_set_style_pad_all(theme_rows[i], 5, LV_PART_MAIN);
         lv_obj_set_style_radius(theme_rows[i], 6, LV_PART_MAIN);
-        lv_obj_align(theme_rows[i], LV_ALIGN_TOP_MID, 0, 60 + i * 50);
+        lv_obj_align(theme_rows[i], LV_ALIGN_TOP_MID, 0, 68 + i * 32);
     }
-    make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_BOTTOM_MID, 0, -8,
-               "SELECT: aplicar  L_NEXT: salir");
+    make_label(s, FONT_LABEL, TH->text_dim, LV_ALIGN_BOTTOM_MID, 0, -30,
+               "SELECT: aplicar");
 }
 
 /* ── Selection Renders ── */
@@ -529,7 +584,7 @@ static void ecg_wave_update(void) {
     uint32_t now = now_ms();
     if (last_ms == 0) last_ms = now;
     
-    const float W = 220.0f, cycles = 2.0f, amp = 34.0f;
+    const float W = 180.0f, cycles = 2.0f, amp = 34.0f;
     const float cy = 45.0f;
     ecg_phase += (now - last_ms) * 0.0006f;
     last_ms = now;
@@ -761,10 +816,10 @@ static void switch_to(ui_screen_t s) {
     
     current_screen = s;
     lv_scr_load_anim(scr_obj[s], anim, 120, 0, false);
-    if (s == SCREEN_MENU)     render_list_selection(menu_rows,     MENU_ITEM_COUNT,     menu_selection, 35, 40, 5);
-    if (s == SCREEN_MODE)     { render_mode_active(); render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 60, 55, 4); }
-    if (s == SCREEN_SETTINGS) { render_settings_labels(); render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4); }
-    if (s == SCREEN_THEME)    { render_theme_active(); render_list_selection(theme_rows, THEME_ITEM_COUNT, theme_selection, 60, 50, 4); }
+    if (s == SCREEN_MENU)     render_list_selection(menu_rows,     MENU_ITEM_COUNT,     menu_selection, 48, 32, 5);
+    if (s == SCREEN_MODE)     { render_mode_active(); render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 68, 48, 4); }
+    if (s == SCREEN_SETTINGS) { render_settings_labels(); render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 58, 48, 4); }
+    if (s == SCREEN_THEME)    { render_theme_active(); render_list_selection(theme_rows, THEME_ITEM_COUNT, theme_selection, 68, 32, 4); }
     
     if (s != SCREEN_HRSPOT) {
         max30102_spot_status_t st;
@@ -796,7 +851,7 @@ static void cycle_settings_value(void) {
     idx = (idx + 1) % AUTO_OFF_VALUES_COUNT;
     power_set_display_off_s((power_mode_t)settings_selection, AUTO_OFF_VALUES[idx]);
     render_settings_labels();
-    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4);
+    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 58, 48, 4);
 }
 
 static void apply_selected_theme(void) {
@@ -865,21 +920,21 @@ void ui_handle_button(btn_event_t ev) {
             if (current_screen == SCREEN_MENU) {
                 if (menu_selection + 1 >= MENU_ITEM_COUNT) {
                     menu_selection = 0;
-                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 35, 40, 5);
+                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 48, 32, 5);
                     switch_to(SCREEN_HOME);
                 } else {
                     menu_selection++;
-                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 35, 40, 5);
+                    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 48, 32, 5);
                 }
             } else if (current_screen == SCREEN_MODE) {
                 mode_selection = (mode_selection + 1) % MODE_ITEM_COUNT;
-                render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 60, 55, 4);
+                render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 68, 48, 4);
             } else if (current_screen == SCREEN_SETTINGS) {
                 settings_selection = (settings_selection + 1) % SETTINGS_ITEM_COUNT;
-                render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4);
+                render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 58, 48, 4);
             } else if (current_screen == SCREEN_THEME) {
                 theme_selection = (theme_selection + 1) % THEME_ITEM_COUNT;
-                render_list_selection(theme_rows, THEME_ITEM_COUNT, theme_selection, 60, 55, 4);
+                render_list_selection(theme_rows, THEME_ITEM_COUNT, theme_selection, 68, 32, 4);
             } else {
                 switch_to((current_screen + 1) % SCREEN_CYCLE_COUNT);
             }
@@ -930,10 +985,10 @@ static void build_all_screens(void) {
     build_mode();
     build_settings();
     build_theme();
-    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 35, 40, 5);
-    render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 60, 55, 4);
-    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 50, 55, 4);
-    render_list_selection(theme_rows, THEME_ITEM_COUNT, theme_selection, 60, 50, 4);
+    render_list_selection(menu_rows, MENU_ITEM_COUNT, menu_selection, 48, 32, 5);
+    render_list_selection(mode_rows, MODE_ITEM_COUNT, mode_selection, 68, 48, 4);
+    render_list_selection(settings_rows, SETTINGS_ITEM_COUNT, settings_selection, 58, 48, 4);
+    render_list_selection(theme_rows, THEME_ITEM_COUNT, theme_selection, 68, 32, 4);
     render_settings_labels();
     render_mode_active();
     render_theme_active();
@@ -970,11 +1025,19 @@ void ui_init(void) {
     static lv_disp_drv_t disp_drv;
     lv_disp_drv_init(&disp_drv);
     disp_drv.hor_res = 240;
-    disp_drv.ver_res = 280;
+    disp_drv.ver_res = 240;
     disp_drv.flush_cb = display_flush_cb;
     disp_drv.draw_buf = &draw_buf;
     lv_disp_drv_register(&disp_drv);
-    
+
+    /* Touch capacitivo → indev pointer. LV_INDEV_DEF_READ_PERIOD (16 ms en
+     * lv_conf.h) dispara touch_read_cb a ~60 Hz, alcanza para gestos y taps. */
+    static lv_indev_drv_t indev_drv;
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type    = LV_INDEV_TYPE_POINTER;
+    indev_drv.read_cb = touch_read_cb;
+    lv_indev_drv_register(&indev_drv);
+
     build_ui();
 }
 
