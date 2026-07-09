@@ -677,12 +677,20 @@ static void on_har_result(const har_result_t *result, void *user) {
     static har_state_t s_consolidated = HAR_STATE_RESTING;
     static int         s_consec       = 0;
 
-    /* EMA sobre todas las salidas, pero argmax SOLO sobre las clases activas
-     * (escaleras/idx 3 deshabilitada hasta tener dataset → ver HAR_ACTIVE_CLASSES). */
+    /* EMA sobre todas las salidas. Bias -15% a stairs para que caminar gane
+     * en empates cercanos: la firma cinemática de caminar rápido es muy
+     * similar a subir escaleras, y stairs tiene menos data → tiende a
+     * over-predecir. Con el penalty stairs solo gana si el modelo está
+     * >~18% más seguro que walk. */
     int argmax = 0;
+    float scores[HAR_NUM_CLASSES];
     for (int i = 0; i < HAR_NUM_CLASSES; ++i) {
         s_ema[i] = 0.5f * result->probs[i] + 0.5f * s_ema[i];
-        if (i < HAR_ACTIVE_CLASSES && s_ema[i] > s_ema[argmax]) argmax = i;
+        scores[i] = s_ema[i];
+    }
+    scores[3] *= 0.85f;   /* penalty stairs */
+    for (int i = 0; i < HAR_NUM_CLASSES; ++i) {
+        if (i < HAR_ACTIVE_CLASSES && scores[i] > scores[argmax]) argmax = i;
     }
 
     if (argmax == (int)s_candidate) {
