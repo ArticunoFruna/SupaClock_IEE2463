@@ -25,6 +25,7 @@
 #include "ble_telemetry.h"
 #include "step_algorithm.h"
 #include "har_cnn1d.h"
+#include "esp_spiffs.h"
 #include "gpio_buttons.h"
 #include "ad8232.h"
 #include "esp_adc/adc_continuous.h"
@@ -670,6 +671,8 @@ static void on_ble_sync_time(uint32_t unix_ts) {
     }
 }
 
+#define HAR_LOG_PATH "/spiffs/har.log"
+
 static void on_har_result(const har_result_t *result, void *user) {
     (void)user;
     static float       s_ema[HAR_NUM_CLASSES] = {1.0f, 0.0f, 0.0f, 0.0f};
@@ -700,6 +703,19 @@ static void on_har_result(const har_result_t *result, void *user) {
         s_consec = 1;
     }
     if (s_consec >= 3) s_consolidated = s_candidate;
+
+    /* Log persistente a SPIFFS: cada inferencia = 1 línea CSV. Se abre en
+     * append cada vez (más lento pero robusto ante crashes). Al próximo
+     * boot se dumpea todo al serial y se trunca. */
+    FILE *lf = fopen(HAR_LOG_PATH, "a");
+    if (lf) {
+        fprintf(lf, "%lu,%.3f,%.3f,%.3f,%.3f,%d,%d\n",
+                (unsigned long)(esp_timer_get_time() / 1000ULL),
+                (double)result->probs[0], (double)result->probs[1],
+                (double)result->probs[2], (double)result->probs[3],
+                argmax, (int)s_consolidated);
+        fclose(lf);
+    }
 
     shared_sensor_data_t *sd = app_state_lock(10);
     if (sd) {
@@ -813,6 +829,36 @@ void supaclock_app_run(void) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
     ESP_LOGI(TAG, "=== INICIANDO ENTORNO TEST GENERAL ===");
+
+    /* SPIFFS para persistir HAR log entre sesiones. Al mount: dumpeamos
+     * el log previo al serial (si existe) y truncamos, listo para grabar. */
+    {
+        esp_vfs_spiffs_conf_t sconf = {
+            .base_path = "/spiffs", .partition_label = NULL,
+            .max_files = 4, .format_if_mount_failed = true,
+        };
+        if (esp_vfs_spiffs_register(&sconf) == ESP_OK) {
+            FILE *rf = fopen("/spiffs/har.log", "r");
+            if (rf) {
+                ESP_LOGW(TAG, "=== HAR LOG DUMP INICIO ===");
+                ESP_LOGW(TAG, "ts_ms,rest,walk,run,stairs,argmax,consolidated");
+                char line[128];
+                int n = 0;
+                while (fgets(line, sizeof(line), rf)) {
+                    line[strcspn(line, "\r\n")] = 0;
+                    ESP_LOGW(TAG, "%s", line);
+                    n++;
+                }
+                fclose(rf);
+                ESP_LOGW(TAG, "=== HAR LOG DUMP FIN (%d lineas) ===", n);
+            }
+            /* Truncar para empezar sesión limpia. */
+            FILE *wf = fopen("/spiffs/har.log", "w");
+            if (wf) fclose(wf);
+        } else {
+            ESP_LOGW(TAG, "SPIFFS mount fallo (HAR log deshabilitado)");
+        }
+    }
 
     /* Inicializar Power Management (Light Sleep Dinámico).
      * esp_pm_config_t es el tipo portable en IDF 5.x; en S3 podemos
