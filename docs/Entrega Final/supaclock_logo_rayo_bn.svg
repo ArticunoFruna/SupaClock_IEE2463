@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">SupaClock lightning logo black and white</title>
+  <desc id="desc">A black and white SupaClock logo with a smartwatch dial, lightning bolt, and biometric pulse line.</desc>
+
+  <rect width="1200" height="720" fill="#ffffff"/>
+
+  <g>
+    <rect x="305" y="76" width="110" height="92" rx="36" fill="#000000"/>
+    <rect x="305" y="492" width="110" height="92" rx="36" fill="#000000"/>
+    <circle cx="360" cy="330" r="178" fill="#000000"/>
+    <circle cx="360" cy="330" r="132" fill="#ffffff"/>
+    <circle cx="360" cy="330" r="108" fill="#ffffff" stroke="#000000" stroke-width="10"/>
+  </g>
+
+  <path d="M380 145 L236 358 H333 L293 516 L493 284 H383 Z" fill="#000000"/>
+  <path d="M207 365 H270 L307 314 L353 435 L402 352 H511" fill="none" stroke="#000000" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M207 365 H270 L307 314 L353 435 L402 352 H511" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g>
+    <text x="585" y="306" font-family="Segoe UI, Montserrat, Arial, sans-serif" font-size="108" font-weight="800" letter-spacing="0" fill="#000000">Supa</text>
+    <text x="585" y="414" font-family="Segoe UI, Montserrat, Arial, sans-serif" font-size="108" font-weight="800" letter-spacing="0" fill="#000000">Clock</text>
+    <rect x="589" y="444" width="332" height="12" rx="6" fill="#000000"/>
+  </g>
+</svg>

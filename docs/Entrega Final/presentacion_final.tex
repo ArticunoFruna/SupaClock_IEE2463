@@ -1,3 +1,4 @@
+% !TEX root = main.tex
 \documentclass[aspectratio=169, 10pt]{beamer}
 
 \usetheme{focus}
@@ -41,7 +42,7 @@
 \date{\today}
 \author{Grupo 10}
 \institute{Ingeniería Eléctrica}
-\titlegraphic{\hfill\includegraphics[height=1.8cm]{logo.pdf}}
+\titlegraphic{\hfill\includegraphics[height=1.8cm]{supaclock_logo_rayo_ai.png}}
 
 \begin{document}
 
@@ -70,10 +71,32 @@
         \end{block}
         \column{0.48\textwidth}
         \centering
-        \includegraphics[width=0.90\linewidth]{supaclock_logo_e4.jpg}
+        \includegraphics[width=0.90\linewidth]{supaclock_logo_rayo_ai.png}
         \vspace{0.18cm}
         \scriptsize \chip{cero distracciones}\quad \chip{datos propios}\quad \chip{uso diario}
     \end{columns}
+\end{frame}
+
+\begin{frame}{Funciones disponibles: de sensor a dato útil}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{p{3.0cm}p{8.2cm}}
+        \toprule
+        \textbf{Función} & \textbf{Qué aporta} \\
+        \midrule
+        Temperatura & Medición de contacto piel-sensor. \\
+        BPM / SpO\textsubscript{2} & Medición óptica roja/IR para frecuencia cardíaca y saturación. \\
+        Pasos & Movimiento inercial procesado localmente. \\
+        ML / HAR & Clasificación de actividad física. \\
+        ECG & Señal analógica acondicionada y enviada a la app. \\
+        Interfaz & Uso directo desde el reloj mediante pantalla táctil. \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.35cm}
+    \begin{block}{Idea clave}
+        \scriptsize No es una lista de sensores: es una cadena completa de medición, procesamiento, visualización y registro.
+    \end{block}
 \end{frame}
 
 \begin{frame}{Funciones y pantalla del reloj}
@@ -103,28 +126,6 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Funciones disponibles: de sensor a dato útil}
-    \scriptsize
-    \centering
-    \renewcommand{\arraystretch}{1.25}
-    \begin{tabular}{p{3.0cm}p{8.2cm}}
-        \toprule
-        \textbf{Función} & \textbf{Qué aporta} \\
-        \midrule
-        Temperatura & Medición de contacto piel-sensor. \\
-        BPM / SpO\textsubscript{2} & Medición óptica roja/IR para frecuencia cardíaca y saturación. \\
-        Pasos & Movimiento inercial procesado localmente. \\
-        ML / HAR & Clasificación de actividad física. \\
-        ECG & Señal analógica acondicionada y enviada a la app. \\
-        Interfaz & Uso directo desde el reloj mediante pantalla táctil. \\
-        \bottomrule
-    \end{tabular}
-    \vspace{0.35cm}
-    \begin{block}{Idea clave}
-        \scriptsize No es una lista de sensores: es una cadena completa de medición, procesamiento, visualización y registro.
-    \end{block}
-\end{frame}
-
 \begin{frame}{Batería y autonomía}
     \begin{columns}[T]
         \column{0.50\textwidth}
@@ -138,9 +139,7 @@
         \end{itemize}
         \column{0.50\textwidth}
         \centering
-        \metric{300 mAh}{capacidad nominal}\\[0.55cm]
-        \metric{BLE + sensores}{modo de operación base}\\[0.55cm]
-        \metric{pantalla táctil}{principal consumo variable}
+        \includegraphics[width=\linewidth,height=0.60\textheight,keepaspectratio]{grafico_descarga_ajustado_10h_20pct.png}
     \end{columns}
 \end{frame}
 
@@ -186,8 +185,8 @@
         \end{block}
         \column{0.52\textwidth}
         \centering
-        \includegraphics[width=0.31\linewidth]{app_home_e4.jpg}\hfill
-        \includegraphics[width=0.31\linewidth]{app_imu_e4.jpg}\hfill
+        \includegraphics[width=0.31\linewidth]{Entrega final 1.jpeg}\hfill
+        \includegraphics[width=0.31\linewidth]{Entregafinal2.jpeg}\hfill
         \includegraphics[width=0.31\linewidth]{app_rec_e4.jpg}
     \end{columns}
 \end{frame}
@@ -239,27 +238,27 @@
     ]
         \node[mcu] (mcu) {XIAO ESP32-S3\\FreeRTOS + LVGL + ML};
 
-        \node[sensor, right=1.8cm of mcu, yshift=1.55cm] (temp) {MAX30205\\temperatura};
-        \node[sensor, below=0.22cm of temp] (ppg) {MAX30102\\BPM / SpO\textsubscript{2}};
-        \node[sensor, below=0.22cm of ppg] (imu) {BMI160\\pasos / HAR};
-        \node[sensor, below=0.22cm of imu] (ecg) {AD8232\\ECG};
+        \node[sensor, right=1.8cm of mcu, yshift=1.70cm] (temp) {MAX30205\\temperatura};
+        \node[sensor, below=0.18cm of temp] (ppg) {MAX30102\\BPM / SpO\textsubscript{2}};
+        \node[sensor, below=0.18cm of ppg] (imu) {BMI160\\pasos / HAR};
+        \node[sensor, below=0.18cm of imu] (touch) {Touch capacitivo\\I2C};
+        \node[sensor, below=0.18cm of touch] (ecg) {AD8232\\ECG};
 
-        \node[block, left=1.8cm of mcu, yshift=0.95cm] (lcd) {LCD táctil\\1,28''};
-        \node[block, below=0.25cm of lcd] (touch) {Touch capacitivo\\I2C};
-        \node[block, below=0.25cm of touch] (btn) {Botones\\GPIO};
+        \node[block, left=1.8cm of mcu, yshift=0.55cm] (lcd) {LCD 1,28''\\pantalla SPI};
+        \node[block, below=0.30cm of lcd] (btn) {Botones\\GPIO};
 
         \node[block, above=1.2cm of mcu] (pwr) {LiPo 300\,mAh\\carga/BMS XIAO};
         \node[block, below=1.25cm of mcu] (ble) {BLE NimBLE};
-        \node[block, right=1.25cm of ble] (app) {App móvil\\Flutter};
-        \node[block, right=1.25cm of app] (data) {Registro\\dataset};
+        \node[block, left=1.25cm of ble] (app) {App móvil\\Flutter};
+        \node[block, left=1.25cm of app] (data) {Registro\\dataset};
 
         \draw[iic] (mcu.east) -- ++(0.45,0) |- node[near start, above]{I2C} (temp.west);
         \draw[iic] (mcu.east) -- ++(0.45,0) |- (ppg.west);
         \draw[iic] (mcu.east) -- ++(0.45,0) |- (imu.west);
+        \draw[iic] (mcu.east) -- ++(0.45,0) |- (touch.west);
         \draw[adc] (mcu.east) -- ++(0.45,0) |- node[pos=0.72, below]{ADC/DMA} (ecg.west);
 
-        \draw[spi] (mcu.west) -- ++(-0.45,0) |- (lcd.east);
-        \draw[iic] (mcu.west) -- ++(-0.45,0) |- (touch.east);
+        \draw[spi] (mcu.west) -- ++(-0.45,0) |- node[pos=0.72, above]{SPI} (lcd.east);
         \draw[bus] (btn.east) -- ++(0.45,0) |- (mcu.west);
 
         \draw[bus] (pwr) -- (mcu);
@@ -268,7 +267,7 @@
         \draw[bus] (app) -- (data);
     \end{tikzpicture}}
     \vspace{0.18cm}
-    \scriptsize Basado en el diagrama técnico de Entrega 3; se agrega pantalla táctil capacitiva por I2C.
+    \scriptsize Basado en el diagrama técnico de Entrega 3; se separa LCD por SPI y touch capacitivo por I2C.
 \end{frame}
 
 \begin{frame}{Componentes utilizados}
@@ -334,6 +333,24 @@
     \end{block}
 \end{frame}
 
+\begin{frame}{Registro de pasos}
+    \centering
+    \includegraphics[width=0.92\textwidth,height=0.64\textheight,keepaspectratio]{sim_pasos.png}
+    \vspace{0.08cm}
+    \begin{block}{Implementaciones}
+        \scriptsize Se utilizan ambos algoritmos para reducir el error en la cuenta de pasos; validación realizada contando nosotros mismos los pasos.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Señal ECG capturada}
+    \centering
+    \includegraphics[width=0.94\textwidth,height=0.72\textheight,keepaspectratio]{ecg_signal_20260618.png}
+    \vspace{0.12cm}
+    \begin{block}{Lectura rápida}
+        \scriptsize Captura AD8232 con filtrado y detección de picos R para extraer métricas cardíacas.
+    \end{block}
+\end{frame}
+
 \begin{frame}{Decisiones de diseño relevantes}
     \footnotesize
     \begin{columns}[T]
@@ -363,7 +380,7 @@
         \toprule
         \textbf{Dispositivo} & \textbf{Fortaleza} & \textbf{Diferencia de SupaClock} \\
         \midrule
-        Apple Watch & Ecosistema maduro y sensores integrados. & Plataforma académica abierta y medible. \\
+        Galaxy Watch 4 & Ecosistema maduro y sensores integrados. & Plataforma académica abierta y medible. \\
         Garmin / deportivo & Autonomía y métricas de actividad. & Enfoque biométrico compacto y validable. \\
         Oxímetro de dedo & BPM / SpO\textsubscript{2} puntual. & Integración con movimiento, app y registro. \\
         ECG portátil & Señal ECG dedicada. & ECG dentro de un wearable multipropósito. \\
@@ -371,37 +388,40 @@
     \end{tabular}
     \vspace{0.35cm}
     \begin{block}{Posicionamiento}
-        \scriptsize SupaClock no busca competir como producto clínico certificado; busca demostrar integración, datos propios y validación reproducible.
+        \scriptsize SupaClock no busca competir como producto clínico certificado; busca demostrar integración, datos propios y validación reproducible. Las medidas se validaron usando estos relojes como referencia dimensional.
     \end{block}
 \end{frame}
 
 \begin{frame}{Tabla de gastos referencial}
     \scriptsize
     \centering
-    \renewcommand{\arraystretch}{1.12}
+    \renewcommand{\arraystretch}{1.08}
+    \setlength{\tabcolsep}{4pt}
+    \resizebox{0.96\textwidth}{!}{%
     \begin{tabular}{p{4.2cm}p{2.0cm}p{2.2cm}p{2.2cm}}
         \toprule
         \textbf{Ítem} & \textbf{Cant.} & \textbf{CLP aprox.} & \textbf{Rol} \\
         \midrule
-        Seeed XIAO ESP32-S3 & 1 & 12.000 & MCU \\
-        MAX17048 / fuel gauge & 1 & 6.000 & batería \\
-        MAX30205 & 1 & 8.000 & temperatura \\
-        MAX30102 & 1 & 5.000 & BPM/SpO\textsubscript{2} \\
-        AD8232 & 1 & 5.000 & ECG \\
-        BMI160 & 1 & 4.000 & IMU \\
+        Seeed XIAO ESP32-S3 & 1 & 11.500 & MCU \\
+        MAX17048 / fuel gauge & 1 & 3.500 & batería \\
+        MAX30205 & 1 & 5.950 & temperatura \\
+        MAX30102 & 1 & 1.925 & BPM/SpO\textsubscript{2} \\
+        AD8232 & 1 & 7.735 & ECG \\
+        BMI160 & 1 & 1.600 & IMU \\
         LCD táctil 1,28'' & 1 & 18.000 & interfaz \\
         Batería LiPo 300\,mAh & 1 & 4.000 & energía \\
-        PCB fabricada & 1 & 15.000 & integración \\
-        Botones + misceláneos & 2+ & 2.000 & entrada \\
-        Filamento PLA & -- & 2.000 & carcasa \\
+        PCB fabricada & 1 & 1.000 & integración \\
+        Botones + misceláneos & 2+ & 100 & entrada \\
+        Filamento PLA & -- & 750 & carcasa \\
         \midrule
-        \textbf{Total referencial} & & \textbf{81.000} & \\
+        \textbf{Total referencial} & & \textbf{56.060} & \\
         \bottomrule
     \end{tabular}
+    }
     \vspace{0.18cm}
     \begin{minipage}{0.82\textwidth}
         \centering
-        \scriptsize Valores referenciales para presentar orden de magnitud; reemplazar por compras reales si se requiere cierre contable.
+        \scriptsize En el desarrollo total del proyecto se utilizó 126.980 CLP.
     \end{minipage}
 \end{frame}
 
