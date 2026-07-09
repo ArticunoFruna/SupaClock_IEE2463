@@ -12,7 +12,7 @@
 #include "esp_pm.h"
 #include "nvs_flash.h"
 #include "lvgl.h"
-#include "st7789.h"
+#include "gc9a01.h"
 #include "i2c_bus.h"
 #include "max17048.h"
 #include "bmi160.h"
@@ -210,7 +210,7 @@ static void display_flush_cb(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_
     uint16_t x = area->x1, y = area->y1;
     uint16_t w = area->x2 - area->x1 + 1;
     uint16_t h = area->y2 - area->y1 + 1;
-    st7789_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
+    gc9a01_draw_bitmap(x, y, w, h, (const uint16_t *)color_p);
     lv_disp_flush_ready(disp_drv);
 }
 
@@ -1049,7 +1049,7 @@ static void rebuild_ui(void) {
 
 void gui_task(void *pvParameter) {
     vTaskDelay(pdMS_TO_TICKS(1500));
-    st7789_set_brightness(power_get_display_brightness(power_get_mode()));
+    gc9a01_set_brightness(power_get_display_brightness(power_get_mode()));
     backlight_on = true;
     last_activity_ms = now_ms();
 
@@ -1064,7 +1064,7 @@ void gui_task(void *pvParameter) {
                 action_taken = true;
                 last_activity_ms = now_ms();
                 if (!backlight_on) {
-                    st7789_set_brightness(power_get_display_brightness(power_get_mode()));
+                    gc9a01_set_brightness(power_get_display_brightness(power_get_mode()));
                     backlight_on = true;
     last_activity_ms = now_ms();
                 } else {
@@ -1076,7 +1076,7 @@ void gui_task(void *pvParameter) {
                 /* auto-off según modo activo */
                 uint16_t off_s = power_get_display_off_s(power_get_mode());
                 if (now_ms() - last_activity_ms >= off_s * 1000 && backlight_on) {
-                    st7789_set_brightness(0);
+                    gc9a01_set_brightness(0);
                     backlight_on = false;
                 }
             }
@@ -1550,9 +1550,9 @@ void app_main(void) {
 
     /* ── FASE 2: Display + LVGL ── */
     ESP_LOGI(TAG, "[Fase 2] Display + LVGL...");
-    st7789_init();
+    gc9a01_init();
     vTaskDelay(pdMS_TO_TICKS(100));
-    st7789_fill_screen(0x0000);
+    gc9a01_fill_screen(0x0000);
     lv_init();
     lv_disp_draw_buf_init(&draw_buf, buf_1, buf_2, DISP_BUF_SIZE);
     static lv_disp_drv_t disp_drv;

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
@@ -11,8 +12,10 @@
 #include "esp_sleep.h"
 #include "esp_pm.h"
 #include "nvs_flash.h"
-#include "st7789.h"
+#include "gc9a01.h"
+#include "cst816s.h"
 #include "i2c_bus.h"
+#include "supaclock_pinmap.h"
 #include "max17048.h"
 #include "bmi160.h"
 #include "max30205.h"
@@ -45,7 +48,7 @@ static uint32_t last_activity_ms = 0;
 /* ───────────────────────── PM lock del ECG ─────────────────────────
  * Bloquea light sleep mientras el ADC continuo está activo (evita que el
  * APB se reconfigure entre frames del DMA y produzca escalones sobre la
- * traza). El backlight tiene su propio lock dentro de st7789. */
+ * traza). El backlight tiene su propio lock dentro de gc9a01. */
 #if CONFIG_PM_ENABLE
 static esp_pm_lock_handle_t s_ecg_pm_lock = NULL;
 #endif
@@ -83,7 +86,7 @@ static const ui_actions_t s_ui_actions = {
 
 void gui_task(void *pvParameter) {
     vTaskDelay(pdMS_TO_TICKS(1500));
-    st7789_set_brightness(power_get_display_brightness(power_get_mode()));
+    gc9a01_set_brightness(power_get_display_brightness(power_get_mode()));
     backlight_on = true;
     last_activity_ms = now_ms();
 
@@ -98,10 +101,23 @@ void gui_task(void *pvParameter) {
                 action_taken = true;
                 last_activity_ms = now_ms();
                 if (!backlight_on) {
-                    st7789_set_brightness(power_get_display_brightness(power_get_mode()));
+                    gc9a01_set_brightness(power_get_display_brightness(power_get_mode()));
                     backlight_on = true;
                 } else {
                     ui_handle_button(ev);
+                }
+            }
+
+            /* El touch alimenta LVGL vía indev; el flag lo pone touch_read_cb
+             * cuando detecta un press y se limpia al leerlo aquí. Sirve para
+             * despertar el backlight y refrescar el contador de auto-off sin
+             * duplicar el path del botón. */
+            if (ui_take_and_clear_touch_activity()) {
+                action_taken = true;
+                last_activity_ms = now_ms();
+                if (!backlight_on) {
+                    gc9a01_set_brightness(power_get_display_brightness(power_get_mode()));
+                    backlight_on = true;
                 }
             }
 
@@ -109,7 +125,7 @@ void gui_task(void *pvParameter) {
                 /* auto-off según modo activo */
                 uint16_t off_s = power_get_display_off_s(power_get_mode());
                 if (now_ms() - last_activity_ms >= off_s * 1000 && backlight_on) {
-                    st7789_set_brightness(0);
+                    gc9a01_set_brightness(0);
                     backlight_on = false;
                 }
             }
@@ -541,6 +557,18 @@ void system_task(void *pvParameter) {
  *      mismo argmax(EMA) → histéresis anti-parpadeo.
  * El estado consolidado se publica a app_state (UI local) y al TLV 0x08 (BLE).
  * No bloquear aquí: es el callback de la task del HAR. */
+/* Callback del canal de comando BLE (opcode 0x02 SYNC_TIME).
+ * Recibimos un unix ts en segundos desde la app y lo aplicamos con
+ * settimeofday para que time(NULL) apunte al reloj de pared. */
+static void on_ble_sync_time(uint32_t unix_ts) {
+    struct timeval tv = { .tv_sec = (time_t)unix_ts, .tv_usec = 0 };
+    if (settimeofday(&tv, NULL) != 0) {
+        ESP_LOGW(TAG, "settimeofday fallo (ts=%u)", (unsigned)unix_ts);
+    } else {
+        ESP_LOGI(TAG, "RTC sincronizado desde BLE (ts=%u)", (unsigned)unix_ts);
+    }
+}
+
 static void on_har_result(const har_result_t *result, void *user) {
     (void)user;
     static float       s_ema[HAR_NUM_CLASSES] = {1.0f, 0.0f, 0.0f, 0.0f};
@@ -687,9 +715,15 @@ void supaclock_app_run(void) {
 
     /* ── FASE 2: Display + UI ── */
     ESP_LOGI(TAG, "[Fase 2] Display + UI...");
-    st7789_init();
+    gc9a01_init();
     vTaskDelay(pdMS_TO_TICKS(100));
-    st7789_fill_screen(0x0000);
+    gc9a01_fill_screen(0x0000);
+    /* Touch capacitivo (CST816S) sobre el mismo bus I2C compartido. Si el
+     * chip no responde, la UI sigue funcional con botones. */
+    esp_err_t terr = cst816s_init(SUPA_PIN_TOUCH_INT, SUPA_PIN_TOUCH_RST);
+    if (terr != ESP_OK) {
+        ESP_LOGW(TAG, "cst816s_init: %s (touch deshabilitado)", esp_err_to_name(terr));
+    }
     ui_init();
     ui_set_actions(&s_ui_actions);
     vTaskDelay(pdMS_TO_TICKS(1000));
@@ -697,6 +731,11 @@ void supaclock_app_run(void) {
     /* ── FASE 3: BLE ── */
     ESP_LOGI(TAG, "[Fase 3] BLE...");
     if (ble_telemetry_init() != ESP_OK) ESP_LOGE(TAG, "BLE Stack falló");
+    /* SYNC_TIME (opcode 0x02): la app manda unix ts en segundos y lo
+     * volcamos al reloj del sistema. La UI usa esp_timer_get_time() para el
+     * clock por ahora, pero settimeofday deja el time_t global listo para
+     * cuando la home screen migre a localtime_r. */
+    ble_telemetry_set_time_sync_cb(on_ble_sync_time);
 
     /* ── FASE 4: HAR (TinyML, core 1) ──
      * Detección de actividad: reposo/caminar/correr (escaleras pendiente dataset).

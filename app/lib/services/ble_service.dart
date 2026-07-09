@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// SupaClock BLE protocol — matches firmware in `lib/ble_telemetry/`.
 ///
@@ -32,6 +34,15 @@ class TlvTypes {
   static const int spotResult = 0x07;
   static const int harState = 0x08; // salida del modelo HAR (1 byte: estado consolidado)
   static const int pedDbg = 0x10; // debug pedómetro (quitar tras calibrar)
+}
+
+/// Opcodes del canal 0xFF04. Deben coincidir con `lib/ble_telemetry/ble_cmd.h`.
+class SupaClockCmd {
+  static const int stopEcg   = 0x00;
+  static const int startEcg  = 0x01;
+  static const int syncTime  = 0x02; // payload: u32 unix_ts LE
+  static const int unpairAll = 0x03;
+  static const int reqBat    = 0x04;
 }
 
 /// Estados del modelo HAR (TLV 0x08). Tolerante a valores fuera de rango:
@@ -117,10 +128,17 @@ class ImuSample {
 }
 
 class BleService extends ChangeNotifier {
+  static const String _kPrefRemoteId = 'ble_remote_id';
+
   BluetoothDevice? _device;
   BluetoothConnectionState _state = BluetoothConnectionState.disconnected;
   StreamSubscription? _connectionSub;
   StreamSubscription? _scanSub;
+
+  String? _remoteId; // MAC/deviceId persistido tras el primer pairing.
+  Timer? _reconnectTimer;
+  int _reconnectAttempts = 0;
+  static const List<int> _backoffSecs = [1, 2, 4, 8, 16];
 
   final List<String> _log = [];
   SupaClockTelemetry _telemetry = SupaClockTelemetry(timestamp: DateTime.now());
@@ -154,6 +172,8 @@ class BleService extends ChangeNotifier {
   SupaClockTelemetry? get lastTelemetry => _telemetry;
   List<String> get log => List.unmodifiable(_log);
   BluetoothDevice? get device => _device;
+  String? get remoteId => _remoteId;
+  bool get hasBond => _remoteId != null;
 
   void _addLog(String msg) {
     final ts = DateTime.now().toIso8601String().substring(11, 19);
@@ -163,6 +183,35 @@ class BleService extends ChangeNotifier {
   }
 
   // ── Scan / connect ────────────────────────────────────────────────
+  /// Carga el remoteId persistido (si hay) e intenta reconectar en caliente.
+  /// Se llama desde main.dart al startup. Devuelve true si conectó.
+  Future<bool> tryAutoReconnect() async {
+    final prefs = await SharedPreferences.getInstance();
+    _remoteId = prefs.getString(_kPrefRemoteId);
+    if (_remoteId == null) {
+      _addLog('Sin bond previo: se requiere pairing manual');
+      notifyListeners();
+      return false;
+    }
+    _addLog('Bond guardado: $_remoteId, intentando auto-reconnect...');
+    try {
+      final device = BluetoothDevice.fromId(_remoteId!);
+      await device.connect(
+        license: License.free,
+        autoConnect: true,
+        timeout: const Duration(seconds: 8),
+      );
+      _device = device;
+      _wireConnectionListener(device);
+      await Future.delayed(const Duration(milliseconds: 500));
+      await _afterConnect(device);
+      return true;
+    } catch (e) {
+      _addLog('Auto-reconnect falló: $e');
+      return false;
+    }
+  }
+
   Future<void> startScan() async {
     _addLog('Escaneando dispositivos BLE...');
     await FlutterBluePlus.stopScan();
@@ -180,6 +229,8 @@ class BleService extends ChangeNotifier {
     });
 
     await FlutterBluePlus.startScan(
+      // Filtra por servicio primario del SupaClock para descartar ruido.
+      withServices: [SupaClockUuids.telemetryService],
       timeout: const Duration(seconds: 10),
       androidUsesFineLocation: false,
     );
@@ -201,22 +252,140 @@ class BleService extends ChangeNotifier {
       return;
     }
 
+    _wireConnectionListener(device);
+
+    await Future.delayed(const Duration(milliseconds: 500));
+    await _afterConnect(device);
+  }
+
+  void _wireConnectionListener(BluetoothDevice device) {
     _connectionSub?.cancel();
     _connectionSub = device.connectionState.listen((s) {
       _state = s;
       _addLog('Estado: ${s.name}');
-      if (s == BluetoothConnectionState.disconnected) {
-        _device = null;
+      if (s == BluetoothConnectionState.connected) {
+        _reconnectAttempts = 0;
+        _reconnectTimer?.cancel();
+      } else if (s == BluetoothConnectionState.disconnected) {
         for (final sub in _notifSubs) {
           sub.cancel();
         }
         _notifSubs.clear();
+        // Sólo reintenta si hay bond guardado (Android reconectará vía autoConnect).
+        if (_remoteId != null) _scheduleReconnect();
       }
       notifyListeners();
     });
+  }
 
-    await Future.delayed(const Duration(milliseconds: 500));
+  /// Post-connect: crea bond en Android, negocia MTU alto y persiste remoteId.
+  Future<void> _afterConnect(BluetoothDevice device) async {
+    // 1. Bond persistente: dispara el prompt Just Works en Android.
+    if (Platform.isAndroid) {
+      try {
+        await device.createBond(timeout: 15);
+        _addLog('Bond creado / ya existía con ${device.remoteId}');
+      } catch (e) {
+        _addLog('createBond: $e (puede que ya estuviera bonded)');
+      }
+    }
+
+    // 2. MTU alto para TLVs largos y ECG.
+    try {
+      final mtu = await device.requestMtu(247);
+      _addLog('MTU negociado = $mtu');
+    } catch (e) {
+      _addLog('requestMtu falló: $e');
+    }
+
+    // 3. Persistir el deviceId para futuros arranques.
+    _remoteId = device.remoteId.str;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kPrefRemoteId, _remoteId!);
+
+    // 4. Discover + subscribe.
     await _discoverAndSubscribe(device);
+  }
+
+  void _scheduleReconnect() {
+    _reconnectTimer?.cancel();
+    if (_reconnectAttempts >= _backoffSecs.length) {
+      _addLog('Max reintentos alcanzado ($_reconnectAttempts). Reconectar manualmente.');
+      return;
+    }
+    final secs = _backoffSecs[_reconnectAttempts];
+    _reconnectAttempts++;
+    _addLog('Reintento $_reconnectAttempts en ${secs}s...');
+    _reconnectTimer = Timer(Duration(seconds: secs), () async {
+      if (_state == BluetoothConnectionState.connected) return;
+      if (_remoteId == null) return;
+      try {
+        final device = BluetoothDevice.fromId(_remoteId!);
+        await device.connect(
+          license: License.free,
+          autoConnect: true,
+          timeout: const Duration(seconds: 8),
+        );
+        _device = device;
+        _wireConnectionListener(device);
+        await Future.delayed(const Duration(milliseconds: 500));
+        await _afterConnect(device);
+      } catch (e) {
+        _addLog('Reintento fallido: $e');
+        _scheduleReconnect();
+      }
+    });
+  }
+
+  /// Manda UNPAIR_ALL al reloj, quita bond en Android y borra el remoteId.
+  Future<void> unpair() async {
+    _addLog('Desemparejando...');
+    try {
+      await sendCommand(SupaClockCmd.unpairAll);
+    } catch (_) {}
+    try {
+      if (Platform.isAndroid) {
+        await _device?.removeBond();
+      }
+    } catch (e) {
+      _addLog('removeBond: $e');
+    }
+    try {
+      await _device?.disconnect();
+    } catch (_) {}
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kPrefRemoteId);
+    _remoteId = null;
+    _device = null;
+    _state = BluetoothConnectionState.disconnected;
+    _reconnectTimer?.cancel();
+    _reconnectAttempts = 0;
+    notifyListeners();
+  }
+
+  /// Manda el timestamp actual (unix ts en segundos, u32 LE) al reloj.
+  Future<void> syncTime() async {
+    final ts = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final bd = ByteData(4)..setUint32(0, ts, Endian.little);
+    final payload = <int>[
+      SupaClockCmd.syncTime,
+      4,
+      bd.getUint8(0),
+      bd.getUint8(1),
+      bd.getUint8(2),
+      bd.getUint8(3),
+    ];
+    final chr = _cmdChar;
+    if (chr == null) {
+      _addLog('CMD sync_time: característica no disponible');
+      return;
+    }
+    try {
+      await chr.write(payload, withoutResponse: true);
+      _addLog('Sync time enviado (ts=$ts)');
+    } catch (e) {
+      _addLog('Error enviando sync_time: $e');
+    }
   }
 
   Future<void> _discoverAndSubscribe(BluetoothDevice device) async {
@@ -405,6 +574,8 @@ class BleService extends ChangeNotifier {
 
   Future<void> disconnect() async {
     _addLog('Desconectando...');
+    _reconnectTimer?.cancel();
+    _reconnectAttempts = _backoffSecs.length; // desactiva el auto-reconnect
     await _device?.disconnect();
     _device = null;
     _state = BluetoothConnectionState.disconnected;
@@ -413,6 +584,7 @@ class BleService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _reconnectTimer?.cancel();
     _connectionSub?.cancel();
     _scanSub?.cancel();
     for (final s in _notifSubs) {
