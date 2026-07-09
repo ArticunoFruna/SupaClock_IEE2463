@@ -12,6 +12,28 @@ OVERLAP = 100      # 50% solapamiento
 NUM_CHANNELS = 6   # ax, ay, az, gx, gy, gz
 CLASSES = {'rest': 0, 'walk': 1, 'run': 2, 'stairs': 3}
 
+def random_rotation_matrix():
+    """Rotación 3D aleatoria (yaw/pitch/roll) para augmentation.
+    Backport de train_har_cnn_c3.py: hace que el modelo generalice a
+    orientaciones distintas del brazo. Crítico con dataset single-subject
+    donde overfitea a la posición específica de las grabaciones."""
+    yaw   = np.random.uniform(-np.pi, np.pi)
+    pitch = np.random.uniform(-np.pi, np.pi)
+    roll  = np.random.uniform(-np.pi, np.pi)
+    R_z = np.array([[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+    R_y = np.array([[np.cos(pitch), 0, np.sin(pitch)], [0, 1, 0], [-np.sin(pitch), 0, np.cos(pitch)]])
+    R_x = np.array([[1, 0, 0], [0, np.cos(roll), -np.sin(roll)], [0, np.sin(roll), np.cos(roll)]])
+    return R_z @ R_y @ R_x
+
+def augment_window_by_rotation(window):
+    R = random_rotation_matrix()
+    acc = window[:, 0:3]
+    gyro = window[:, 3:6]
+    out = np.zeros_like(window)
+    out[:, 0:3] = (R @ acc.T).T
+    out[:, 3:6] = (R @ gyro.T).T
+    return out
+
 def load_data(data_dir):
     X = []
     y = []
@@ -120,6 +142,12 @@ def load_data(data_dir):
             X.append(window)
             y.append(label)
             windows_extracted += 1
+            # Rotation augmentation ×2 → 3 variantes totales (original + 2 rot).
+            # Duplica el efectivo del dataset y mata el overfit por orientación.
+            for _ in range(2):
+                X.append(augment_window_by_rotation(window))
+                y.append(label)
+                windows_extracted += 1
 
         print(f"  -> {windows_extracted} ventanas extraídas "
               f"(label column: {'sí' if 'label' in df.columns else 'no, fallback ' + str(fb)})")
