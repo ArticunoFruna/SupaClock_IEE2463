@@ -76,56 +76,7 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}{Aplicación móvil: entrada al ecosistema}
-    \begin{columns}[T]
-        \column{0.48\textwidth}
-        \footnotesize
-        \textbf{Qué se muestra primero}
-        \begin{itemize}\itemsep0.12cm
-            \item Inicio de sesión y acceso a usuario.
-            \item Dashboard con métricas principales.
-            \item Navegación hacia mediciones y modo desarrollador.
-        \end{itemize}
-        \vspace{0.2cm}
-        \begin{block}{\demolabel}
-            Login, pantalla principal y navegación por la app.
-        \end{block}
-        \column{0.52\textwidth}
-        \centering
-        \includegraphics[width=0.31\linewidth]{app_home_e4.jpg}\hfill
-        \includegraphics[width=0.31\linewidth]{app_imu_e4.jpg}\hfill
-        \includegraphics[width=0.31\linewidth]{app_rec_e4.jpg}
-    \end{columns}
-\end{frame}
-
-\begin{frame}{Aplicación móvil: datos, BLE y registro}
-    \begin{columns}[T]
-        \column{0.55\textwidth}
-        \footnotesize
-        \begin{itemize}\itemsep0.13cm
-            \item Conexión BLE con el reloj.
-            \item Visualización de métricas y señales crudas.
-            \item Grabación local de sesiones para validación.
-            \item Puente hacia almacenamiento y análisis posterior.
-        \end{itemize}
-        \column{0.45\textwidth}
-        \begin{tikzpicture}[node distance=0.35cm, every node/.style={font=\scriptsize}]
-            \node[draw, rounded corners, fill=main!10, minimum width=3.7cm, minimum height=0.70cm] (watch) {SupaClock};
-            \node[draw, rounded corners, fill=accent!10, below=of watch, minimum width=3.7cm, minimum height=0.70cm] (app) {Flutter App};
-            \node[draw, rounded corners, fill=softgray, below=of app, minimum width=3.7cm, minimum height=0.70cm] (local) {CSV / historial local};
-            \node[draw, rounded corners, fill=softgray, below=of local, minimum width=3.7cm, minimum height=0.70cm] (cloud) {Firebase / dataset};
-            \draw[-{Latex[length=2mm]}, thick, main] (watch) -- node[right]{BLE} (app);
-            \draw[-{Latex[length=2mm]}, thick, accent] (app) -- (local);
-            \draw[-{Latex[length=2mm]}, thick, accent] (local) -- node[right]{sync} (cloud);
-        \end{tikzpicture}
-        \vspace{0.2cm}
-        \begin{block}{\demolabel}
-            Conectar, navegar, registrar y mostrar sesión.
-        \end{block}
-    \end{columns}
-\end{frame}
-
-\begin{frame}{Funciones del reloj}
+\begin{frame}{Funciones y pantalla del reloj}
     \footnotesize
     \begin{columns}[T]
         \column{0.50\textwidth}
@@ -216,6 +167,55 @@
             \centering
             \scriptsize PCB, sensores, batería y carcasa en una unidad cerrable.
         \end{minipage}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Aplicación móvil: entrada al ecosistema}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \footnotesize
+        \textbf{Qué se muestra primero}
+        \begin{itemize}\itemsep0.12cm
+            \item Inicio de sesión y acceso a usuario.
+            \item Dashboard con métricas principales.
+            \item Navegación hacia mediciones y modo desarrollador.
+        \end{itemize}
+        \vspace{0.2cm}
+        \begin{block}{\demolabel}
+            Login, pantalla principal y navegación por la app.
+        \end{block}
+        \column{0.52\textwidth}
+        \centering
+        \includegraphics[width=0.31\linewidth]{app_home_e4.jpg}\hfill
+        \includegraphics[width=0.31\linewidth]{app_imu_e4.jpg}\hfill
+        \includegraphics[width=0.31\linewidth]{app_rec_e4.jpg}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Aplicación móvil: datos, BLE y registro}
+    \begin{columns}[T]
+        \column{0.55\textwidth}
+        \footnotesize
+        \begin{itemize}\itemsep0.13cm
+            \item Conexión BLE con el reloj.
+            \item Visualización de métricas y señales crudas.
+            \item Grabación local de sesiones para validación.
+            \item Puente hacia almacenamiento y análisis posterior.
+        \end{itemize}
+        \column{0.45\textwidth}
+        \begin{tikzpicture}[node distance=0.35cm, every node/.style={font=\scriptsize}]
+            \node[draw, rounded corners, fill=main!10, minimum width=3.7cm, minimum height=0.70cm] (watch) {SupaClock};
+            \node[draw, rounded corners, fill=accent!10, below=of watch, minimum width=3.7cm, minimum height=0.70cm] (app) {Flutter App};
+            \node[draw, rounded corners, fill=softgray, below=of app, minimum width=3.7cm, minimum height=0.70cm] (local) {CSV / historial local};
+            \node[draw, rounded corners, fill=softgray, below=of local, minimum width=3.7cm, minimum height=0.70cm] (cloud) {Firebase / dataset};
+            \draw[-{Latex[length=2mm]}, thick, main] (watch) -- node[right]{BLE} (app);
+            \draw[-{Latex[length=2mm]}, thick, accent] (app) -- (local);
+            \draw[-{Latex[length=2mm]}, thick, accent] (local) -- node[right]{sync} (cloud);
+        \end{tikzpicture}
+        \vspace{0.2cm}
+        \begin{block}{\demolabel}
+            Conectar, navegar, registrar y mostrar sesión.
+        \end{block}
     \end{columns}
 \end{frame}
 
