@@ -52,4 +52,12 @@ esp_err_t i2c_write_bytes(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
 esp_err_t i2c_read_bytes(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
                          size_t len);
 
+/**
+ * @brief Escanea el bus I2C entre 0x08 y 0x77 y loguea las addresses que
+ *        contestan ACK. Herramienta de diagnostico — se puede llamar en el
+ *        boot para confirmar que todos los sensores/touch estan vivos.
+ * @return Cantidad de dispositivos que respondieron.
+ */
+uint8_t i2c_scan(void);
+
 #endif // I2C_BUS_H

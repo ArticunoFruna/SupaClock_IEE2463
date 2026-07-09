@@ -22,11 +22,23 @@
 #include "esp_err.h"
 
 typedef enum {
-    UI_THEME_AMOLED = 0,  /**< Negro puro + acento teal, casi monocromo */
-    UI_THEME_WARM,        /**< Carbón cálido + salvia, bajo deslumbre */
-    UI_THEME_SLATE,       /**< Slate-navy frío + cian, look clínico */
-    UI_THEME_VIVID,       /**< Esquema colorido original (clásico) */
+    /* Legacy — usados por el env main_notouch (UI pre-touch). Los 4 primeros
+     * ids se mantienen para no romper el value guardado en NVS por builds
+     * viejas. La UI nueva touch usa MONO_* que empiezan en 4. */
+    UI_THEME_AMOLED = 0,
+    UI_THEME_WARM,
+    UI_THEME_SLATE,
+    UI_THEME_VIVID,
+
+    /* Touch UI: fondo negro puro + un solo color de acento configurable. */
+    UI_THEME_MONO_WHITE,     /**< accent blanco puro (máximo minimalismo) */
+    UI_THEME_MONO_AMBER,     /**< accent ámbar #FFB300 (cálido, retro-watch) */
+    UI_THEME_MONO_GREEN,     /**< accent verde #66FF66 (nightvision) */
+    UI_THEME_MONO_CYAN,      /**< accent cian #66E7FF (tech / clínico) */
+
     UI_THEME_COUNT,
+    UI_THEME_MONO_FIRST = UI_THEME_MONO_WHITE,
+    UI_THEME_MONO_LAST  = UI_THEME_MONO_CYAN,
 } ui_theme_id_t;
 
 /**

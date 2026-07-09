@@ -129,9 +129,11 @@
  * (D11..D18 = GPIO38, 39, 40, 41, 42, 10, 13, 12). Usamos D11 y D12 con
  * jumpers al FPC del panel; el I2C ya existe compartido (SDA=5, SCL=6).
  * GPIO12 (D18) se evita por conflicto con JTAG TDO.
+ * Wiring físico confirmado en el prototipo: RST → D11 (GPIO38),
+ * INT → D12 (GPIO39). Si se re-cablea invertir estas macros.
  */
-#define SUPA_PIN_TOUCH_INT      38     /* D11 XIAO ESP32-S3 Plus, falling-edge */
-#define SUPA_PIN_TOUCH_RST      39     /* D12 XIAO ESP32-S3 Plus, active-low   */
+#define SUPA_PIN_TOUCH_INT      39     /* D12 XIAO ESP32-S3 Plus, falling-edge */
+#define SUPA_PIN_TOUCH_RST      38     /* D11 XIAO ESP32-S3 Plus, active-low   */
 #define SUPA_I2C_ADDR_TOUCH     0x15   /* CST816S 7-bit                        */
 
 #endif /* SUPACLOCK_BOARD_C3 */
