@@ -10,10 +10,10 @@
 //   - Envelope 94x76 (reducido vs V3 98x79).
 //   - H_total 18 mm para dejar aire suficiente al stack XIAO Plus + Adapter
 //     PCB + panel Waveshare.
-//   - SCREWLESS: la PCB carrier v3 llego sin agujeros M3, asi que la caja se
-//     cierra por ceja perimetral (bottom sube) + 2 snap-hooks cantilever
-//     (paredes +Y/-Y). El top provee el GROOVE interior + 2 DETENTS para las
-//     narices. No hay pilares con heat-set inserts.
+//   - CIERRE POR LUGS: 4 tornillos M3x16 verticales atraviesan el bottom y
+//     roscan en heat-set inserts M3 (Ø4.2 x 5) alojados en el extremo alto
+//     del anchor de cada lug. La PCB carrier v3 llego sin sus propios
+//     agujeros M3 y va pegada al bottom con VHB.
 //
 // Parametro PRINCIPAL:
 //   retention = "snap" | "magnetic"   (retencion del FACEPLATE, no del bottom)
@@ -50,35 +50,14 @@ altura_total_bottom  = altura_base + altura_standoff;     // = 3
 altura_top           = H_total - altura_total_bottom;     // = 15
 ceiling_z            = altura_top - grosor_pared;         // = 13 (interior techo)
 
-// ---------------------- CIERRE SCREWLESS (bottom -> top) --------------------
-// V4: la carrier v3 llego sin los agujeros M3 -> la PCB va pegada al piso del
-// bottom con VHB 5952 (0.5 mm) y las dos mitades se cierran con:
-//   (a) ceja perimetral (tongue-and-groove): el bottom sube una ceja de 2.5 mm
-//       por encima del seam, entra en un rebaje interior del fondo del top.
-//       Interferencia 0.15 mm por lado => press-fit continuo por todo el
-//       perimetro (~260 mm).
-//   (b) 2 bumps rigidos en la cara INTERIOR de la ceja del bottom (paredes
-//       +Y/-Y), salen hacia el centro por hook_nose = 0.7 mm. Al ensamblar,
-//       los bumps deforman elasticamente la wall interior del top hasta
-//       encajar en 2 detents (rebajes hacia afuera) en la wall del top.
-//       Traba adicional al press-fit. Se abre con spudger por la ranura
-//       de servicio del bottom.
-lip_h            = 2.5;    // altura de la ceja del bottom (por encima del seam)
-groove_depth     = 2.6;    // rebaje interior del top (0.1 mm de aire vertical)
-groove_air       = 0.15;   // clearance radial por lado (0.30 mm total)
-
-// Los 2 bumps del bottom estan en la superficie interior de la ceja, salen
-// hacia el centro de la cavity por hook_nose. Centrados en Z_case_abs =
-// altura_total + lip_h/2 = 4.25, o Z_top_local = lip_h/2 = 1.25.
-// El detent en el top es un rebaje LATERAL (hacia afuera) que agranda la
-// cavity localmente para alojar el bump al final del ensamble.
-bump_h_v4           = 1.0;    // alto Z del bump (y del detent)
-hook_nose_v4        = 0.7;    // saliente radial del bump hacia el centro
-hook_width_v4       = 6.0;    // ancho tangencial (X)
-detent_center_z_v4  = lip_h / 2;   // = 1.25 top-local (Z_case_abs = 4.25)
-detent_h_v4         = bump_h_v4;
-detent_w_v4         = hook_width_v4 + 0.5; // 6.5 mm (0.25 mm de aire por lado)
-detent_d_v4         = hook_nose_v4 + 0.05; // 0.75 mm de rebaje hacia afuera
+// ---------------------- HEAT-SET INSERTS PARA CIERRE M3 --------------------
+// 4 tornillos M3x16 verticales suben desde el bottom, atraviesan el seam y
+// roscan en heat-set inserts M3 alojados en el extremo alto del anchor de
+// cada lug (Z_case_abs = 10..15). El insert queda dentro del cuerpo solido
+// del lug, no requiere pilares interiores nuevos.
+insert_od          = 4.2;    // Ø heat-set insert M3
+insert_depth       = 5.0;    // profundidad del insert (rosca util del tornillo)
+screw_clearance_d  = 3.2;    // clearance para el tornillo debajo del insert
 
 // ---------------------- DISPLAY (Waveshare 1.28" Touch LCD) ------------------
 // Panel redondo. PCB Ø37 + tab bottom (14.23 x 3.74 mm) que extiende el PCB
@@ -138,26 +117,31 @@ jack_recess_d    = 12.0;
 jack_recess_x    = 2.65;
 wall_cutter_depth = r_vert + 4;
 
-// ---------------------- LUGS (igual V2/V3) -----------------------------------
+// ---------------------- LUGS (V4: engrosados 5 -> 6 para alojar M3) ---------
+// El lug ahora tambien aloja el tornillo M3 vertical del cierre. Ø6 mm de
+// cilindro justo acomoda el countersink Ø6 mm del tornillo M3 socket cap.
 lug_strap_w        = 20.0;
-lug_thickness      = 5.0;
+lug_thickness      = 8.0;                    // V4-b: sube a 8 para alejar los pernos M3 del gap de la correa
 lug_protrude       = 7.0;
-// V4: bajado a 3.0 (V3: 5.0). Con pcb_off_y=4.5 la PCB llega hasta Y=71.5 en
-// case-local; anchor=5 hacia dentro llegaba a Y=71 (colision). anchor=3 deja
-// 1.5 mm de aire con el borde del PCB.
 lug_anchor_depth   = 3.0;
 lug_z_bot          = 0.0;
-lug_z_top          = altura_top - 3.0;       // 12 (V3 tenia 11 para altura_top=14)
+lug_z_top          = altura_top - 3.0;       // 12
 spring_bar_d       = 1.8;
 spring_bar_z_offset = 2.5;
-lug_center_sep     = lug_strap_w + lug_thickness;
+lug_center_sep     = lug_strap_w + lug_thickness;    // 28
 
-// ---------------------- HOOK DETENT POSITIONS (case-local) -------------------
-// Cada entry: [px_case, py_case_inner_wall, dir_y]. La nariz del hook apunta
-// hacia dir_y (hacia el exterior de la wall).
-hook_detents_v4 = [
-    [outer_x / 2, grosor_pared,           -1],   // pared -Y
-    [outer_x / 2, outer_y - grosor_pared, +1]    // pared +Y
+// ---------------------- SCREW POSITIONS (case-local) -------------------------
+// Los 4 tornillos suben por el CENTRO del cilindro del lug (Y_outer_ctr), no
+// por el anchor. Asi el countersink Ø6 queda dentro del Ø6 del lug sin tocar
+// la wall del envelope. Ubicacion: y_outer_ctr = y_edge + dir*(protrude - t/2).
+lug_center_y_pos = outer_y + lug_protrude - lug_thickness / 2;   // +Y: 79
+lug_center_y_neg = -(lug_protrude - lug_thickness / 2);          // -Y: -3
+
+screw_positions = [
+    [outer_x / 2 - lug_center_sep / 2, lug_center_y_pos],   // NW (33, 79)
+    [outer_x / 2 + lug_center_sep / 2, lug_center_y_pos],   // NE (61, 79)
+    [outer_x / 2 - lug_center_sep / 2, lug_center_y_neg],   // SW (33, -3)
+    [outer_x / 2 + lug_center_sep / 2, lug_center_y_neg]    // SE (61, -3)
 ];
 
 // ---------------------- PILA (colgada del techo, marca VHB) ------------------
@@ -397,79 +381,72 @@ module retention_holes() {
 }
 
 // =============================================================================
-// GROOVE PERIMETRAL (aloja la ceja del bottom) + HOOK DETENTS
+// AGUJERO M3 + INSERT en cada lug (screw_insert_hole)
 // =============================================================================
-// El groove agranda el interior del top en groove_air (0.15 mm) por lado
-// durante los primeros groove_depth mm (Z 0..2.6 top-local). La ceja del
-// bottom (ancho grosor_pared - groove_air = 1.85 mm) entra a presion con
-// 0.30 mm de interferencia radial repartida en el perimetro.
-module groove_ring() {
-    translate([0, 0, -eps])
-        linear_extrude(height = groove_depth + eps)
-            offset(-(grosor_pared - groove_air))
-                projection(cut = false)
-                    translate([0, 0, -(altura_top / 2)])
-                        v4_top_outer();
-}
-
-// Cada detent es un cubito en el material de la wall que atrapa la nariz del
-// hook cuando la ceja termina de entrar. Se resta con difference() del top.
-module hook_detent(entry) {
-    px    = entry[0];
-    py    = entry[1];
-    dir_y = entry[2];
-    y_min = (dir_y > 0) ? py : (py - detent_d_v4);
-    translate([px - detent_w_v4 / 2,
-               y_min,
-               detent_center_z_v4 - detent_h_v4 / 2])
-        cube([detent_w_v4, detent_d_v4 + eps, detent_h_v4]);
+// Cada agujero atraviesa el material del top de abajo hacia arriba:
+//   Z_top_local 0 .. lug_z_top - insert_depth: clearance Ø screw_clearance_d
+//   Z_top_local lug_z_top - insert_depth .. lug_z_top: insert Ø insert_od
+// El insert queda dentro del cuerpo solido del lug (que se genera despues
+// del intersection principal, por lo que el agujero se resta ANTES en el
+// difference del top mismo — el lug hay que restarlo aparte).
+module screw_insert_hole_top(pos) {
+    insert_z_bot = lug_z_top - insert_depth;   // = 7 top-local
+    // Clearance para el tornillo
+    translate([pos[0], pos[1], -eps])
+        cylinder(h = insert_z_bot + eps, d = screw_clearance_d);
+    // Insert (parte superior)
+    translate([pos[0], pos[1], insert_z_bot - eps])
+        cylinder(h = insert_depth + 2 * eps, d = insert_od);
 }
 
 // =============================================================================
 // CONSTRUCCION
 // =============================================================================
 
-intersection() {
-    difference() {
-        v4_top_outer();
+difference() {
+    union() {
+        intersection() {
+            difference() {
+                v4_top_outer();
 
-        // Cavidad principal
-        v4_top_cavity();
+                // Cavidad principal
+                v4_top_cavity();
 
-        // Groove perimetral (aloja la ceja del bottom) - los primeros 2.6 mm
-        // del interior estan agrandados 0.15 mm por lado.
-        groove_ring();
+                // Ventana circular + FPC notch
+                display_window_cut_v4();
 
-        // Detents para las narices de los 2 snap-hooks del bottom.
-        for (h = hook_detents_v4) hook_detent(h);
+                // Marca VHB
+                vhb_indent();
 
-        // Ventana circular + FPC notch
-        display_window_cut_v4();
+                // Botones top-press (Z-up)
+                for (b = btn_positions) btn_hole_top(b);
 
-        // Marca VHB
-        vhb_indent();
+                // USB-C (pared +X)
+                translate([outer_x - r_vert,
+                           usb_pos_y + pcb_off_y - usb_width_y / 2,
+                           usb_z_center - usb_height_z / 2])
+                    cube([wall_cutter_depth, usb_width_y, usb_height_z]);
 
-        // Botones top-press (Z-up)
-        for (b = btn_positions) btn_hole_top(b);
+                // Jack 3.5 mm ECG (pared -X)
+                translate([-4, jack_y_pcb + pcb_off_y, jack_z])
+                    rotate([0, 90, 0])
+                        cylinder(h = wall_cutter_depth, d = jack_d);
+                translate([-4, jack_y_pcb + pcb_off_y, jack_z])
+                    rotate([0, 90, 0])
+                        cylinder(h = 5.0, d = jack_recess_d);
 
-        // USB-C (pared +X)
-        translate([outer_x - r_vert,
-                   usb_pos_y + pcb_off_y - usb_width_y / 2,
-                   usb_z_center - usb_height_z / 2])
-            cube([wall_cutter_depth, usb_width_y, usb_height_z]);
+                // Retention faceplate (magnetic o snap)
+                retention_holes();
+            }
+            v4_top_outer();
+        }
 
-        // Jack 3.5 mm ECG (pared -X)
-        translate([-4, jack_y_pcb + pcb_off_y, jack_z])
-            rotate([0, 90, 0])
-                cylinder(h = wall_cutter_depth, d = jack_d);
-        translate([-4, jack_y_pcb + pcb_off_y, jack_z])
-            rotate([0, 90, 0])
-                cylinder(h = 5.0, d = jack_recess_d);
-
-        // Retention faceplate
-        retention_holes();
+        // Lugs (sobresalen del envelope -> fuera del clipping)
+        all_lugs();
     }
-    v4_top_outer();
+
+    // Agujeros M3 pasantes a traves de los lugs + wall del top
+    for (p = screw_positions) screw_insert_hole_top(p);
 }
 
 // Tabs L pila: DESHABILITADO tambien en V4. Chequeo geometrico:
@@ -480,6 +457,3 @@ intersection() {
 // Como el disco Ø39 es mas ancho que la pila (30 mm), no hay lugar
 // para tabs colaterales al lado largo. Se mantiene solo la marca VHB.
 // battery_tabs_all();
-
-// Lugs sobresalen del envelope -> fuera del clipping
-all_lugs();

@@ -1,5 +1,5 @@
-#ifndef SUPACLOCK_UI_H
-#define SUPACLOCK_UI_H
+#ifndef SUPACLOCK_UI_NOTOUCH_H
+#define SUPACLOCK_UI_NOTOUCH_H
 
 #include <stdint.h>
 #include "gpio_buttons.h"
@@ -43,7 +43,4 @@ bool ui_take_and_clear_touch_activity(void);
  */
 uint32_t ui_tick(void);
 
-void ui_action_power_off(void);
-void ui_action_battery_reset(void);
-
-#endif // SUPACLOCK_UI_H
+#endif // SUPACLOCK_UI_NOTOUCH_H

@@ -51,6 +51,15 @@ CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=16384   # <16 kB → SRAM
 CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=32768 # reservar 32 kB para ISR / DMA
 ```
 
+### 3.1 Mediciones Reales de Compilación (Fase 6 Touch UI)
+
+Tras la implementación de toda la arquitectura del router táctil, las aplicaciones nativas completas y la integración de las fuentes e iconos custom (FontAwesome solid/brands y rango de acentos de español), las métricas estáticas del firmware son:
+
+*   **SRAM Estática (RAM)**: **47.1%** (154,500 bytes usados de 327,680 bytes).
+*   **Flash (Programa)**: **34.6%** (1,087,377 bytes usados de 3,145,728 bytes).
+
+Las fuentes agregadas se mapean en Flash/XIP por lo que consumen 0 bytes de RAM adicionales, garantizando que más del 50% de la SRAM quede disponible para heap dinámico (buffers DMA, colas NimBLE, etc.). Esto valida con creces la holgura del ESP32-S3.
+
 ## 4. Plan de bajo consumo
 
 ### 4.1 DVFS + Light-Sleep automático

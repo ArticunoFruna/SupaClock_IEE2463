@@ -47,6 +47,46 @@ static const ui_theme_t s_themes[UI_THEME_COUNT] = {
         .c_hr = 0xFF3B6E, .c_spo2 = 0x3F9BFF, .c_temp = 0xF0883E,
         .c_steps = 0x3FB950, .c_batt = 0x3FB950, .c_activity = 0x3F9BFF,
     },
+    /* MONO_*: fondo negro AMOLED-friendly, texto blanco/gris, un solo acento.
+     * La UI touch no diferencia por métrica — todos los c_* apuntan al accent
+     * para que arcs/pills/highlights compartan color. alert/ok/warn quedan en
+     * la misma paleta clásica porque son estados (batería baja siempre roja). */
+    [UI_THEME_MONO_WHITE] = {
+        .name = "MONO WHITE",
+        .bg = 0x000000, .surface = 0x141414,
+        .text = 0xFFFFFF, .text_dim = 0x707070,
+        .accent = 0xFFFFFF, .alert = 0xFF3B30,
+        .ok = 0x30D158, .warn = 0xFFC61A,
+        .c_hr = 0xFFFFFF, .c_spo2 = 0xFFFFFF, .c_temp = 0xFFFFFF,
+        .c_steps = 0xFFFFFF, .c_batt = 0xFFFFFF, .c_activity = 0xFFFFFF,
+    },
+    [UI_THEME_MONO_AMBER] = {
+        .name = "MONO AMBER",
+        .bg = 0x000000, .surface = 0x141414,
+        .text = 0xFFFFFF, .text_dim = 0x707070,
+        .accent = 0xFFB300, .alert = 0xFF3B30,
+        .ok = 0x30D158, .warn = 0xFFC61A,
+        .c_hr = 0xFFB300, .c_spo2 = 0xFFB300, .c_temp = 0xFFB300,
+        .c_steps = 0xFFB300, .c_batt = 0xFFB300, .c_activity = 0xFFB300,
+    },
+    [UI_THEME_MONO_GREEN] = {
+        .name = "MONO GREEN",
+        .bg = 0x000000, .surface = 0x141414,
+        .text = 0xFFFFFF, .text_dim = 0x707070,
+        .accent = 0x66FF66, .alert = 0xFF3B30,
+        .ok = 0x30D158, .warn = 0xFFC61A,
+        .c_hr = 0x66FF66, .c_spo2 = 0x66FF66, .c_temp = 0x66FF66,
+        .c_steps = 0x66FF66, .c_batt = 0x66FF66, .c_activity = 0x66FF66,
+    },
+    [UI_THEME_MONO_CYAN] = {
+        .name = "MONO CYAN",
+        .bg = 0x000000, .surface = 0x141414,
+        .text = 0xFFFFFF, .text_dim = 0x707070,
+        .accent = 0x66E7FF, .alert = 0xFF3B30,
+        .ok = 0x30D158, .warn = 0xFFC61A,
+        .c_hr = 0x66E7FF, .c_spo2 = 0x66E7FF, .c_temp = 0x66E7FF,
+        .c_steps = 0x66E7FF, .c_batt = 0x66E7FF, .c_activity = 0x66E7FF,
+    },
 };
 
 static ui_theme_id_t s_active = UI_THEME_AMOLED;

@@ -29,7 +29,11 @@
 #include "power_modes.h"
 #include "ui_theme.h"
 #include "app_state.h"
-#include "supaclock_ui.h"
+#ifdef ENV_MAIN_NOTOUCH
+  #include "supaclock_ui_notouch.h"
+#else
+  #include "supaclock_ui.h"
+#endif
 
 static const char *TAG = "SUPA_APP";
 
@@ -643,6 +647,16 @@ void perf_monitor_task(void *pvParameter) {
 }
 
 void supaclock_app_run(void) {
+    /* Delay de arranque: el reset por RTS del esptool re-enumera la USB CDC,
+     * lo que toma ~1-2s. Sin este delay, los logs del boot temprano se pierden
+     * porque el monitor todavia no reconectó. 3s da margen para ver el scan
+     * I2C y el init del CST816S al capturar logs con:
+     *   pio run -e main_notouch -t upload -t monitor
+     */
+    for (int i = 3; i > 0; i--) {
+        ESP_LOGI(TAG, "Boot en %d...", i);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
     ESP_LOGI(TAG, "=== INICIANDO ENTORNO TEST GENERAL ===");
 
     /* Inicializar Power Management (Light Sleep Dinámico).
@@ -693,6 +707,11 @@ void supaclock_app_run(void) {
     /* ── FASE 1: I2C y sensores ── */
     ESP_LOGI(TAG, "[Fase 1] I2C + sensores...");
     if (i2c_master_init() != ESP_OK) ESP_LOGE(TAG, "I2C Bus failed!");
+    /* Diagnóstico del bus: lista addresses que ACKean.
+     * Esperado: 0x15 (CST816S touch), 0x36 (MAX17048 fuel gauge),
+     *           0x40 (MAX30205 temp), 0x57 (MAX30102 HR/SpO2),
+     *           0x69 (BMI160 IMU). */
+    i2c_scan();
     if (gpio_buttons_init() != ESP_OK) ESP_LOGW(TAG, "gpio_buttons_init falló");
 
     if (max17048_init() != ESP_OK) ESP_LOGW(TAG, "MAX17048 ausente");

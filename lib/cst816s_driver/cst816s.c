@@ -38,6 +38,7 @@ static void hw_reset(void) {
 esp_err_t cst816s_init(int int_pin, int rst_pin) {
     s_int_pin = int_pin;
     s_rst_pin = rst_pin;
+    ESP_LOGI(TAG, "init INT=GPIO%d RST=GPIO%d addr=0x%02X", int_pin, rst_pin, SUPA_I2C_ADDR_TOUCH);
 
     /* RST como salida (idle high) */
     if (rst_pin >= 0) {
@@ -90,15 +91,37 @@ esp_err_t cst816s_init(int int_pin, int rst_pin) {
         return err;
     }
 
+    ESP_LOGI(TAG, "hw_reset (RST pulse low 10ms then high, settle 50ms)");
     hw_reset();
 
-    /* Ping opcional al chip para detectar presencia (chip ID en reg 0xA7). */
-    uint8_t chip_id = 0;
-    if (i2c_read_bytes(SUPA_I2C_ADDR_TOUCH, 0xA7, &chip_id, 1) != ESP_OK) {
-        ESP_LOGW(TAG, "no response en 0x%02X (touch quizá ausente)", SUPA_I2C_ADDR_TOUCH);
-        /* No abortamos — el sistema sigue funcional con botones. */
+    /* Ping al chip: chip ID en reg 0xA7, firmware version en 0xA9. Algunos
+     * clones responden 0x00 en 0xA7 pero sí en 0xA8/0xA9 — leemos varios. */
+    uint8_t regs[4] = {0};
+    err = i2c_read_bytes(SUPA_I2C_ADDR_TOUCH, 0xA7, regs, 4);
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "no response en 0x%02X: %s (touch quizá ausente o mal cableado)",
+                 SUPA_I2C_ADDR_TOUCH, esp_err_to_name(err));
     } else {
-        ESP_LOGI(TAG, "chip_id=0x%02X init OK (INT=%d RST=%d)", chip_id, int_pin, rst_pin);
+        ESP_LOGI(TAG, "chip_id=0x%02X proj_id=0x%02X fw_ver=0x%02X 0x%02X — init OK",
+                 regs[0], regs[1], regs[2], regs[3]);
+    }
+
+    /* Desactivar auto-sleep del CST816S (default entra en LPM tras 2s sin
+     * toque y deja de ACKear I2C, floodeando ESP_FAIL en la UI). Registro
+     * 0xFE = "DisableAutoSleep": escribir 0xFF lo mantiene siempre despierto.
+     * Costo: pocos µA extra, muy tolerable para un wearable donde el touch
+     * es feature principal. Si el chip está en modo LPM al iniciar (no
+     * responde), reintenamos tras un delay para darle chance de despertar. */
+    uint8_t disable_lpm = 0xFF;
+    for (int attempt = 0; attempt < 3; attempt++) {
+        err = i2c_write_bytes(SUPA_I2C_ADDR_TOUCH, 0xFE, &disable_lpm, 1);
+        if (err == ESP_OK) break;
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "auto-sleep deshabilitado (reg 0xFE = 0xFF)");
+    } else {
+        ESP_LOGW(TAG, "no se pudo escribir 0xFE (auto-sleep sigue activo)");
     }
 
     s_initialized = true;
@@ -112,20 +135,34 @@ bool cst816s_read(cst816s_touch_t *out) {
         return true;
     }
 
-    /* Si hubo INT desde la última lectura, refrescamos el cache. */
-    if (xSemaphoreTake(s_irq_sem, 0) == pdTRUE) {
-        uint8_t buf[6];
-        if (i2c_read_bytes(SUPA_I2C_ADDR_TOUCH, 0x01, buf, 6) == ESP_OK) {
-            uint8_t gesture = buf[0];
-            uint8_t fingers = buf[1];
-            uint16_t x = ((uint16_t)(buf[2] & 0x0F) << 8) | buf[3];
-            uint16_t y = ((uint16_t)(buf[4] & 0x0F) << 8) | buf[5];
-            s_last.gesture = gesture;
-            s_last.pressed = (fingers > 0);
-            if (s_last.pressed) {
-                if (x < 240) s_last.x = x;
-                if (y < 240) s_last.y = y;
-            }
+    /* Polling siempre. Antes leíamos solo cuando el ISR daba semáforo,
+     * pero light-sleep + GPIO isolation puede tragarse el edge (GPIO39 no
+     * es RTC en S3, así que no despierta de light sleep confiablemente).
+     * A 60 Hz de LVGL son 6 bytes I2C cada 16 ms → ~1% del bus. Despreciable.
+     * El semáforo del ISR queda como hint drenado, sin afectar el flujo. */
+    (void)xSemaphoreTake(s_irq_sem, 0);
+
+    uint8_t buf[6];
+    if (i2c_read_bytes(SUPA_I2C_ADDR_TOUCH, 0x01, buf, 6) == ESP_OK) {
+        uint8_t gesture = buf[0];
+        uint8_t fingers = buf[1];
+        uint16_t x = ((uint16_t)(buf[2] & 0x0F) << 8) | buf[3];
+        uint16_t y = ((uint16_t)(buf[4] & 0x0F) << 8) | buf[5];
+        bool was_pressed = s_last.pressed;
+        s_last.gesture = gesture;
+        s_last.pressed = (fingers > 0);
+        if (s_last.pressed) {
+            if (x < 240) s_last.x = x;
+            if (y < 240) s_last.y = y;
+        }
+        /* Solo loguea en el flanco press↑ o release↓ para no floodear a 60 Hz.
+         * También cuando hay gesture no-cero (chip decodificó tap/swipe). */
+        if (s_last.pressed && !was_pressed) {
+            ESP_LOGI(TAG, "press (%u,%u) gesture=0x%02X", s_last.x, s_last.y, gesture);
+        } else if (!s_last.pressed && was_pressed) {
+            ESP_LOGI(TAG, "release last=(%u,%u) gesture=0x%02X", s_last.x, s_last.y, gesture);
+        } else if (gesture != 0 && s_last.pressed) {
+            ESP_LOGI(TAG, "gesture 0x%02X @ (%u,%u)", gesture, s_last.x, s_last.y);
         }
     }
 
