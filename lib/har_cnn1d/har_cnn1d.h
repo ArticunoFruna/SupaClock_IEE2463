@@ -47,7 +47,7 @@ extern "C" {
  * positivamente. Mask del argmax a 3 para evitar que ruido en output[3] se
  * elija. Subir a 4 cuando se capture y reentrene con stairs (data_ml/
  * _excluded_stairs/ + capturas nuevas). */
-#define HAR_ACTIVE_CLASSES     3
+#define HAR_ACTIVE_CLASSES     4
 
 /* Si está a 1, la tensor arena del intérprete vive en PSRAM (recomendado
  * si el modelo crece o si compartes SRAM con LVGL DMA buffers). */
