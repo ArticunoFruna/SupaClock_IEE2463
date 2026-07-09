@@ -363,16 +363,29 @@ static bool tiles_on_button(int btn_evt) {
     return false;
 }
 
+/* Restyle in-place al cambio de tema. Todos los colores derivan del theme
+ * (`TH->c_*`, `TH->text_dim`, `TH->surface`). Basta con reaplicar bg y llamar
+ * `update_tile_view()` que ya reescribe title/value/arc + dots. */
+static void tiles_on_theme_change(void) {
+    if (!s_scr) return;
+    lv_obj_set_style_bg_color(s_scr, lv_color_hex(TH->bg), LV_PART_MAIN);
+    if (s_lbl_unit) lv_obj_set_style_text_color(s_lbl_unit, lv_color_hex(TH->text_dim), LV_PART_MAIN);
+    if (s_lbl_sub)  lv_obj_set_style_text_color(s_lbl_sub,  lv_color_hex(TH->text_dim), LV_PART_MAIN);
+    update_tile_view();
+    lv_obj_invalidate(s_scr);
+}
+
 void ui_tiles_register(void) {
     ui_route_desc_t desc = {
-        .id         = ROUTE_TILES,
-        .build      = tiles_build,
-        .on_enter   = tiles_on_enter,
-        .on_leave   = NULL,
-        .tick       = tiles_tick,
-        .on_button  = tiles_on_button,
-        .on_gesture = tiles_on_gesture,
-        .name       = "tiles",
+        .id              = ROUTE_TILES,
+        .build           = tiles_build,
+        .on_enter        = tiles_on_enter,
+        .on_leave        = NULL,
+        .tick            = tiles_tick,
+        .on_button       = tiles_on_button,
+        .on_gesture      = tiles_on_gesture,
+        .on_theme_change = tiles_on_theme_change,
+        .name            = "tiles",
     };
     ui_router_register(&desc);
 }

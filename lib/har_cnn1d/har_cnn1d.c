@@ -34,16 +34,20 @@ static void *s_cb_user;
 static TaskHandle_t s_task_handle;
 static volatile bool s_paused;
 
-/* ───────────── Modelo embebido (provisto por har_model.cc) ─────────────
- * El blob es generado con `xxd -i model.tflite > har_model.cc`.
- * Mientras no exista, definimos un weak placeholder para que compile. */
-extern const unsigned char har_model_tflite[] __attribute__((weak));
-extern const unsigned int  har_model_tflite_len __attribute__((weak));
+/* ───────────── Modelo embebido (provisto por har_model.c) ─────────────
+ * NO weak: si dejamos las declaraciones weak, el linker no pulls
+ * `har_model.o` de la libhar_cnn1d.a porque no hay referencia unresolved
+ * → símbolos apuntan a NULL → har_runner_init nunca se llama. Con strong
+ * extern el linker es obligado a incluir el blob. */
+extern const unsigned char har_model_tflite[];
+extern const unsigned int  har_model_tflite_len;
 
 /* ───────────── Tensor arena ─────────────
- * Aumentado a 128 kB para soportar el modelo más robusto en PSRAM.
- * Si en PSRAM, se aloca con caps SPIRAM; si en SRAM, lo dejamos estático. */
-#define HAR_ARENA_BYTES    (128 * 1024)
+ * 512 kB en PSRAM: el S3 tiene 8 MB, así que el costo es despreciable y nos
+ * saca del régimen "arena tight" (128 KB fallaba con kTfLiteError en
+ * AllocateTensors). El modelo actual usa ~60-80 KB reales, pero TFLite Micro
+ * necesita margen para tensores intermedios de Conv1D 128-filter. */
+#define HAR_ARENA_BYTES    (512 * 1024)
 #if HAR_TENSOR_ARENA_IN_PSRAM
 static uint8_t *s_arena;
 #else
@@ -64,7 +68,13 @@ extern bool har_runner_init(uint8_t *arena, size_t arena_bytes,
 extern bool har_runner_run(const int16_t window[HAR_WINDOW_SIZE][HAR_CHANNELS],
                            float probs[HAR_NUM_CLASSES]) __attribute__((weak));
 
-/* Fallback heurístico (usado mientras no haya modelo entrenado).
+/* Flag global: runner_init OK al boot. Si es true, run_inference NUNCA cae al
+ * heurístico (aunque un invoke individual falle) — reutiliza el último probs
+ * bueno para evitar que el bug de "siempre correr" reaparezca silenciosamente
+ * si el runner tiene un fallo transitorio. */
+static bool s_runner_ready = false;
+
+/* Fallback heurístico (usado SOLO si el runner no cargó al boot).
  * Clasifica por la varianza de |a| en la ventana para las 4 clases. */
 static void heuristic_infer(float probs[HAR_NUM_CLASSES]) {
     int64_t mean_a2 = 0;
@@ -100,16 +110,41 @@ static void heuristic_infer(float probs[HAR_NUM_CLASSES]) {
 static void run_inference_on_window(void) {
     float probs[HAR_NUM_CLASSES] = {0};
     bool ok = false;
-    if (har_runner_run) {
+
+    if (s_runner_ready && har_runner_run) {
         ok = har_runner_run((const int16_t (*)[HAR_CHANNELS])s_ring, probs);
+        if (!ok) {
+            /* Runner cargó bien pero este invoke falló — reutilizar último
+             * resultado válido en vez de caer al heurístico (que reintroduciría
+             * el bug de "siempre correr" tras montar en muñeca). */
+            if (s_last_result.state != HAR_STATE_UNKNOWN) {
+                memcpy(probs, s_last_result.probs, sizeof(probs));
+                ok = true;
+            }
+        }
     }
+
     if (!ok) {
+        /* Solo llegamos aquí si el runner no cargó al boot (o el primer
+         * invoke aún no dio un resultado válido). */
         heuristic_infer(probs);
     }
 
     int argmax = 0;
     for (int i = 1; i < HAR_NUM_CLASSES; ++i) {
         if (probs[i] > probs[argmax]) argmax = i;
+    }
+
+    /* Log de probs — throttle 1 cada 5 inferencias (10s) para diagnóstico
+     * sin floodear. Incluye el status persistente del runner para saber por
+     * qué falló el init aunque los logs del boot se hayan perdido en el
+     * buffer USB CDC. */
+    static uint32_t s_log_ctr = 0;
+    if (++s_log_ctr % 5 == 0) {
+        ESP_LOGI(TAG, "probs=[%.2f %.2f %.2f %.2f] argmax=%d src=%s | init:%s",
+                 probs[0], probs[1], probs[2], probs[3], argmax,
+                 s_runner_ready ? "TFLITE" : "HEUR",
+                 har_runner_last_status());
     }
 
     har_result_t r = {
@@ -179,16 +214,15 @@ esp_err_t har_cnn1d_init(har_result_cb_t cb, void *cb_user) {
     }
 #endif
 
-    bool model_ok = false;
-    if (&har_model_tflite != NULL && &har_model_tflite_len != NULL) {
-        model_ok = har_runner_init(s_arena, HAR_ARENA_BYTES,
-                                   har_model_tflite, har_model_tflite_len,
-                                   &s_arena_used);
-        ESP_LOGI(TAG, "Modelo TFLite %scargado (%u B used)",
-                 model_ok ? "" : "NO ", (unsigned)s_arena_used);
-    } else {
-        ESP_LOGW(TAG, "Sin har_model.cc embebido → usando heurística por varianza");
-    }
+    /* har_model_tflite ahora es strong extern — si el blob no está linkeado
+     * el link falla en build time (no en runtime). */
+    bool model_ok = har_runner_init(s_arena, HAR_ARENA_BYTES,
+                                    har_model_tflite, har_model_tflite_len,
+                                    &s_arena_used);
+    ESP_LOGI(TAG, "Modelo TFLite %scargado (%u B used, blob=%u B)",
+             model_ok ? "" : "NO ", (unsigned)s_arena_used,
+             (unsigned)har_model_tflite_len);
+    s_runner_ready = model_ok;
 
     /* Task pinned a core 1 (S3 es dual-core; core 0 lo usan BLE/LVGL). */
     BaseType_t r = xTaskCreatePinnedToCore(har_task, "har_task", 4096, NULL, 4,

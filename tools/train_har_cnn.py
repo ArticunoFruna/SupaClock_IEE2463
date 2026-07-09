@@ -16,8 +16,12 @@ def load_data(data_dir):
     X = []
     y = []
     
-    csv_files = glob.glob(os.path.join(data_dir, "supaclock_imu_*.csv"))
-    
+    # Aceptar tanto .csv legacy como .csv.gz (formato nuevo que exporta la
+    # app Flutter desde jun-2026 via csv_recorder.dart). pandas.read_csv sabe
+    # leer .csv.gz transparentemente si el nombre lo indica.
+    csv_files = (glob.glob(os.path.join(data_dir, "supaclock_imu_*.csv")) +
+                 glob.glob(os.path.join(data_dir, "supaclock_imu_*.csv.gz")))
+
     if not csv_files:
         print("No se encontraron archivos CSV de IMU reales. Usando datos sintéticos...")
         # Generar datos sintéticos para validar el pipeline
@@ -60,6 +64,33 @@ def load_data(data_dir):
             print(f"  -> Ignorando (no contiene columnas {cols})")
             continue
 
+        # Filtrar filas corruptas del recorder:
+        #   -1 marca datos faltantes; -32768 es saturación por I2C timeout.
+        # Sin este filtro, el modelo aprende que estos valores marcan "algo",
+        # y se sesga.
+        cond_clean = (
+            (df['ax'] != -1) | (df['ay'] != -1) | (df['az'] != -1)
+        ) & (
+            (df['ax'] != -32768) & (df['ay'] != -32768) & (df['az'] != -32768)
+        )
+        df = df[cond_clean].copy().reset_index(drop=True)
+        if len(df) < WINDOW_SIZE:
+            print(f"  -> Ignorando (muy pocos datos válidos tras filtrar corrupt)")
+            continue
+
+        # Decimar 100Hz→50Hz si el archivo fue capturado con el fw viejo
+        # (el reloj hoy corre a 50Hz, así que el modelo debe entrenarse a la
+        # misma frecuencia). Detección: si tiene timestamp_ms y fs > 75Hz,
+        # tomamos cada 2da muestra. Sin ts, asumimos que ya está a 50Hz.
+        if 'timestamp_ms' in df.columns and len(df) > 100:
+            ts = df['timestamp_ms'].astype(np.int64).values
+            dt = (ts[100] - ts[0]) / 100.0
+            fs = 1000.0 / dt if dt > 0 else 50.0
+            if fs > 75.0:
+                df = df.iloc[::2].reset_index(drop=True)
+                print(f"  -> Detectado fs≈{fs:.1f}Hz, decimando a 50Hz "
+                      f"(rows {len(df)*2}→{len(df)})")
+
         data = df[cols].values.astype(np.float32)
 
         # Normalización simple (rango del BMI160 int16 es +-32768)
@@ -74,6 +105,9 @@ def load_data(data_dir):
             ).map(lambda k: CLASSES[k] if k in CLASSES else fb).values
         else:
             row_labels = np.full(len(data), fb, dtype=np.int32)
+        # Descartar labels desconocidos (stairs cuando pediste 3-class)
+        if len(row_labels) != len(data):
+            row_labels = row_labels[:len(data)]
 
         # Creación de ventanas superpuestas. La etiqueta de la ventana es la
         # moda dentro del rango (robusto si una transición cae justo dentro).
@@ -129,12 +163,15 @@ def build_model():
     return model
 
 def convert_to_tflite_and_c(model, filename_tflite, filename_c, filename_lib_c=None):
-    print("\n--- Conversión TFLite Micro ---")
+    print("\n--- Conversión TFLite Micro (float32 puro) ---")
+    # NO cuantización: TFLite Micro NO soporta "hybrid models" (weights INT8 +
+    # activations FLOAT32 que es lo que produce Optimize.DEFAULT). Falla con
+    # "Hybrid models are not supported" al AllocateTensors. Opciones válidas:
+    #   a) Float puro (esta) — modelo ~250KB, IO float, fácil de debuggear.
+    #   b) INT8 completo — modelo ~60KB pero necesita representative_dataset
+    #      y usa el path _c3.py. Migrar cuando el tamaño empiece a molestar.
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    
-    # Cuantización para optimizar el tamaño en SRAM/Flash
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    
+
     tflite_model = converter.convert()
     
     # Guardar archivo .tflite

@@ -155,13 +155,44 @@ void ui_router_reset_all(void) {
     s_depth = 0;
     ui_route_t wf = { .id = ROUTE_WATCHFACE, .param = 0 };
     s_stack[s_depth++] = wf;
-    
+
     for (int i = 0; i < ROUTE_COUNT; i++) {
         if (s_scr[i]) {
             lv_obj_del(s_scr[i]);
             s_scr[i] = NULL;
         }
     }
-    
+
     load_route(wf, NAV_ANIM_NONE);
+}
+
+void ui_router_restyle_all(void) {
+    ui_route_id_t active_id = ui_router_current().id;
+
+    for (int i = 0; i < ROUTE_COUNT; i++) {
+        if (!s_registered[i]) continue;
+
+        if (s_descs[i].on_theme_change) {
+            /* Ruta con callback: restyle in-place — no destruye widgets.
+             * Solo aplica si el screen ya fue construido (si no, se
+             * construirá con el theme nuevo al primer visit). */
+            if (s_scr[i]) s_descs[i].on_theme_change();
+        } else if (s_scr[i]) {
+            /* Sin callback: destruye para lazy rebuild. Excepto si es la
+             * ruta actualmente activa — en ese caso hay que reconstruir
+             * inmediatamente y recargar para no dejar la pantalla en un
+             * estado inconsistente. */
+            if ((ui_route_id_t)i == active_id) {
+                lv_obj_del(s_scr[i]);
+                s_scr[i] = NULL;
+                lv_obj_t *new_scr = s_descs[i].build();
+                s_scr[i] = new_scr;
+                if (new_scr) lv_scr_load_anim(new_scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            } else {
+                lv_obj_del(s_scr[i]);
+                s_scr[i] = NULL;
+            }
+        }
+    }
+    ESP_LOGI(TAG, "restyle_all done (active=%d)", (int)active_id);
 }

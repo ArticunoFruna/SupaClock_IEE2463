@@ -432,3 +432,25 @@ esp_err_t bmi160_reset_step_counter(void)
     vTaskDelay(pdMS_TO_TICKS(10));
     return err;
 }
+
+esp_err_t bmi160_suspend(void)
+{
+    // Accel → suspend. Espera ~1ms para completar cambio de PMU.
+    esp_err_t err = bmi160_write_reg(BMI160_CMD_REG, BMI160_CMD_ACC_SUSPEND);
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "Accel suspend fallo: %s", esp_err_to_name(err));
+        return err;
+    }
+    vTaskDelay(pdMS_TO_TICKS(5));
+
+    // Gyro → suspend. Espera ~80ms (Gyro tarda más en cambiar PMU).
+    err = bmi160_write_reg(BMI160_CMD_REG, BMI160_CMD_GYR_SUSPEND);
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "Gyro suspend fallo: %s", esp_err_to_name(err));
+        return err;
+    }
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    ESP_LOGI(TAG, "BMI160 suspend (accel+gyro, <5 µA).");
+    return ESP_OK;
+}

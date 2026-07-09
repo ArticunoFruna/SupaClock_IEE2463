@@ -44,6 +44,18 @@ esp_err_t max30205_read_temperature(float *temp_c) {
     } else {
         ESP_LOGE(TAG_MAX, "Error leyendo la temperatura: %s", esp_err_to_name(err));
     }
-    
+
+    return err;
+}
+
+esp_err_t max30205_shutdown(void) {
+    // Bit 0 (SHUTDOWN) del CONFIGURATION register: 1 = shutdown, 0 = normal.
+    uint8_t config = 0x01;
+    esp_err_t err = i2c_write_bytes(MAX30205_I2C_ADDR, MAX30205_REG_CONFIGURATION, &config, 1);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG_MAX, "MAX30205 en shutdown (<1 µA).");
+    } else {
+        ESP_LOGW(TAG_MAX, "Fallo al entrar a shutdown: %s", esp_err_to_name(err));
+    }
     return err;
 }

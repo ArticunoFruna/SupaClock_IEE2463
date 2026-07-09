@@ -155,17 +155,24 @@ bool cst816s_read(cst816s_touch_t *out) {
             if (x < 240) s_last.x = x;
             if (y < 240) s_last.y = y;
         }
-        /* Solo loguea en el flanco press↑ o release↓ para no floodear a 60 Hz.
-         * También cuando hay gesture no-cero (chip decodificó tap/swipe). */
+        /* Logs a DEBUG para no floodear el monitor (tapan los del HAR).
+         * Subir a INFO temporalmente si hay que depurar coordenadas del touch. */
         if (s_last.pressed && !was_pressed) {
-            ESP_LOGI(TAG, "press (%u,%u) gesture=0x%02X", s_last.x, s_last.y, gesture);
+            ESP_LOGD(TAG, "press (%u,%u) gesture=0x%02X", s_last.x, s_last.y, gesture);
         } else if (!s_last.pressed && was_pressed) {
-            ESP_LOGI(TAG, "release last=(%u,%u) gesture=0x%02X", s_last.x, s_last.y, gesture);
+            ESP_LOGD(TAG, "release last=(%u,%u) gesture=0x%02X", s_last.x, s_last.y, gesture);
         } else if (gesture != 0 && s_last.pressed) {
-            ESP_LOGI(TAG, "gesture 0x%02X @ (%u,%u)", gesture, s_last.x, s_last.y);
+            ESP_LOGD(TAG, "gesture 0x%02X @ (%u,%u)", gesture, s_last.x, s_last.y);
         }
     }
 
     *out = s_last;
     return true;
+}
+
+void cst816s_shutdown(void) {
+    if (s_rst_pin >= 0) {
+        gpio_set_level(s_rst_pin, 0); // Mantener en reset (LPM)
+        ESP_LOGI(TAG, "Touch controller in Shutdown (Reset line held LOW)");
+    }
 }

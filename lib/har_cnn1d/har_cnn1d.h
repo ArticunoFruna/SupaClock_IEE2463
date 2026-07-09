@@ -42,9 +42,11 @@ extern "C" {
 #define HAR_HOP_SIZE           100      /* Traslape del 50 % (100 muestras / 2.0 s) */
 #define HAR_CHANNELS           6        /* ax,ay,az,gx,gy,gz */
 #define HAR_NUM_CLASSES        4        /* salidas del modelo: resting/walking/running/stairs */
-/* Clases REPORTADAS hoy. El modelo emite 4 probs, pero 'stairs' (idx 3) está
- * deshabilitada hasta tener dataset real de escaleras: el consumidor hace argmax
- * solo sobre las primeras HAR_ACTIVE_CLASSES. Subir a 4 cuando se reentrene. */
+/* Clases REPORTADAS hoy. El modelo se entrena solo con 3 (rest/walk/run) porque
+ * el dataset de stairs aún es insuficiente — la 4ta neurona nunca se activa
+ * positivamente. Mask del argmax a 3 para evitar que ruido en output[3] se
+ * elija. Subir a 4 cuando se capture y reentrene con stairs (data_ml/
+ * _excluded_stairs/ + capturas nuevas). */
 #define HAR_ACTIVE_CLASSES     3
 
 /* Si está a 1, la tensor arena del intérprete vive en PSRAM (recomendado
@@ -52,6 +54,11 @@ extern "C" {
 #ifndef HAR_TENSOR_ARENA_IN_PSRAM
 #define HAR_TENSOR_ARENA_IN_PSRAM   1
 #endif
+
+/* Accesor al status del último init del runner. Retorna un string estático
+ * con la razón del fallo (o "OK arena=... used=...") — expuesto por
+ * har_model_runner.cpp y consumido por el log periódico de probs. */
+const char *har_runner_last_status(void);
 
 /* ───────────── Clases de salida ───────────── */
 typedef enum {

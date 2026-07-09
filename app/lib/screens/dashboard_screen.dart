@@ -384,8 +384,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.directions_run,
                     label: 'Correr',
                     active: hs == 2),
-                // 'Escaleras' (estado 3) deshabilitado hasta tener dataset:
-                // el firmware no reporta la clase 3 (HAR_ACTIVE_CLASSES=3).
+                // Escaleras: activo cuando el firmware pasa a HAR_ACTIVE_CLASSES=4
+                // (post-captura de dataset stairs y retrain del modelo).
+                _ActivityChip(
+                    icon: Icons.stairs,
+                    label: 'Escaleras',
+                    active: hs == 3),
               ],
             ),
           ],

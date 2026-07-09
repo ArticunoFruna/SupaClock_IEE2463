@@ -133,6 +133,13 @@
 esp_err_t bmi160_init(void);
 
 /**
+ * @brief Pone accel + gyro del BMI160 en modo SUSPEND.
+ *        Consumo baja de ~950 µA a <5 µA. Se usa antes de deep sleep.
+ *        Para volver a operar hay que re-inicializar (bmi160_init).
+ */
+esp_err_t bmi160_suspend(void);
+
+/**
  * @brief Lee datos crudos del acelerómetro (3 ejes).
  *
  * @param[out] ax  Aceleración eje X (raw, 16-bit signed)

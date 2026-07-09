@@ -4,6 +4,7 @@
 #include "esp_timer.h"
 #include "esp_rom_gpio.h"
 #include "soc/gpio_sig_map.h"
+#include "esp_system.h"
 
 static const char *TAG = "GPIO_BUTTONS";
 
@@ -150,10 +151,27 @@ static void update_button(btn_state_t *b, int64_t now_us) {
         q_push(b->ev_long);
     }
 }
+static int s_select_press_duration_ms = 0;
 static void btn_timer_cb(void *arg) {
     int64_t now = esp_timer_get_time();
     update_button(&s_next, now);
     update_button(&s_select, now);
+
+    if (s_select.pressed) {
+        s_select_press_duration_ms += 10;
+        if (s_select_press_duration_ms % 1000 == 0) {
+            ESP_LOGI(TAG, "SELECT button held for %d ms...", s_select_press_duration_ms);
+        }
+        if (s_select_press_duration_ms >= 5000) {
+            ESP_LOGE(TAG, "!!! SELECT HELD FOR 5 SECONDS - FORCING SYSTEM RESET !!!");
+            esp_restart();
+        }
+    } else {
+        if (s_select_press_duration_ms > 0) {
+            ESP_LOGI(TAG, "SELECT button released after %d ms", s_select_press_duration_ms);
+        }
+        s_select_press_duration_ms = 0;
+    }
 }
 
 btn_event_t gpio_buttons_poll(void) {

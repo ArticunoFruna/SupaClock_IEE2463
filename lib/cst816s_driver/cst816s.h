@@ -43,6 +43,12 @@ esp_err_t cst816s_init(int int_pin, int rst_pin);
  */
 bool cst816s_read(cst816s_touch_t *out);
 
+/**
+ * @brief Fuerza al CST816S a entrar en su modo de más bajo consumo (Shutdown)
+ *        manteniendo la línea de Reset en nivel bajo.
+ */
+void cst816s_shutdown(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -30,8 +30,8 @@ static const char *TAG = "UI_WF";
 #define TH  (ui_theme_get())
 
 /* Colores semánticos fijos (independientes del theme) */
-#define COL_STEPS_BASE   0x2A6F6A
-#define COL_STEPS_HIGH   0x88E5D8
+#define COL_STEPS_BASE   0x1A5030    /* verde bosque (background arc) */
+#define COL_STEPS_HIGH   0x30D158    /* verde vibrante (indicador + label) */
 #define COL_HR_BASE      0x3B0000
 #define COL_HR_HIGH      0xFF3333
 #define COL_BATT_OK      0xFFFFFF
@@ -58,6 +58,7 @@ static lv_obj_t *s_ico_har    = NULL;
 static int   s_last_minute = -1;
 static int   s_last_day    = -1;
 static int   s_last_batt   = -1;
+static int   s_last_charging = -1;   /* -1 = force refresh, 0/1 = last state */
 static int   s_last_hr     = -1;
 static int   s_last_steps  = -1;
 static int   s_last_har    = -1;
@@ -72,7 +73,10 @@ static const char *dow_short(int wday) {
     return n[wday];
 }
 
-static const char *battery_symbol(int soc) {
+static const char *battery_symbol(int soc, bool charging) {
+    /* Cuando carga, sobrepone el rayo — más informativo que el nivel exacto
+     * mientras el usuario ve el cable conectado. */
+    if (charging) return UI_SYM_BOLT;
     if (soc < 15)  return UI_SYM_BATTERY_EMPTY;
     if (soc < 40)  return UI_SYM_BATTERY_1;
     if (soc < 65)  return UI_SYM_BATTERY_2;
@@ -217,6 +221,7 @@ static void wf_tick(void) {
     uint32_t hr_updated = 0;
     uint32_t steps = 0;
     uint8_t har_val = 0;
+    bool charging = false;
     shared_sensor_data_t *st = app_state_lock(5);
     if (st) {
         batt = (int)(st->battery_soc + 0.5f);
@@ -224,6 +229,7 @@ static void wf_tick(void) {
         hr_updated = st->hr_updated_ms;
         steps = st->steps_sw;
         har_val = st->har_state;
+        charging = st->battery_charging;
         app_state_unlock();
     }
 
@@ -241,18 +247,25 @@ static void wf_tick(void) {
         s_last_har = (int)har_val;
     }
 
-    /* Battery */
+    /* Battery — refresca si cambió soc o estado de carga */
     if (batt >= 0) {
         if (batt > 100) batt = 100;
-        if (batt != s_last_batt) {
+        int chg = charging ? 1 : 0;
+        if (batt != s_last_batt || chg != s_last_charging) {
             char buf[8];
             snprintf(buf, sizeof(buf), "%d%%", batt);
             lv_label_set_text(s_lbl_batt, buf);
-            lv_label_set_text(s_ico_batt, battery_symbol(batt));
-            uint32_t c = (batt < 15) ? COL_BATT_LOW : COL_BATT_OK;
+            lv_label_set_text(s_ico_batt, battery_symbol(batt, charging));
+            /* Color: rojo si <15% y NO cargando, verde/accent si cargando,
+             * blanco en el resto. */
+            uint32_t c;
+            if (charging)          c = 0x30D158;  /* verde Apple, indica carga */
+            else if (batt < 15)    c = COL_BATT_LOW;
+            else                   c = COL_BATT_OK;
             lv_obj_set_style_text_color(s_ico_batt, lv_color_hex(c), LV_PART_MAIN);
             lv_obj_set_style_text_color(s_lbl_batt, lv_color_hex(c), LV_PART_MAIN);
             s_last_batt = batt;
+            s_last_charging = chg;
         }
     }
 
@@ -331,16 +344,29 @@ static void wf_on_enter(int32_t param) {
     s_last_steps  = -1;
 }
 
+/* Restyle in-place al cambio de tema. Arcs, batt/hr/kcal/steps son paleta
+ * SPORT fija (no cambian). Solo cambia bg, texto tiempo/fecha (van del
+ * tema), y el HAR icon (c_activity = accent en mono). */
+static void wf_on_theme_change(void) {
+    if (!s_scr) return;
+    lv_obj_set_style_bg_color(s_scr, lv_color_hex(TH->bg), LV_PART_MAIN);
+    if (s_lbl_time) lv_obj_set_style_text_color(s_lbl_time, lv_color_hex(TH->text),       LV_PART_MAIN);
+    if (s_lbl_date) lv_obj_set_style_text_color(s_lbl_date, lv_color_hex(TH->text_dim),   LV_PART_MAIN);
+    if (s_ico_har)  lv_obj_set_style_text_color(s_ico_har,  lv_color_hex(TH->c_activity), LV_PART_MAIN);
+    lv_obj_invalidate(s_scr);
+}
+
 void ui_watchface_register(void) {
     ui_route_desc_t desc = {
-        .id         = ROUTE_WATCHFACE,
-        .build      = wf_build,
-        .on_enter   = wf_on_enter,
-        .on_leave   = NULL,
-        .tick       = wf_tick,
-        .on_button  = wf_on_button,
-        .on_gesture = wf_on_gesture,
-        .name       = "watchface_sport",
+        .id              = ROUTE_WATCHFACE,
+        .build           = wf_build,
+        .on_enter        = wf_on_enter,
+        .on_leave        = NULL,
+        .tick            = wf_tick,
+        .on_button       = wf_on_button,
+        .on_gesture      = wf_on_gesture,
+        .on_theme_change = wf_on_theme_change,
+        .name            = "watchface_sport",
     };
     ui_router_register(&desc);
 }

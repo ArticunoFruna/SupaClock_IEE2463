@@ -28,4 +28,10 @@ esp_err_t max30205_init(void);
  */
 esp_err_t max30205_read_temperature(float *temp_c);
 
+/**
+ * @brief Pone al MAX30205 en modo shutdown (SHUTDOWN bit del config register).
+ *        Consumo baja de ~600 µA a <1 µA. Se usa antes de deep sleep.
+ */
+esp_err_t max30205_shutdown(void);
+
 #endif // MAX30205_H

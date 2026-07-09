@@ -11,6 +11,8 @@
 #include "esp_timer.h"
 #include "esp_sleep.h"
 #include "esp_pm.h"
+#include "driver/rtc_io.h"
+#include "driver/gpio.h"
 #include "nvs_flash.h"
 #include "gc9a01.h"
 #include "cst816s.h"
@@ -62,15 +64,52 @@ static esp_pm_lock_handle_t s_ecg_pm_lock = NULL;
  * que tocan hardware/IDF que la lib UI no debe conocer (deep sleep, MAX17048).
  */
 static void on_power_off(void) {
+    ESP_LOGI(TAG, "Entering Ordered Shutdown / Deep Sleep Sequence...");
+
+    // 1. Apagar peripherals de UI + ECG
+    gc9a01_set_brightness(0);
+    cst816s_shutdown();
+    ad8232_power_down();
+
+    // 2. Apagar sensores I2C: BMI160 (IMU), MAX30102 (HR/SpO2), MAX30205 (temp).
+    //    MAX17048 (fuel gauge) queda activo — auto-hibernate cuando crate<3%.
+    //    Consumo total pre-sleep: ~950+600+600=~2 mA → post-sleep: <10 µA total.
+    bmi160_suspend();
+    max30102_shutdown();
+    max30205_shutdown();
+
+    // 3. Delay para completar transmisiones y apagado físico
     vTaskDelay(pdMS_TO_TICKS(200));
-    /* Wake-up por BTN_SELECT (activo en bajo).
-     * S3 (Xtensa): solo los RTC-GPIOs (0..21) despiertan de deep sleep
-     *              → ext1 con TRIGGER_LOW. BTN_SELECT = GPIO8 = RTC. */
+
 #if CONFIG_IDF_TARGET_ESP32S3
+    /* 3. Desactivar TODAS las wake sources posibles para no despertar por
+     *    fantasmas (timer del PM, otros GPIOs floating, etc.). Solo ext1
+     *    queda como wake válido. */
+    esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
+
+    /* 4. GPIO8 (BTN_SELECT) como RTC-GPIO con pull-up retenido en sleep.
+     *    Antes usábamos gpio_config + gpio_hold_en (digital hold), que
+     *    no retiene bien el pull-up sin RTC_PERIPH ON → pin flotaba →
+     *    despertar espúreo a los ~7s. La secuencia correcta es:
+     *      rtc_gpio_init → set_direction INPUT → pullup_en → hold_en. */
+    rtc_gpio_deinit(BTN_SELECT_PIN);
+    rtc_gpio_init(BTN_SELECT_PIN);
+    rtc_gpio_set_direction(BTN_SELECT_PIN, RTC_GPIO_MODE_INPUT_ONLY);
+    rtc_gpio_pulldown_dis(BTN_SELECT_PIN);
+    rtc_gpio_pullup_en(BTN_SELECT_PIN);
+    rtc_gpio_hold_en(BTN_SELECT_PIN);
+
+    /* 5. Mantener el dominio RTC_PERIPH ON para retener el pull-up interno.
+     *    Sin esto el dominio se apaga → pull-up muere → GPIO flota. */
+    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON);
+
+    /* 6. Wake source: ext1 en BTN_SELECT, activo bajo (botón pull-up). */
     esp_sleep_enable_ext1_wakeup_io((1ULL << BTN_SELECT_PIN), ESP_EXT1_WAKEUP_ANY_LOW);
 #else
     esp_deep_sleep_enable_gpio_wakeup((1ULL << BTN_SELECT_PIN), ESP_GPIO_WAKEUP_GPIO_LOW);
 #endif
+
+    ESP_LOGI(TAG, "Starting Deep Sleep — press SELECT >=3s to power on, >=6s force reboot");
     esp_deep_sleep_start();
 }
 
@@ -241,7 +280,7 @@ void imu_task(void *pvParameter) {
             uint32_t d0 = now_ms();
             if (d0 - s_dbg0 >= 1000) {
                 s_dbg0 = d0;
-                ESP_LOGW(TAG, "PED feed: polls/s=%lu frames/s=%lu (n=0 ahora) idx=%u",
+                ESP_LOGD(TAG, "PED feed: polls/s=%lu frames/s=%lu (n=0 ahora) idx=%u",
                          (unsigned long)s_polls, (unsigned long)s_fps,
                          sw_pedometer.sample_index);
                 s_polls = 0; s_fps = 0;
@@ -298,7 +337,7 @@ void imu_task(void *pvParameter) {
             bool gate_active = (sample_ts < sw_pedometer.walk_gate_expiry_ms);
             float amp = sw_pedometer.peak_env - sw_pedometer.valley_env;
 
-            ESP_LOGI(TAG, "PED fps=%lu idx=%u ffts=%u pkHz=%.2f amp=%.0f prom=%.1f ratio=%.2f gate=%d cad=%.2f cons=%u prov=%u steps=%lu",
+            ESP_LOGD(TAG, "PED fps=%lu idx=%u ffts=%u pkHz=%.2f amp=%.0f prom=%.1f ratio=%.2f gate=%d cad=%.2f cons=%u prov=%u steps=%lu",
                      (unsigned long)s_fps, sw_pedometer.sample_index,
                      sw_pedometer.dbg_fft_runs, (double)sw_pedometer.dbg_peak_hz,
                      (double)amp, (double)sw_pedometer.dbg_prominence,
@@ -485,11 +524,18 @@ void system_task(void *pvParameter) {
         const power_profile_t *p = power_get_profile();
         uint32_t now = now_ms();
 
-        if (now - last_bat_ms >= p->bat_period_ms) {
+        /* Con pantalla encendida forzamos período corto (1 s) para que el
+         * indicador de "cargando" reaccione al instante cuando el usuario
+         * enchufa el USB. Con backlight off usamos el periodo largo del
+         * profile (30 s) para ahorrar energía. */
+        uint32_t bat_period = backlight_on ? 1000 : p->bat_period_ms;
+        if (now - last_bat_ms >= bat_period) {
             uint16_t bat_mv = 0;
             float bat_soc_raw = 0.0f;
+            float bat_crate = 0.0f;
             max17048_get_voltage(&bat_mv);
             esp_err_t err_soc = max17048_get_soc(&bat_soc_raw);
+            max17048_get_crate(&bat_crate);
 
             // Filtro EMA para SOC
             static float bat_soc_filtered = -1.0f;
@@ -501,11 +547,62 @@ void system_task(void *pvParameter) {
                 }
             }
 
+            /* Detección de charging robusta (dos señales, cada una filtrada):
+             *  1) Trend de voltaje: comparar avg(muestras recientes) vs
+             *     avg(muestras antiguas) en un buffer de 30 s. Filtra los
+             *     spikes de carga del CPU que dan falsos positivos si solo
+             *     miramos delta puntual.
+             *  2) crate en %/h con umbrales anchos: gran deadband para no
+             *     togglear en CV-phase (crate ~ 0 cerca del 100%).
+             * Fusión: OR para prender, requiere ambas para apagar (evita
+             * flapping cuando solo una queda en deadband). */
+            #define BAT_HIST_N   30
+            #define BAT_AVG_WIN  5
+            static uint16_t bat_mv_hist[BAT_HIST_N] = {0};
+            static uint8_t  bat_mv_hist_idx = 0;
+            static uint8_t  bat_mv_hist_cnt = 0;
+            bat_mv_hist[bat_mv_hist_idx] = bat_mv;
+            bat_mv_hist_idx = (bat_mv_hist_idx + 1) % BAT_HIST_N;
+            if (bat_mv_hist_cnt < BAT_HIST_N) bat_mv_hist_cnt++;
+
+            int mv_trend = 0;
+            if (bat_mv_hist_cnt >= BAT_HIST_N) {
+                /* avg de las 5 más recientes vs 5 más antiguas */
+                uint32_t sum_new = 0, sum_old = 0;
+                for (int k = 0; k < BAT_AVG_WIN; ++k) {
+                    int i_new = (bat_mv_hist_idx + BAT_HIST_N - 1 - k) % BAT_HIST_N;
+                    int i_old = (bat_mv_hist_idx + k) % BAT_HIST_N;
+                    sum_new += bat_mv_hist[i_new];
+                    sum_old += bat_mv_hist[i_old];
+                }
+                mv_trend = (int)(sum_new / BAT_AVG_WIN) - (int)(sum_old / BAT_AVG_WIN);
+            }
+
+            static bool bat_is_charging = false;
+            bool by_crate_on  = (bat_crate >  0.5f);
+            bool by_crate_off = (bat_crate < -0.5f);
+            bool by_mv_on     = (mv_trend  >  3);   /* subió ≥3 mV avg-a-avg */
+            bool by_mv_off    = (mv_trend  < -2);   /* bajó ≥2 mV avg-a-avg */
+            if      (by_crate_on  || by_mv_on)   bat_is_charging = true;
+            /* Solo apaga si AMBAS señales lo confirman — evita false-off por
+             * caídas transitorias de voltaje bajo load. */
+            else if (by_crate_off && by_mv_off)  bat_is_charging = false;
+
+            /* Log throttled: cada 10 lecturas */
+            static uint32_t bat_log_ctr = 0;
+            if (++bat_log_ctr % 10 == 0) {
+                ESP_LOGI(TAG, "BAT: mv=%u trend=%+d soc=%.1f%% crate=%+.2f%%/h chg=%d",
+                         (unsigned)bat_mv, mv_trend, (double)bat_soc_filtered,
+                         (double)bat_crate, bat_is_charging);
+            }
+
             shared_sensor_data_t *sd = app_state_lock(10);
             if (sd) {
-                sd->battery_mv     = bat_mv;
-                sd->battery_soc    = (bat_soc_filtered >= 0.0f) ? bat_soc_filtered : 0.0f;
-                sd->bat_updated_ms = now;
+                sd->battery_mv       = bat_mv;
+                sd->battery_soc      = (bat_soc_filtered >= 0.0f) ? bat_soc_filtered : 0.0f;
+                sd->battery_crate    = bat_crate;
+                sd->battery_charging = bat_is_charging;
+                sd->bat_updated_ms   = now;
                 app_state_unlock();
             }
 
@@ -647,6 +744,56 @@ void perf_monitor_task(void *pvParameter) {
 }
 
 void supaclock_app_run(void) {
+#if CONFIG_IDF_TARGET_ESP32S3
+    /* Liberar el hold del RTC-GPIO y volver a modo digital normal para que
+     * gpio_buttons y el resto del sistema puedan usar SELECT como I/O. */
+    rtc_gpio_hold_dis(BTN_SELECT_PIN);
+    rtc_gpio_deinit(BTN_SELECT_PIN);
+#endif
+    esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
+    ESP_LOGI(TAG, "=========================================");
+    ESP_LOGI(TAG, "=== SUPACLOCK BOOT / WAKEUP ===");
+    ESP_LOGI(TAG, "Wakeup Cause: %d", cause);
+    ESP_LOGI(TAG, "=========================================");
+
+    // 1. Si venimos de deep sleep, validar hold-to-boot (3s) o force reboot (6s).
+    if (cause == ESP_SLEEP_WAKEUP_EXT1 || cause == ESP_SLEEP_WAKEUP_GPIO) {
+        // Reconfigurar GPIO8 como digital input con pull-up para leerlo.
+        gpio_config_t io_conf = {
+            .pin_bit_mask = (1ULL << BTN_SELECT_PIN),
+            .mode = GPIO_MODE_INPUT,
+            .pull_up_en = GPIO_PULLUP_ENABLE,
+            .pull_down_en = GPIO_PULLDOWN_DISABLE,
+            .intr_type = GPIO_INTR_DISABLE,
+        };
+        gpio_config(&io_conf);
+
+        const int BOOT_HOLD_MS   = 3000;   // >=3s = arranca
+        const int REBOOT_HOLD_MS = 6000;   // >=6s = restart forzado
+        const int MAX_HOLD_MS    = 6500;   // cap para no bloquear infinito
+        int held_ms = 0;
+        ESP_LOGI(TAG, "Checking SELECT button hold (>=3s=boot, >=6s=force reboot)...");
+
+        // Espera activa mientras el botón esté presionado (activo bajo = 0).
+        while (gpio_get_level(BTN_SELECT_PIN) == 0 && held_ms < MAX_HOLD_MS) {
+            vTaskDelay(pdMS_TO_TICKS(50));
+            held_ms += 50;
+            if (held_ms % 500 == 0) {
+                ESP_LOGI(TAG, "SELECT held %d ms...", held_ms);
+            }
+        }
+
+        if (held_ms >= REBOOT_HOLD_MS) {
+            ESP_LOGW(TAG, "SELECT held >=6s → force reboot");
+            esp_restart();
+        } else if (held_ms >= BOOT_HOLD_MS) {
+            ESP_LOGI(TAG, "SELECT held %d ms → booting", held_ms);
+        } else {
+            ESP_LOGI(TAG, "SELECT released early (%d ms) → back to sleep", held_ms);
+            on_power_off();
+        }
+    }
+
     /* Delay de arranque: el reset por RTS del esptool re-enumera la USB CDC,
      * lo que toma ~1-2s. Sin este delay, los logs del boot temprano se pierden
      * porque el monitor todavia no reconectó. 3s da margen para ver el scan
@@ -696,6 +843,13 @@ void supaclock_app_run(void) {
         nvs_flash_erase();
         nvs_flash_init();
     }
+
+    /* Timezone Chile continental (UTC-4 estándar, UTC-3 en DST).
+     * Sin esto, localtime_r devuelve UTC porque la app envía unix_ts UTC
+     * vía SYNC_TIME. Regla POSIX: DST empieza 1er sábado de septiembre 24:00
+     * y termina 1er sábado de abril 24:00. Ajustar si cambia la ley horaria. */
+    setenv("TZ", "<-04>4<-03>,M9.1.6/24,M4.1.6/24", 1);
+    tzset();
     power_modes_init();
     ui_theme_init();
     ESP_LOGI(TAG, "Modo inicial: %s, tema: %s",
@@ -728,6 +882,34 @@ void supaclock_app_run(void) {
         ESP_LOGI(TAG, "AD8232 DMA configurado (No iniciado, modo bajo consumo activo)");
     } else {
         ESP_LOGW(TAG, "AD8232 ausente");
+    }
+
+    /* Primera lectura sync de sensores → poblar app_state ANTES de que la UI
+     * arranque, así el watchface no muestra 0% batería / --°C / --- pasos
+     * por 2s hasta que el system_task haga su primera pasada. */
+    {
+        uint16_t bat_mv = 0;
+        float    bat_soc = 0.0f;
+        float    bat_crate = 0.0f;
+        float    temp_c = 0.0f;
+        max17048_get_voltage(&bat_mv);
+        max17048_get_soc(&bat_soc);
+        max17048_get_crate(&bat_crate);
+        max30205_read_temperature(&temp_c);
+
+        shared_sensor_data_t *sd = app_state_lock(50);
+        if (sd) {
+            sd->battery_mv       = bat_mv;
+            sd->battery_soc      = bat_soc;
+            sd->battery_crate    = bat_crate;
+            sd->battery_charging = (bat_crate > 1.0f);
+            sd->bat_updated_ms   = now_ms();
+            sd->temperature_c    = temp_c;
+            sd->temp_updated_ms  = now_ms();
+            app_state_unlock();
+        }
+        ESP_LOGI(TAG, "Primera lectura: bat=%d%% mv=%u crate=%.2f%%/h temp=%.1fC",
+                 (int)bat_soc, (unsigned)bat_mv, (double)bat_crate, (double)temp_c);
     }
 
     vTaskDelay(pdMS_TO_TICKS(1000));

@@ -118,12 +118,21 @@ static void btn_mode_cb(lv_event_t *e) {
 }
 
 static void btn_theme_cb(lv_event_t *e) {
+    /* Wrap-around dentro del rango mono (WHITE..CYAN). Si el valor previo
+     * viene fuera de rango (legacy), lo tratamos como WHITE. */
     ui_theme_id_t tid = ui_theme_get_id();
-    ui_theme_id_t next = (tid - UI_THEME_MONO_FIRST + 1) % 4 + UI_THEME_MONO_FIRST;
+    int idx;
+    if (tid < UI_THEME_MONO_FIRST || tid > UI_THEME_MONO_LAST) {
+        idx = 0;
+    } else {
+        idx = ((int)tid - UI_THEME_MONO_FIRST + 1) % 4;
+    }
+    ui_theme_id_t next = (ui_theme_id_t)(UI_THEME_MONO_FIRST + idx);
     ui_theme_set(next);
-    
-    /* Reconstruir la UI con los nuevos colores de forma instantánea */
-    ui_router_reset_all();
+
+    /* Restyle in-place: cada ruta se refresca vía on_theme_change (si lo
+     * implementa) o se destruye para lazy rebuild. Sin flicker global. */
+    ui_router_restyle_all();
 }
 
 static void btn_imutx_cb(lv_event_t *e) {

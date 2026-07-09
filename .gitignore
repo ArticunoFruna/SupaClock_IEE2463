@@ -22,10 +22,36 @@ sdkconfig.*
 build/
 managed_components/
 compile_commands.json
+dependencies.lock
 .venv/
+.venv-train/
 .python-version
 __pycache__/
 *.pyc
+*.pyo
+
+# Flutter / Dart / Gradle build artifacts (app/)
+app/build/
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.gradle/
+app/android/.gradle/
+app/android/app/build/
+app/android/build/
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework/
+app/ios/Flutter/Flutter.podspec
+app/pubspec.lock
+
+# Modelos entrenados: el .c del blob linkeado (lib/har_cnn1d/har_model.c) y
+# el .tflite source-of-truth SI se versionan (útil para reproducir builds).
+# Solo ignoramos el .cc auxiliar (20k+ líneas, redundante con el .c).
+tools/har_model*_data.cc
+
+# Scratchpad temporal de sesiones de Claude Code
+/tmp/claude-*/
 
 # Archivos temporales de Sistemas Operativos
 .DS_Store

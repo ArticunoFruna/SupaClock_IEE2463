@@ -11,6 +11,8 @@ typedef struct {
     float    temperature_c;
     uint16_t battery_mv;
     float    battery_soc;
+    float    battery_crate;      /* %/hora — positivo = cargando, negativo = descargando */
+    bool     battery_charging;   /* true si crate > CHARGE_THR (histéresis) */
     uint8_t  hr_bpm;
     uint8_t  spo2_pct;
     bool     finger_present;

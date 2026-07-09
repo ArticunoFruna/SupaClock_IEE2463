@@ -103,7 +103,11 @@ esp_err_t max17048_init(void) {
      *   - ActThr 0x30 (~60 mV):   sale de hibernate ante un cambio brusco de VCELL
      * Defaults conservadores recomendados por la app note de Maxim.
      */
-    max17048_set_hibernate(0x80, 0x30);
+    /* HibThr = 0x00 desactiva el auto-hibernate → CRATE actualiza cada 6.25 s
+     * en vez de cada 45 s. Costo: ~4 µA extra (despreciable frente a los
+     * ~10 µA totales del deep sleep). Necesario para que la detección de
+     * "cargando" responda rápido cuando el usuario conecta USB. */
+    max17048_set_hibernate(0x00, 0x30);
 
     /*
      * VRESET: El valor por defecto (0x96) puede causar PORs falsos en transitorios.

@@ -108,7 +108,9 @@ esp_err_t i2c_read_bytes(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
   i2c_cmd_link_delete(cmd);
 
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "I2C Read Failed - Dev Addr: 0x%02x, Reg: 0x%02x, Err: %s",
+    /* DEBUG level: los ESP_FAIL periódicos del touch en sleep (60/s) tapan
+     * los logs útiles. Cambiar a INFO temporalmente si hay un bug real de bus. */
+    ESP_LOGD(TAG, "I2C Read Failed - Dev Addr: 0x%02x, Reg: 0x%02x, Err: %s",
              dev_addr, reg_addr, esp_err_to_name(err));
   }
 

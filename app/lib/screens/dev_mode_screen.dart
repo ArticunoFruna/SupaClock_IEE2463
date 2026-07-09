@@ -243,22 +243,27 @@ class _DevModeScreenState extends State<DevModeScreen>
             onPressed: () async {
               if (_recorder.isRecording) {
                 var f = await _recorder.stop();
+                // El await pudo haber tomado suficiente tiempo como para que
+                // el usuario navegue fuera → widget disposed → setState crash.
+                // Todos los setState/showSnackBar deben chequear mounted.
+                if (!mounted) return;
                 setState(() {});
-                if (f != null && mounted) {
+                if (f != null) {
                   // Ground-truth de pasos para calibrar el pedómetro.
                   final steps = await _askSteps();
+                  if (!mounted) return;
                   if (steps != null) {
                     f = await _recorder.tagGroundTruthSteps(f, steps);
+                    if (!mounted) return;
                     setState(() {});
                   }
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Guardado: ${f.path.split('/').last}')),
-                    );
-                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Guardado: ${f.path.split('/').last}')),
+                  );
                 }
               } else {
                 await _recorder.startImu(label: _harLabel);
+                if (!mounted) return;
                 setState(() {});
               }
             },

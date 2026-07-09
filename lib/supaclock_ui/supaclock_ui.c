@@ -95,12 +95,17 @@ static void touch_read_cb(lv_indev_drv_t *drv, lv_indev_data_t *data) {
     data->point.y = t.y;
 
     /* Gesture edge-dispatch al router. */
-    if (t.gesture != 0 && t.gesture != s_last_gesture) {
+    bool gesture_edge = (t.gesture != 0 && t.gesture != s_last_gesture);
+    if (gesture_edge) {
         ui_router_deliver_gesture(t.gesture);
     }
     s_last_gesture = t.gesture;
 
-    if (t.pressed || t.gesture) ui_notify_touch_activity();
+    /* Actividad SOLO si el dedo está apoyado o si acaba de cambiar el gesture.
+     * ANTES: `t.pressed || t.gesture` → si el chip devuelve un gesture stale
+     * (mismo valor en cada poll), el flag se dispara a 60 Hz y el auto-off
+     * nunca vence porque `last_activity_ms` se resetea en cada gui_task cycle. */
+    if (t.pressed || gesture_edge) ui_notify_touch_activity();
 }
 
 /* ────── Public API ────── */

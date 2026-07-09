@@ -62,6 +62,11 @@ typedef struct {
     void        (*tick)(void);                /* llamado desde ui_tick si activa; nullable */
     bool        (*on_button)(int btn_evt);    /* nullable; return true = consumed */
     bool        (*on_gesture)(uint8_t g);     /* nullable; return true = consumed */
+    /** Opcional: al cambiar tema, se llama en TODAS las rutas registradas.
+     *  Si está definido, se espera que actualice colores in-place sin
+     *  destruir widgets. Si es NULL, el router destruye el screen para que
+     *  se reconstruya en la próxima visita (fallback lazy). */
+    void        (*on_theme_change)(void);
     const char *name;
 } ui_route_desc_t;
 
@@ -75,6 +80,12 @@ void ui_router_pop(ui_nav_anim_t anim);
 /** Vacía el stack y vuelve al watchface. */
 void ui_router_home(void);
 void ui_router_reset_all(void);
+
+/** Restyle post cambio de tema. Llama on_theme_change en cada ruta
+ *  registrada. Para rutas sin callback, destruye su screen construido
+ *  (lazy rebuild en la próxima visita) — si la ruta activa no tiene
+ *  callback, se reconstruye y se recarga preservando el stack. */
+void ui_router_restyle_all(void);
 
 ui_route_t ui_router_current(void);
 uint8_t    ui_router_depth(void);
