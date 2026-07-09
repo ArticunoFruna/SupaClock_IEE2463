@@ -156,16 +156,16 @@
     \scriptsize
     \centering
     \renewcommand{\arraystretch}{1.25}
-    \begin{tabular}{p{2.5cm}p{3.3cm}p{5.7cm}}
+    \begin{tabular}{p{3.0cm}p{8.2cm}}
         \toprule
-        \textbf{Función} & \textbf{Componente} & \textbf{Qué aporta} \\
+        \textbf{Función} & \textbf{Qué aporta} \\
         \midrule
-        Temperatura & MAX30205 & Medición de contacto piel-sensor. \\
-        BPM / SpO\textsubscript{2} & MAX30102 & Fotopletismografía roja/IR. \\
-        Pasos & BMI160 & Movimiento inercial y algoritmo local. \\
-        ML / HAR & ESP32-S3 + BMI160 & Clasificación de actividad física. \\
-        ECG & AD8232 + ADC/DMA & Señal analógica acondicionada y enviada a la app. \\
-        Interfaz & LCD táctil 1,28'' & Uso directo desde el reloj. \\
+        Temperatura & Medición de contacto piel-sensor. \\
+        BPM / SpO\textsubscript{2} & Medición óptica roja/IR para frecuencia cardíaca y saturación. \\
+        Pasos & Movimiento inercial procesado localmente. \\
+        ML / HAR & Clasificación de actividad física. \\
+        ECG & Señal analógica acondicionada y enviada a la app. \\
+        Interfaz & Uso directo desde el reloj mediante pantalla táctil. \\
         \bottomrule
     \end{tabular}
     \vspace{0.35cm}
@@ -200,6 +200,7 @@
         \begin{itemize}\itemsep0.12cm
             \item Carcasa impresa en 3D con PLA.
             \item PCB fabricada en China para mejorar integración.
+            \item Dimensiones finales: 1,7\,cm $\times$ 7,4\,cm $\times$ 9,3\,cm.
             \item Reducción de 28\,\% en el eje principal.
             \item Reducción de 36\,\% en volumen frente al prototipo inicial.
         \end{itemize}
@@ -211,7 +212,10 @@
         \centering
         \includegraphics[width=0.90\linewidth]{v3_sport_snap_exploded_3layers.png}
         \vspace{0.2cm}
-        \scriptsize PCB + sensores + batería + carcasa en una unidad cerrable.
+        \begin{minipage}{0.88\linewidth}
+            \centering
+            \scriptsize PCB, sensores, batería y carcasa en una unidad cerrable.
+        \end{minipage}
     \end{columns}
 \end{frame}
 
