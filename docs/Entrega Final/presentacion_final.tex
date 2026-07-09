@@ -1,0 +1,425 @@
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+\usetheme{focus}
+
+% Paleta SupaClock, consistente con Entrega 3 y Entrega 4
+\definecolor{main}{RGB}{57, 110, 184}
+\definecolor{background}{RGB}{255, 255, 255}
+\definecolor{accent}{RGB}{63, 185, 80}
+\definecolor{warn}{RGB}{218, 54, 51}
+\definecolor{softgray}{RGB}{245, 247, 250}
+\definecolor{darkink}{RGB}{23, 32, 51}
+\definecolor{muted}{RGB}{91, 102, 122}
+
+\setbeamercolor{alerted text}{fg=warn}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc, babel}
+
+\setbeamerfont{itemize/enumerate body}{size=\small}
+\setbeamerfont{itemize/enumerate subbody}{size=\footnotesize}
+\setbeamerfont{block body}{size=\footnotesize}
+\setbeamerfont{block title}{size=\small}
+
+\graphicspath{{./}{../Entrega4/}{../Entrega3/}{../../mechanical/renders_v3/}{../../mechanical/}{../../hardware/SupaClock_Carrier_v4/}}
+
+\newcommand{\metric}[2]{\textcolor{main}{\Large\textbf{#1}}\\[-0.02cm]{\scriptsize #2}}
+\newcommand{\chip}[1]{\tikz[baseline=(n.base)]\node[rounded corners=3pt, fill=main!10, draw=main!35, inner xsep=4pt, inner ysep=2pt] (n) {\scriptsize #1};}
+\newcommand{\demolabel}{\textcolor{accent}{\textbf{Demo}}}
+
+\title{Wearable ``SupaClock''}
+\subtitle{Prototipo integrado \textbar{} demo final}
+\date{\today}
+\author{Grupo 10}
+\institute{Ingeniería Eléctrica}
+\titlegraphic{\hfill\includegraphics[height=1.8cm]{logo.pdf}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Índice}
+    \tableofcontents
+\end{frame}
+
+% =============================================================================
+\section{SupaClock como producto}
+
+\begin{frame}{Idea principal: biometría útil, sin distracciones}
+    \begin{columns}[T]
+        \column{0.52\textwidth}
+        \footnotesize
+        \textbf{Problema que atacamos}
+        \begin{itemize}\itemsep0.13cm
+            \item Alta tasa de sedentarismo y sobrepeso en Chile.
+            \item Los relojes comerciales agregan muchas funciones no esenciales.
+            \item Falta una plataforma compacta para medir, registrar y validar datos propios.
+        \end{itemize}
+        \vspace{0.18cm}
+        \begin{block}{Enfoque SupaClock}
+            Wearable compacto, biométrico 5 en 1 y conectado a un ecosistema móvil.
+        \end{block}
+        \column{0.48\textwidth}
+        \centering
+        \includegraphics[width=0.90\linewidth]{supaclock_logo_e4.jpg}
+        \vspace{0.18cm}
+        \scriptsize \chip{cero distracciones}\quad \chip{datos propios}\quad \chip{uso diario}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Aplicación móvil: entrada al ecosistema}
+    \begin{columns}[T]
+        \column{0.48\textwidth}
+        \footnotesize
+        \textbf{Qué se muestra primero}
+        \begin{itemize}\itemsep0.12cm
+            \item Inicio de sesión y acceso a usuario.
+            \item Dashboard con métricas principales.
+            \item Navegación hacia mediciones y modo desarrollador.
+        \end{itemize}
+        \vspace{0.2cm}
+        \begin{block}{\demolabel}
+            Login, pantalla principal y navegación por la app.
+        \end{block}
+        \column{0.52\textwidth}
+        \centering
+        \includegraphics[width=0.31\linewidth]{app_home_e4.jpg}\hfill
+        \includegraphics[width=0.31\linewidth]{app_imu_e4.jpg}\hfill
+        \includegraphics[width=0.31\linewidth]{app_rec_e4.jpg}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Aplicación móvil: datos, BLE y registro}
+    \begin{columns}[T]
+        \column{0.55\textwidth}
+        \footnotesize
+        \begin{itemize}\itemsep0.13cm
+            \item Conexión BLE con el reloj.
+            \item Visualización de métricas y señales crudas.
+            \item Grabación local de sesiones para validación.
+            \item Puente hacia almacenamiento y análisis posterior.
+        \end{itemize}
+        \column{0.45\textwidth}
+        \begin{tikzpicture}[node distance=0.35cm, every node/.style={font=\scriptsize}]
+            \node[draw, rounded corners, fill=main!10, minimum width=3.7cm, minimum height=0.70cm] (watch) {SupaClock};
+            \node[draw, rounded corners, fill=accent!10, below=of watch, minimum width=3.7cm, minimum height=0.70cm] (app) {Flutter App};
+            \node[draw, rounded corners, fill=softgray, below=of app, minimum width=3.7cm, minimum height=0.70cm] (local) {CSV / historial local};
+            \node[draw, rounded corners, fill=softgray, below=of local, minimum width=3.7cm, minimum height=0.70cm] (cloud) {Firebase / dataset};
+            \draw[-{Latex[length=2mm]}, thick, main] (watch) -- node[right]{BLE} (app);
+            \draw[-{Latex[length=2mm]}, thick, accent] (app) -- (local);
+            \draw[-{Latex[length=2mm]}, thick, accent] (local) -- node[right]{sync} (cloud);
+        \end{tikzpicture}
+        \vspace{0.2cm}
+        \begin{block}{\demolabel}
+            Conectar, navegar, registrar y mostrar sesión.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Funciones del reloj}
+    \footnotesize
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \textbf{Biométricas y actividad}
+        \begin{itemize}\itemsep0.12cm
+            \item Temperatura corporal.
+            \item BPM y SpO\textsubscript{2}.
+            \item Contador de pasos.
+            \item ECG en reposo.
+            \item Clasificación ML de actividad.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \textbf{Orquestación}
+        \begin{itemize}\itemsep0.12cm
+            \item ESP32-S3 coordina sensores y tareas.
+            \item Pantalla LCD táctil capacitiva.
+            \item BLE comunica reloj y app.
+            \item Firmware modular por funciones.
+        \end{itemize}
+        \vspace{0.18cm}
+        \begin{block}{\demolabel}
+            Recorrer pantallas del reloj y mostrar mediciones disponibles.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Funciones disponibles: de sensor a dato útil}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{p{2.5cm}p{3.3cm}p{5.7cm}}
+        \toprule
+        \textbf{Función} & \textbf{Componente} & \textbf{Qué aporta} \\
+        \midrule
+        Temperatura & MAX30205 & Medición de contacto piel-sensor. \\
+        BPM / SpO\textsubscript{2} & MAX30102 & Fotopletismografía roja/IR. \\
+        Pasos & BMI160 & Movimiento inercial y algoritmo local. \\
+        ML / HAR & ESP32-S3 + BMI160 & Clasificación de actividad física. \\
+        ECG & AD8232 + ADC/DMA & Señal analógica acondicionada y enviada a la app. \\
+        Interfaz & LCD táctil 1,28'' & Uso directo desde el reloj. \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.35cm}
+    \begin{block}{Idea clave}
+        \scriptsize No es una lista de sensores: es una cadena completa de medición, procesamiento, visualización y registro.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Batería y autonomía}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{Puntos técnicos}
+        \begin{itemize}\itemsep0.12cm
+            \item Batería LiPo de 300\,mAh.
+            \item Carga y protección integradas en el módulo XIAO ESP32-S3.
+            \item Medición de batería para mostrar estado en app/reloj.
+            \item Autonomía dependiente del uso de pantalla, BLE y sensores.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \centering
+        \metric{300 mAh}{capacidad nominal}\\[0.55cm]
+        \metric{BLE + sensores}{modo de operación base}\\[0.55cm]
+        \metric{pantalla táctil}{principal consumo variable}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Carcasa, PCB y reducción de tamaño}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        \begin{itemize}\itemsep0.12cm
+            \item Carcasa impresa en 3D con PLA.
+            \item PCB fabricada en China para mejorar integración.
+            \item Reducción de 28\,\% en el eje principal.
+            \item Reducción de 36\,\% en volumen frente al prototipo inicial.
+        \end{itemize}
+        \vspace{0.15cm}
+        \begin{block}{Mensaje}
+            La carcasa define comodidad, contacto con piel y repetibilidad de las mediciones.
+        \end{block}
+        \column{0.50\textwidth}
+        \centering
+        \includegraphics[width=0.90\linewidth]{v3_sport_snap_exploded_3layers.png}
+        \vspace{0.2cm}
+        \scriptsize PCB + sensores + batería + carcasa en una unidad cerrable.
+    \end{columns}
+\end{frame}
+
+% =============================================================================
+\section{Especificaciones técnicas}
+
+\begin{frame}{Diagrama de alto nivel}
+    \centering
+    \resizebox{0.96\textwidth}{!}{%
+    \begin{tikzpicture}[
+        node distance=0.55cm and 0.95cm,
+        every node/.style={font=\scriptsize},
+        block/.style={rectangle, rounded corners, draw=black!70, thick, fill=softgray, align=center, text width=2.8cm, minimum height=0.82cm},
+        mcu/.style={rectangle, rounded corners, draw=black, thick, fill=main!18, align=center, text width=3.3cm, minimum height=1.05cm, font=\scriptsize\bfseries},
+        sensor/.style={rectangle, rounded corners, draw=black!70, thick, fill=accent!14, align=center, text width=2.8cm, minimum height=0.78cm},
+        bus/.style={-{Latex[length=2mm]}, thick},
+        iic/.style={-{Latex[length=2mm]}, thick, main},
+        spi/.style={-{Latex[length=2mm]}, thick, violet},
+        adc/.style={-{Latex[length=2mm]}, thick, orange!85!black},
+        ble/.style={-{Latex[length=2mm]}, thick, dashed, main}
+    ]
+        \node[mcu] (mcu) {XIAO ESP32-S3\\FreeRTOS + LVGL + ML};
+
+        \node[sensor, right=1.8cm of mcu, yshift=1.55cm] (temp) {MAX30205\\temperatura};
+        \node[sensor, below=0.22cm of temp] (ppg) {MAX30102\\BPM / SpO\textsubscript{2}};
+        \node[sensor, below=0.22cm of ppg] (imu) {BMI160\\pasos / HAR};
+        \node[sensor, below=0.22cm of imu] (ecg) {AD8232\\ECG};
+
+        \node[block, left=1.8cm of mcu, yshift=0.95cm] (lcd) {LCD táctil\\1,28''};
+        \node[block, below=0.25cm of lcd] (touch) {Touch capacitivo\\I2C};
+        \node[block, below=0.25cm of touch] (btn) {Botones\\GPIO};
+
+        \node[block, above=1.2cm of mcu] (pwr) {LiPo 300\,mAh\\carga/BMS XIAO};
+        \node[block, below=1.25cm of mcu] (ble) {BLE NimBLE};
+        \node[block, right=1.25cm of ble] (app) {App móvil\\Flutter};
+        \node[block, right=1.25cm of app] (data) {Registro\\dataset};
+
+        \draw[iic] (mcu.east) -- ++(0.45,0) |- node[near start, above]{I2C} (temp.west);
+        \draw[iic] (mcu.east) -- ++(0.45,0) |- (ppg.west);
+        \draw[iic] (mcu.east) -- ++(0.45,0) |- (imu.west);
+        \draw[adc] (mcu.east) -- ++(0.45,0) |- node[pos=0.72, below]{ADC/DMA} (ecg.west);
+
+        \draw[spi] (mcu.west) -- ++(-0.45,0) |- (lcd.east);
+        \draw[iic] (mcu.west) -- ++(-0.45,0) |- (touch.east);
+        \draw[bus] (btn.east) -- ++(0.45,0) |- (mcu.west);
+
+        \draw[bus] (pwr) -- (mcu);
+        \draw[ble] (mcu) -- (ble);
+        \draw[ble] (ble) -- (app);
+        \draw[bus] (app) -- (data);
+    \end{tikzpicture}}
+    \vspace{0.18cm}
+    \scriptsize Basado en el diagrama técnico de Entrega 3; se agrega pantalla táctil capacitiva por I2C.
+\end{frame}
+
+\begin{frame}{Componentes utilizados}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.18}
+    \begin{tabular}{p{3.1cm}p{3.0cm}p{5.8cm}}
+        \toprule
+        \textbf{Componente} & \textbf{Rol} & \textbf{Uso en SupaClock} \\
+        \midrule
+        Seeed XIAO ESP32-S3 & MCU & Control central, BLE, pantalla, ML y tareas FreeRTOS. \\
+        MAX17048 / fuel gauge & Batería & Estimación de carga y voltaje. \\
+        MAX30205 & Temperatura & Contacto térmico con la piel. \\
+        MAX30102 & BPM / SpO\textsubscript{2} & Sensor óptico rojo/IR. \\
+        AD8232 & ECG & Front-end analógico monocanal. \\
+        BMI160 & IMU & Pasos, movimiento y dataset HAR. \\
+        LCD táctil capacitivo 1,28'' & Interfaz & Visualización y control directo. \\
+        Batería LiPo & Energía & Alimentación portable del reloj. \\
+        \bottomrule
+    \end{tabular}
+\end{frame}
+
+\begin{frame}{Protocolos de comunicación en la PCB}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.20}
+    \begin{tabular}{p{2.2cm}p{3.4cm}p{5.9cm}}
+        \toprule
+        \textbf{Protocolo} & \textbf{Bloques} & \textbf{Uso principal} \\
+        \midrule
+        I2C & MAX30102, MAX30205, BMI160, fuel gauge, touch & Bus compartido de sensores y táctil. \\
+        SPI & LCD & Actualización rápida de pantalla. \\
+        ADC + DMA & AD8232 & Captura ECG continua sin bloquear CPU. \\
+        BLE & ESP32-S3 $\leftrightarrow$ app & Telemetría, señales y comandos. \\
+        GPIO & Botones / backlight & Entrada física y control de brillo. \\
+        BMS integrado & XIAO ESP32-S3 & Carga y protección de batería LiPo. \\
+        \bottomrule
+    \end{tabular}
+\end{frame}
+
+\begin{frame}{BPM y contador de pasos}
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{BPM / SpO\textsubscript{2}}
+        \begin{itemize}\itemsep0.12cm
+            \item MAX30102 con luz roja e infrarroja.
+            \item Lectura por I2C.
+            \item Filtro y validación por movimiento.
+        \end{itemize}
+        \column{0.50\textwidth}
+        \footnotesize
+        \textbf{Pasos}
+        \begin{itemize}\itemsep0.12cm
+            \item BMI160 como IMU principal.
+            \item Acelerómetro y giroscopio.
+            \item Algoritmo local en ESP32-S3.
+        \end{itemize}
+    \end{columns}
+    \vspace{0.25cm}
+    \begin{block}{Idea técnica}
+        \footnotesize El ESP32-S3 permite combinar adquisición, filtrado, BLE y ML en una sola placa compacta.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Decisiones de diseño relevantes}
+    \footnotesize
+    \begin{columns}[T]
+        \column{0.50\textwidth}
+        \begin{enumerate}\itemsep0.16cm
+            \item ESP32-C3 mini $\rightarrow$ XIAO ESP32-S3.
+            \item PCB fabricada en China.
+            \item Pantalla táctil capacitiva.
+            \item Machine Learning local.
+        \end{enumerate}
+        \column{0.50\textwidth}
+        \begin{block}{Por qué importan}
+            Más cómputo, mejor integración física, menos cableado y una interfaz más natural.
+        \end{block}
+        \vspace{0.15cm}
+        \begin{block}{Energía}
+            Carga/BMS integrado y buck DC-DC reducen complejidad externa.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Comparación con dispositivos comerciales}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.20}
+    \begin{tabular}{p{2.5cm}p{3.1cm}p{5.9cm}}
+        \toprule
+        \textbf{Dispositivo} & \textbf{Fortaleza} & \textbf{Diferencia de SupaClock} \\
+        \midrule
+        Apple Watch & Ecosistema maduro y sensores integrados. & Plataforma académica abierta y medible. \\
+        Garmin / deportivo & Autonomía y métricas de actividad. & Enfoque biométrico compacto y validable. \\
+        Oxímetro de dedo & BPM / SpO\textsubscript{2} puntual. & Integración con movimiento, app y registro. \\
+        ECG portátil & Señal ECG dedicada. & ECG dentro de un wearable multipropósito. \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.35cm}
+    \begin{block}{Posicionamiento}
+        \scriptsize SupaClock no busca competir como producto clínico certificado; busca demostrar integración, datos propios y validación reproducible.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Tabla de gastos referencial}
+    \scriptsize
+    \centering
+    \renewcommand{\arraystretch}{1.12}
+    \begin{tabular}{p{4.2cm}p{2.0cm}p{2.2cm}p{2.2cm}}
+        \toprule
+        \textbf{Ítem} & \textbf{Cant.} & \textbf{CLP aprox.} & \textbf{Rol} \\
+        \midrule
+        Seeed XIAO ESP32-S3 & 1 & 12.000 & MCU \\
+        MAX17048 / fuel gauge & 1 & 6.000 & batería \\
+        MAX30205 & 1 & 8.000 & temperatura \\
+        MAX30102 & 1 & 5.000 & BPM/SpO\textsubscript{2} \\
+        AD8232 & 1 & 5.000 & ECG \\
+        BMI160 & 1 & 4.000 & IMU \\
+        LCD táctil 1,28'' & 1 & 18.000 & interfaz \\
+        Batería LiPo 300\,mAh & 1 & 4.000 & energía \\
+        PCB fabricada & 1 & 15.000 & integración \\
+        Botones + misceláneos & 2+ & 2.000 & entrada \\
+        Filamento PLA & -- & 2.000 & carcasa \\
+        \midrule
+        \textbf{Total referencial} & & \textbf{81.000} & \\
+        \bottomrule
+    \end{tabular}
+    \vspace{0.18cm}
+    \begin{minipage}{0.82\textwidth}
+        \centering
+        \scriptsize Valores referenciales para presentar orden de magnitud; reemplazar por compras reales si se requiere cierre contable.
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Cierre}
+    \begin{columns}[T]
+        \column{0.52\textwidth}
+        \footnotesize
+        \textbf{Qué queda demostrado}
+        \begin{itemize}\itemsep0.13cm
+            \item Wearable compacto con biométricas integradas.
+            \item App móvil como interfaz y registrador.
+            \item PCB, carcasa y firmware trabajando como sistema.
+            \item Ruta clara para validar con usuarios y referencias.
+        \end{itemize}
+        \column{0.48\textwidth}
+        \centering
+        \includegraphics[width=0.88\linewidth]{v3_classic_exploded_3layers.png}
+        \vspace{0.18cm}
+        \begin{block}{Mensaje final}
+            SupaClock mide, comunica y registra: pasa de prototipo a plataforma validable.
+        \end{block}
+    \end{columns}
+\end{frame}
+
+\end{document}
