@@ -69,10 +69,14 @@ def main():
                                 labels=list(range(4)), zero_division=0))
 
     cm = confusion_matrix(y_val, y_pred, labels=list(range(4)))
+    
+    # Normalizar por fila (recall por clase)
+    cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True).clip(min=1)
+    
     fig, ax = plt.subplots(figsize=(6, 5))
-    disp = ConfusionMatrixDisplay(cm, display_labels=CLASS_NAMES)
-    disp.plot(ax=ax, cmap="Blues", colorbar=False, values_format="d")
-    ax.set_title(f"Matriz de confusión HAR — accuracy {acc*100:.1f}%")
+    disp = ConfusionMatrixDisplay(cm_norm, display_labels=CLASS_NAMES)
+    disp.plot(ax=ax, cmap="Blues", colorbar=False, values_format=".2f")
+    ax.set_title(f"Matriz de confusión HAR (normalizada) — accuracy {acc*100:.1f}%")
     ax.set_xlabel("Predicción")
     ax.set_ylabel("Etiqueta")
 
@@ -82,15 +86,8 @@ def main():
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     print(f"\nGuardado: {out_path}")
 
-    # También guardar versión normalizada por fila (recall visual).
-    cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True).clip(min=1)
-    fig2, ax2 = plt.subplots(figsize=(6, 5))
-    disp2 = ConfusionMatrixDisplay(cm_norm, display_labels=CLASS_NAMES)
-    disp2.plot(ax=ax2, cmap="Blues", colorbar=False, values_format=".2f")
-    ax2.set_title(f"Matriz de confusión HAR (normalizada) — acc {acc*100:.1f}%")
-    ax2.set_xlabel("Predicción"); ax2.set_ylabel("Etiqueta")
+    # También guardar en el path alternativo por compatibilidad
     out_norm = os.path.join(out_dir, "har_confusion_matrix_norm.png")
-    plt.tight_layout()
     plt.savefig(out_norm, dpi=150, bbox_inches="tight")
     print(f"Guardado: {out_norm}")
 

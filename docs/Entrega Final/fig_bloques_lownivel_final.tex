@@ -19,15 +19,14 @@
 % ============== INTERFAZ LOCAL (Izquierda) ==============
 \node[blockOK, left=2.2cm of mcu] (gc9a01) {GC9A01 1{,}28"\\\textbf{240$\times$240} IPS};
 \node[blockOK, above=0.3cm of gc9a01] (touch) {CST816S touch\\\textbf{cap.\ I2C}};
+\node[blockOK, above=0.4cm of touch] (fuel) {MAX17048\\Fuel gauge (I2C)};
 \node[blockOK, below=0.3cm of gc9a01] (gui) {GUI: watchface/tiles\\\textbf{panel + drawer}};
 
-% ============== ENERGÍA (Arriba a la izquierda) ==============
-\node[energy, left=0.6cm of gc9a01] (sgm40567) {Cargador SGM40567\\CC/CV 1\,A};
-\node[energy, above=0.3cm of sgm40567] (sgm6029) {Buck SGM6029\\3{,}3\,V rail};
-\node[blockOK, above=0.3cm of sgm6029] (fuel) {MAX17048\\Fuel gauge (I2C)};
-
-\node[energy, left=0.6cm of sgm40567] (usbc) {USB-C\\5\,V/500\,mA};
-\node[energy, above=0.6cm of usbc] (lipo) {LiPo 300\,mAh\\DW01A + PCM};
+% ============== ENERGÍA (Columna sobre el MCU) ==============
+\node[energy, above=0.6cm of mcu] (sgm6029) {Buck SGM6029\\3{,}3\,V rail};
+\node[energy, above=0.3cm of sgm6029] (sgm40567) {Cargador SGM40567\\CC/CV 1\,A};
+\node[energy, above=0.4cm of sgm40567, xshift=-1.7cm] (lipo) {LiPo 300\,mAh\\DW01A + PCM};
+\node[energy, above=0.4cm of sgm40567, xshift=1.7cm] (usbc) {USB-C\\5\,V/500\,mA};
 
 % ============== SENSORES I2C y ADC (Derecha) ==============
 \node[blockOK, right=2.2cm of mcu, yshift=1.8cm] (max205) {MAX30205 \textit{(0x48)}\\Temperatura piel};
@@ -35,32 +34,32 @@
 \node[blockOK, below=0.3cm of bmi] (max102) {MAX30102 \textit{(0x57)}\\PPG RED+IR};
 \node[blockOK, below=0.3cm of max102] (ad8232) {AD8232 + ADC/DMA\\500\,Hz \textit{(GPIO1)}};
 
-% ============== ECOSISTEMA (Abajo) ==============
-\node[blockOK, below=1.8cm of mcu] (ble) {BLE NimBLE\\4 GATT chr.};
-\node[blockML, right=0.8cm of ble] (har) {HAR CNN 1D\\TFLite Micro};
-\node[blockOK, right=0.8cm of har] (fb) {Firebase Firestore\\gzip Blob + rollups};
+% ============== ECOSISTEMA (Abajo, Desplazado a la Izquierda) ==============
+\node[blockOK, below=1.6cm of mcu, xshift=-1.5cm] (ble) {BLE NimBLE\\4 GATT chr.};
+\node[blockML, right=1.1cm of ble] (har) {HAR CNN 1D\\TFLite Micro};
 
-\node[blockOK, below=0.6cm of ble] (app) {App m\'ovil Flutter\\dashboard + hist.};
-\node[blockOK, right=0.8cm of app] (carrier) {PCB Carrier v4\\LPKF FabLab};
-\node[blockOK, right=0.8cm of carrier] (pantomp) {Pan-Tompkins\\app-side};
+\node[blockOK, below=0.8cm of ble] (app) {App m\'ovil Flutter\\dashboard + hist.};
+\node[blockOK, right=1.1cm of app] (pantomp) {Pan-Tompkins\\app-side};
+
+\node[blockOK, below=0.8cm of app] (fb) {Firebase Firestore\\gzip Blob + rollups};
 
 % ============== Conexiones de potencia ==============
-\draw[pwr] (usbc) -- (sgm40567);
-\draw[pwr] (lipo) -- (sgm40567);
-\draw[pwr] (lipo) -- (fuel);
+\draw[pwr] (usbc.south) -| ([xshift=0.5cm]sgm40567.north);
+\draw[pwr] (lipo.south) -| ([xshift=-0.5cm]sgm40567.north);
+\draw[pwr] (lipo.west) -| (fuel.north);
 \draw[pwr] (sgm40567) -- (sgm6029);
-\draw[pwr] (sgm6029.west) -- ++(-0.2,0) |- ([yshift=0.4cm]fuel.north) -| ([xshift=-1.2cm]mcu.north);
+\draw[pwr] (sgm6029) -- (mcu);
 
 % ============== Conexiones I2C ==============
-\draw[busI2C] (fuel.east) -| ([xshift=-0.6cm]mcu.north);
+\draw[busI2C] (fuel.east) -| ([xshift=-1.5cm]mcu.north);
 
-% Enrutamiento ortogonal tipo "bus" para alinear sensores de la derecha
-\draw[busI2C] (max205.west) -- ++(-0.6,0) |- node[right, pos=0.25, font=\tiny]{I$^2$C 400\,kHz} ([yshift=0.5cm]mcu.east);
-\draw[busI2C] (bmi.west)    -- ++(-0.6,0) |- ([yshift=0.15cm]mcu.east);
-\draw[busI2C] (max102.west) -- ++(-0.6,0) |- ([yshift=-0.2cm]mcu.east);
+% Enrutamiento ortogonal tipo "bus" para alinear sensores de la derecha (evitando cruces)
+\draw[busI2C] (max205.west) -- ++(-0.7,0) |- node[right, pos=0.25, font=\tiny]{I$^2$C 400\,kHz} ([yshift=0.5cm]mcu.east);
+\draw[busI2C] (bmi.west)    -- ++(-0.5,0) |- ([yshift=0.15cm]mcu.east);
+\draw[busI2C] (max102.west) -- ++(-0.5,0) |- ([yshift=-0.2cm]mcu.east);
 
 % ============== Conexiones ADC ==============
-\draw[adc] (ad8232.west) -- ++(-0.6,0) |- node[below, pos=0.75, font=\tiny]{ADC1 500\,Hz} ([yshift=-0.55cm]mcu.east);
+\draw[adc] (ad8232.west) -- ++(-0.7,0) |- node[below, pos=0.75, font=\tiny]{ADC1 500\,Hz} ([yshift=-0.55cm]mcu.east);
 
 % ============== Conexiones SPI/GPIO ==============
 \draw[busSPI] (mcu.west) -- node[above]{SPI 40\,MHz} (gc9a01.east);
@@ -68,13 +67,15 @@
 \draw[gpio] (gui.east) -- ++(0.3,0) |- ([yshift=-0.35cm]mcu.west);
 
 % ============== Ecosistema ==============
-\draw[ble] (mcu) -- (ble);
-\draw[gpio] (mcu.south east) -- node[right, font=\tiny]{core 1} (har.north);
-\draw[ble] (ble) -- node[above, font=\tiny, align=center]{GATT\\4 chr.} (app);
-\draw[gpio, ->] (app.south) -- ++(0,-0.4) -| (fb.south);
+\draw[ble] ([xshift=-1.5cm]mcu.south) -- (ble.north);
+\draw[gpio] ([xshift=1.5cm]mcu.south) -- node[right, font=\fontsize{5}{6}\selectfont]{core 1} ([xshift=-1.0cm]har.north);
+\draw[ble] (ble) -- node[left, font=\tiny, align=center]{GATT\\4 chr.} (app);
+\draw[gpio] (app) -- node[above, pos=0.5, font=\fontsize{5}{6}\selectfont]{raw ECG} (pantomp);
+\draw[gpio] (app) -- node[left, font=\tiny]{telemetr\'ia} (fb);
+\draw[gpio] (pantomp.south) |- node[above, pos=0.6, font=\fontsize{5}{6}\selectfont]{HR/HRV} (fb.east);
 
 % ============== Leyenda ==============
-\node[legend, below=1.3cm of pantomp] (leg) {%
+\node[legend, below=0.6cm of fb] (leg) {%
 \begin{tabular}{ll}
 \textcolor{green!50!black}{$\blacksquare$} Listo &
 \textcolor{red!70}{\textbf{$\rightarrow$}} Potencia \\

@@ -3,20 +3,20 @@
     stagebox/.style={rectangle, rounded corners=3pt, draw=black!70, thick, fill=blue!12, text width=1.9cm, align=center, minimum height=0.9cm},
     cnnbox/.style={rectangle, rounded corners=3pt, draw=black!70, thick, fill=green!15, text width=1.9cm, align=center, minimum height=0.9cm},
     outbox/.style={rectangle, rounded corners=3pt, draw=black!70, thick, fill=orange!22, text width=1.9cm, align=center, minimum height=0.9cm},
-    dims/.style={font=\tiny\itshape, color=black!55},
+    dims/.style={font=\fontsize{5}{6}\selectfont\itshape, color=black!55, inner sep=0.5pt},
     flow/.style={->, >=stealth, thick, black!70},
     group/.style={draw=black!35, dashed, thick, rounded corners=6pt, inner sep=8pt}
 ]
 
-% Fila de nodos horizontal
+% Fila de nodos horizontal (más separados entre bloques conceptuales para evitar cruce de líneas punteadas)
 \node[stagebox] (in)   {Entrada\\IMU 6ch};
-\node[cnnbox, right=0.35cm of in]   (c1) {Conv1D\\32 $\times$ 5};
+\node[cnnbox, right=0.55cm of in]   (c1) {Conv1D\\32 $\times$ 5};
 \node[cnnbox, right=0.35cm of c1]   (p1) {MaxPool\\/2};
-\node[cnnbox, right=0.35cm of p1]   (c2) {Conv1D\\64 $\times$ 5};
+\node[cnnbox, right=0.75cm of p1]   (c2) {Conv1D\\64 $\times$ 5};
 \node[cnnbox, right=0.35cm of c2]   (p2) {MaxPool\\/2};
-\node[cnnbox, right=0.35cm of p2]   (c3) {Conv1D\\128 $\times$ 3};
+\node[cnnbox, right=0.75cm of p2]   (c3) {Conv1D\\128 $\times$ 3};
 \node[cnnbox, right=0.35cm of c3]   (gap) {GAP};
-\node[cnnbox, right=0.35cm of gap]  (fc)  {Dense\\64};
+\node[cnnbox, right=0.75cm of gap]  (fc)  {Dense\\64};
 \node[outbox, right=0.35cm of fc]   (out) {Softmax\\4 clases};
 
 % Flechas
@@ -24,16 +24,16 @@
     \draw[flow] (\a) -- (\b);
 }
 
-% Anotaciones de forma tensorial
-\node[dims, below=0.06cm of in]   {200$\times$6};
-\node[dims, below=0.06cm of c1]   {200$\times$32};
-\node[dims, below=0.06cm of p1]   {100$\times$32};
-\node[dims, below=0.06cm of c2]   {100$\times$64};
-\node[dims, below=0.06cm of p2]   {50$\times$64};
-\node[dims, below=0.06cm of c3]   {50$\times$128};
-\node[dims, below=0.06cm of gap]  {128};
-\node[dims, below=0.06cm of fc]   {64};
-\node[dims, below=0.06cm of out]  {4};
+% Anotaciones de forma tensorial (subidas un poco a below=0.01cm para que no se crucen con la línea punteada)
+\node[dims, below=0.01cm of in]   {200$\times$6};
+\node[dims, below=0.01cm of c1]   {200$\times$32};
+\node[dims, below=0.01cm of p1]   {100$\times$32};
+\node[dims, below=0.01cm of c2]   {100$\times$64};
+\node[dims, below=0.01cm of p2]   {50$\times$64};
+\node[dims, below=0.01cm of c3]   {50$\times$128};
+\node[dims, below=0.01cm of gap]  {128};
+\node[dims, below=0.01cm of fc]   {64};
+\node[dims, below=0.01cm of out]  {4};
 
 % Agrupamientos por bloque conceptual
 \begin{scope}[on background layer]

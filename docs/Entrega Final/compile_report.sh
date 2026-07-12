@@ -3,6 +3,9 @@
 
 set -e
 
+# Asegura que el script se ejecute en la carpeta donde está guardado
+cd "$(dirname "$0")"
+
 echo "=== Paso 1: pdflatex ==="
 pdflatex -interaction=nonstopmode informe_final.tex
 
