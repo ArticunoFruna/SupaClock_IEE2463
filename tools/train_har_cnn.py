@@ -162,29 +162,29 @@ def build_model():
     """ Construye una arquitectura CNN 1D más robusta y de mayor capacidad para el ESP32-S3 """
     model = models.Sequential([
         layers.InputLayer(input_shape=(WINDOW_SIZE, NUM_CHANNELS)),
-        
+
         # Capa Convolucional 1 (32 filtros, kernel 5 para mayor campo receptivo temporal)
         layers.Conv1D(filters=32, kernel_size=5, activation='relu', padding='same'),
         layers.MaxPooling1D(pool_size=2),
-        
+
         # Capa Convolucional 2 (64 filtros, kernel 5)
         layers.Conv1D(filters=64, kernel_size=5, activation='relu', padding='same'),
         layers.MaxPooling1D(pool_size=2),
 
         # Capa Convolucional 3 (128 filtros, kernel 3)
         layers.Conv1D(filters=128, kernel_size=3, activation='relu', padding='same'),
-        
+
         # Global Average Pooling (GAP) - Reduce la dimensión temporal
         layers.GlobalAveragePooling1D(),
-        
+
         # Capa Densa intermedia para aprender combinaciones de características no lineales
         layers.Dense(64, activation='relu'),
         layers.Dropout(0.3),
-        
+
         # Capa Densa Final (Softmax)
         layers.Dense(len(CLASSES), activation='softmax')
     ])
-    
+
     model.compile(optimizer='adam',
                   loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])

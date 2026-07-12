@@ -1,0 +1,39 @@
+\begin{tikzpicture}[
+    every node/.style={font=\scriptsize},
+    core/.style={rectangle, rounded corners=4pt, draw=black!70, thick, fill=blue!8, minimum width=6.2cm, minimum height=4.6cm, align=center},
+    task/.style={rectangle, rounded corners=3pt, draw=black!70, very thick, fill=green!18, text width=2.5cm, align=center, minimum height=0.9cm},
+    taskcpu1/.style={rectangle, rounded corners=3pt, draw=black!70, very thick, fill=orange!22, text width=2.5cm, align=center, minimum height=0.9cm},
+    q/.style={->, >=stealth, thick, blue!70!black},
+    n/.style={->, >=stealth, thick, teal!60!black},
+    label/.style={font=\tiny}
+]
+
+% Contenedores por núcleo
+\node[core] (c0) at (0,0) {};
+\node[label, above=0.1cm of c0.north] {\textbf{Core 0 --- Wi-Fi/BLE/UI}};
+
+\node[core] (c1) at (7.5,0) {};
+\node[label, above=0.1cm of c1.north] {\textbf{Core 1 --- ML}};
+
+% Tareas en Core 0
+\node[task] (imu) at (c0.north) [yshift=-0.9cm] {\texttt{imu\_task}\\prio 5, 50\,Hz};
+\node[task, below=0.3cm of imu] (ecg) {\texttt{ecg\_task}\\prio 5, 500\,Hz};
+\node[task, below=0.3cm of ecg] (ble) {\texttt{ble\_task}\\prio 4};
+\node[task, below=0.3cm of ble] (ppg) {\texttt{ppg\_task}\\prio 4, 100\,Hz};
+\node[task, below=0.3cm of ppg] (lvgl) {\texttt{lvgl\_task}\\prio 3};
+
+% Tarea en Core 1
+\node[taskcpu1] (har) at (c1.center) {\texttt{har\_task}\\prio 4\\ventana 4\,s / hop 2\,s};
+
+% Flujo de muestras IMU -> HAR (via push_sample + notify)
+\draw[q] (imu.east) -- ++(0.6,0) node[above, label]{\texttt{push\_sample()}} -- (har.west);
+\draw[n] (imu.east) ++(0.6,-0.4) -- ++(0.6,-0.4) node[right, label]{\texttt{xTaskNotifyGive} cada HOP};
+
+% Buses de salida
+\node[task, right=1.6cm of har, yshift=1.4cm] (heap) {Arena TFLite\\512\,KB PSRAM};
+\draw[q, dashed] (har) -- (heap);
+
+\node[task, below=0.8cm of har] (cb) {\texttt{har\_result\_cb}\\a UI + BLE};
+\draw[q] (har.south) -- (cb.north);
+
+\end{tikzpicture}

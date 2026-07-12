@@ -1,0 +1,46 @@
+\begin{tikzpicture}[
+    every node/.style={font=\scriptsize},
+    stagebox/.style={rectangle, rounded corners=3pt, draw=black!70, thick, fill=blue!12, text width=1.9cm, align=center, minimum height=0.9cm},
+    cnnbox/.style={rectangle, rounded corners=3pt, draw=black!70, thick, fill=green!15, text width=1.9cm, align=center, minimum height=0.9cm},
+    outbox/.style={rectangle, rounded corners=3pt, draw=black!70, thick, fill=orange!22, text width=1.9cm, align=center, minimum height=0.9cm},
+    dims/.style={font=\tiny\itshape, color=black!55},
+    flow/.style={->, >=stealth, thick, black!70},
+    group/.style={draw=black!35, dashed, thick, rounded corners=6pt, inner sep=8pt}
+]
+
+% Fila de nodos horizontal
+\node[stagebox] (in)   {Entrada\\IMU 6ch};
+\node[cnnbox, right=0.35cm of in]   (c1) {Conv1D\\32 $\times$ 5};
+\node[cnnbox, right=0.35cm of c1]   (p1) {MaxPool\\/2};
+\node[cnnbox, right=0.35cm of p1]   (c2) {Conv1D\\64 $\times$ 5};
+\node[cnnbox, right=0.35cm of c2]   (p2) {MaxPool\\/2};
+\node[cnnbox, right=0.35cm of p2]   (c3) {Conv1D\\128 $\times$ 3};
+\node[cnnbox, right=0.35cm of c3]   (gap) {GAP};
+\node[cnnbox, right=0.35cm of gap]  (fc)  {Dense\\64};
+\node[outbox, right=0.35cm of fc]   (out) {Softmax\\4 clases};
+
+% Flechas
+\foreach \a/\b in {in/c1, c1/p1, p1/c2, c2/p2, p2/c3, c3/gap, gap/fc, fc/out} {
+    \draw[flow] (\a) -- (\b);
+}
+
+% Anotaciones de forma tensorial
+\node[dims, below=0.06cm of in]   {200$\times$6};
+\node[dims, below=0.06cm of c1]   {200$\times$32};
+\node[dims, below=0.06cm of p1]   {100$\times$32};
+\node[dims, below=0.06cm of c2]   {100$\times$64};
+\node[dims, below=0.06cm of p2]   {50$\times$64};
+\node[dims, below=0.06cm of c3]   {50$\times$128};
+\node[dims, below=0.06cm of gap]  {128};
+\node[dims, below=0.06cm of fc]   {64};
+\node[dims, below=0.06cm of out]  {4};
+
+% Agrupamientos por bloque conceptual
+\begin{scope}[on background layer]
+    \node[group, fit=(c1)(p1), label={[font=\tiny\bfseries]below:Bloque 1: extracci\'on local}] {};
+    \node[group, fit=(c2)(p2), label={[font=\tiny\bfseries]below:Bloque 2: temporal medio}] {};
+    \node[group, fit=(c3)(gap), label={[font=\tiny\bfseries]below:Bloque 3: alto nivel}] {};
+    \node[group, fit=(fc)(out), label={[font=\tiny\bfseries]below:Clasificador denso}] {};
+\end{scope}
+
+\end{tikzpicture}

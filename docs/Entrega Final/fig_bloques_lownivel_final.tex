@@ -1,0 +1,88 @@
+\begin{tikzpicture}[
+    node distance=0.6cm and 0.9cm,
+    every node/.style={font=\scriptsize},
+    blockOK/.style={rectangle, rounded corners, draw=black!70, very thick, fill=green!22, text width=2.9cm, align=center, minimum height=0.95cm},
+    blockML/.style={rectangle, rounded corners, draw=black!70, very thick, fill=green!35, text width=2.9cm, align=center, minimum height=0.95cm},
+    energy/.style={rectangle, rounded corners, draw=black!70, very thick, fill=orange!22, text width=2.6cm, align=center, minimum height=0.9cm},
+    mcu/.style={rectangle, rounded corners, draw=black, very thick, fill=blue!22, text width=3.6cm, align=center, minimum height=1.5cm, font=\small\bfseries},
+    busI2C/.style={->, >=stealth, thick, blue!70!black},
+    busSPI/.style={->, >=stealth, thick, violet!80!black},
+    adc/.style={->, >=stealth, thick, orange!85!black},
+    gpio/.style={->, >=stealth, thick, teal!70!black},
+    ble/.style={->, >=stealth, thick, dashed, blue!60},
+    pwr/.style={->, >=stealth, thick, red!70},
+    legend/.style={rectangle, draw=black!50, fill=white, inner sep=4pt}
+]
+% ============== MCU (Centro) ==============
+\node[mcu] (mcu) {XIAO ESP32-S3\\FreeRTOS + LVGL 8.4\\\textbf{On-device inference}};
+
+% ============== INTERFAZ LOCAL (Izquierda) ==============
+\node[blockOK, left=2.2cm of mcu] (gc9a01) {GC9A01 1{,}28"\\\textbf{240$\times$240} IPS};
+\node[blockOK, above=0.3cm of gc9a01] (touch) {CST816S touch\\\textbf{cap.\ I2C}};
+\node[blockOK, below=0.3cm of gc9a01] (gui) {GUI: watchface/tiles\\\textbf{panel + drawer}};
+
+% ============== ENERGÍA (Arriba a la izquierda) ==============
+\node[energy, left=0.6cm of gc9a01] (sgm40567) {Cargador SGM40567\\CC/CV 1\,A};
+\node[energy, above=0.3cm of sgm40567] (sgm6029) {Buck SGM6029\\3{,}3\,V rail};
+\node[blockOK, above=0.3cm of sgm6029] (fuel) {MAX17048\\Fuel gauge (I2C)};
+
+\node[energy, left=0.6cm of sgm40567] (usbc) {USB-C\\5\,V/500\,mA};
+\node[energy, above=0.6cm of usbc] (lipo) {LiPo 300\,mAh\\DW01A + PCM};
+
+% ============== SENSORES I2C y ADC (Derecha) ==============
+\node[blockOK, right=2.2cm of mcu, yshift=1.8cm] (max205) {MAX30205 \textit{(0x48)}\\Temperatura piel};
+\node[blockOK, below=0.3cm of max205] (bmi) {BMI160 IMU \textit{(0x68)}\\FIFO 50\,Hz};
+\node[blockOK, below=0.3cm of bmi] (max102) {MAX30102 \textit{(0x57)}\\PPG RED+IR};
+\node[blockOK, below=0.3cm of max102] (ad8232) {AD8232 + ADC/DMA\\500\,Hz \textit{(GPIO1)}};
+
+% ============== ECOSISTEMA (Abajo) ==============
+\node[blockOK, below=1.8cm of mcu] (ble) {BLE NimBLE\\4 GATT chr.};
+\node[blockML, right=0.8cm of ble] (har) {HAR CNN 1D\\TFLite Micro};
+\node[blockOK, right=0.8cm of har] (fb) {Firebase Firestore\\gzip Blob + rollups};
+
+\node[blockOK, below=0.6cm of ble] (app) {App m\'ovil Flutter\\dashboard + hist.};
+\node[blockOK, right=0.8cm of app] (carrier) {PCB Carrier v4\\LPKF FabLab};
+\node[blockOK, right=0.8cm of carrier] (pantomp) {Pan-Tompkins\\app-side};
+
+% ============== Conexiones de potencia ==============
+\draw[pwr] (usbc) -- (sgm40567);
+\draw[pwr] (lipo) -- (sgm40567);
+\draw[pwr] (lipo) -- (fuel);
+\draw[pwr] (sgm40567) -- (sgm6029);
+\draw[pwr] (sgm6029.west) -- ++(-0.2,0) |- ([yshift=0.4cm]fuel.north) -| ([xshift=-1.2cm]mcu.north);
+
+% ============== Conexiones I2C ==============
+\draw[busI2C] (fuel.east) -| ([xshift=-0.6cm]mcu.north);
+
+% Enrutamiento ortogonal tipo "bus" para alinear sensores de la derecha
+\draw[busI2C] (max205.west) -- ++(-0.6,0) |- node[right, pos=0.25, font=\tiny]{I$^2$C 400\,kHz} ([yshift=0.5cm]mcu.east);
+\draw[busI2C] (bmi.west)    -- ++(-0.6,0) |- ([yshift=0.15cm]mcu.east);
+\draw[busI2C] (max102.west) -- ++(-0.6,0) |- ([yshift=-0.2cm]mcu.east);
+
+% ============== Conexiones ADC ==============
+\draw[adc] (ad8232.west) -- ++(-0.6,0) |- node[below, pos=0.75, font=\tiny]{ADC1 500\,Hz} ([yshift=-0.55cm]mcu.east);
+
+% ============== Conexiones SPI/GPIO ==============
+\draw[busSPI] (mcu.west) -- node[above]{SPI 40\,MHz} (gc9a01.east);
+\draw[gpio] (touch.east) -- ++(0.4,0) |- node[above, pos=0.8, font=\tiny]{I$^2$C+INT} ([yshift=0.4cm]mcu.west);
+\draw[gpio] (gui.east) -- ++(0.3,0) |- ([yshift=-0.35cm]mcu.west);
+
+% ============== Ecosistema ==============
+\draw[ble] (mcu) -- (ble);
+\draw[gpio] (mcu.south east) -- node[right, font=\tiny]{core 1} (har.north);
+\draw[ble] (ble) -- node[above, font=\tiny, align=center]{GATT\\4 chr.} (app);
+\draw[gpio, ->] (app.south) -- ++(0,-0.4) -| (fb.south);
+
+% ============== Leyenda ==============
+\node[legend, below=1.3cm of pantomp] (leg) {%
+\begin{tabular}{ll}
+\textcolor{green!50!black}{$\blacksquare$} Listo &
+\textcolor{red!70}{\textbf{$\rightarrow$}} Potencia \\
+\textcolor{green!60!black}{$\blacksquare$} ML on-device &
+\textcolor{blue!70!black}{$\rightarrow$} I$^2$C 400\,kHz \\
+\textcolor{orange!70!black}{$\blacksquare$} Energ\'ia &
+\textcolor{violet!80!black}{$\rightarrow$} SPI 40\,MHz \\
+\textcolor{blue!60}{$\dashrightarrow$} BLE/Wi-Fi &
+\textcolor{orange!85!black}{$\rightarrow$} ADC/DMA \\
+\end{tabular}};
+\end{tikzpicture}
